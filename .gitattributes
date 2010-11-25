@@ -863,7 +863,6 @@ engine/src/site/apt/index.apt -text
 engine/src/site/site.xml svneol=native#text/plain
 gallery/common/pom.xml svneol=native#text/plain
 gallery/common/src/main/java/org/hippoecm/repository/gallery/GalleryWorkflow.java -text
-gallery/frontend/NOTICE.txt -text svneol=unset#text/plain
 gallery/frontend/pom.xml svneol=native#text/plain
 gallery/frontend/src/main/java/META-INF/services/javax.imageio.spi.ImageWriterSpi -text
 gallery/frontend/src/main/java/org/hippoecm/frontend/plugins/gallery/AssetGalleryPlugin.css -text
@@ -1920,8 +1919,6 @@ xinha-resources/webResources/xinha/skins/hippo-lite/skin.xml svneol=native#text/
 xinha-test/README.txt svneol=native#text/plain
 xinha-test/src/test/resources/log4j.dtd svneol=native#text/plain
 xinha-test/src/test/resources/log4j.xml svneol=native#text/plain
-yui/LICENSE.txt svneol=native#text/plain
-yui/NOTICE.txt svneol=native#text/plain
 yui/pom.xml -text
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/AjaxSettings.java -text
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/HippoNamespace.java -text svneol=unset#text/plain
