@@ -15,19 +15,34 @@
  */
 package org.hippoecm.frontend.editor.plugins.resource;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import org.apache.commons.io.IOUtils;
+import org.apache.jackrabbit.JcrConstants;
+import org.apache.tika.config.TikaConfig;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.utils.ParseUtils;
+import org.hippoecm.repository.api.HippoNodeType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.util.Calendar;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.ValueFactory;
 
+/**
+ * Resource helper for creating and validating nodes of type <code>hippo:resource</code>
+ */
 public class ResourceHelper {
     @SuppressWarnings("unused")
     private final static String SVN_ID = "$Id$";
 
     public static final String MIME_IMAGE_PJPEG = "image/pjpeg";
     public static final String MIME_IMAGE_JPEG = "image/jpeg";
+    public static final String MIME_TYPE_PDF = "application/pdf";
+
+    static final Logger log = LoggerFactory.getLogger(ResourceHelper.class);
 
     private ResourceHelper() {
     }
@@ -80,6 +95,78 @@ public class ResourceHelper {
         } catch (IOException ex) {
             throw new ResourceException("impermissable unknown type content");
         }
+    }
+
+    /**
+     * Set the default 'hippo:resource' properties:
+     * <ul>
+     *   <li>jcr:mimeType</li>
+     *   <li>jcr:data</li>
+     *   <li>jcr:lastModified</li>
+     * </ul>
+     *
+     * @param node the {@link Node} on which to set the properties
+     * @param mimeType the mime-type of the binary data (e.g. <i>application/pdf</i>, <i>image/jpeg</i>)
+     * @param inputStream the data stream. Once the properties have been set the input stream will be closed.
+     *
+     * @throws RepositoryException exception thrown when one of the properties or values could not be set
+     */
+    public static void setDefaultResourceProperties(Node node, String mimeType, InputStream inputStream) throws RepositoryException {
+        try{
+            node.setProperty(JcrConstants.JCR_MIMETYPE, mimeType);
+            node.setProperty(JcrConstants.JCR_DATA, getValueFactory(node).createBinary(inputStream));
+            node.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+        } finally {
+            IOUtils.closeQuietly(inputStream);
+        }
+    }
+
+    /**
+     * Handles the {@link InputStream} and extract text content from the PDF and sets it as a binary type property on the
+     * resource node. Once the property has been set the input stream will be closed.
+     *
+     * @param node the {@link Node} on which to set the '{@value org.hippoecm.repository.api.HippoNodeType#HIPPO_TEXT}' property
+     * @param inputStream data stream
+     */
+    public static void handlePdfAndSetHippoTextProperty(Node node, InputStream inputStream) {
+        ByteArrayInputStream byteInputStream = null;
+        try {
+            String content = ParseUtils.getStringContent(inputStream, getTikaConfig(), MIME_TYPE_PDF);
+            byteInputStream = new ByteArrayInputStream(content.getBytes());
+            node.setProperty(HippoNodeType.HIPPO_TEXT, getValueFactory(node).createBinary(byteInputStream));
+        } catch (IOException e) {
+            log.warn("An exception has occurred while trying to create inputstream based on " +
+                        "extracted text: {} ",e);
+        } catch (RepositoryException e) {
+            log.warn("An exception occurred while trying to set property with extracted text: {}: ",e);
+        } catch (TikaException e) {
+            log.warn("An exception occurred while trying to set Tika configuration: {}: ",e);
+        } finally {
+            IOUtils.closeQuietly(byteInputStream);
+            IOUtils.closeQuietly(inputStream);
+        }
+    }
+
+    /**
+     * Gets the default Tika Configuration
+     *
+     * @return the {@link org.apache.tika.config.TikaConfig}
+     */
+    private static TikaConfig getTikaConfig(){
+        return TikaConfig.getDefaultConfig();
+    }
+
+    /**
+     * Gets the {@link javax.jcr.ValueFactory} from the {@link javax.jcr.Session}
+     *
+     * @param node the {@link Node} from which to get the {@link javax.jcr.Session}
+     *
+     * @return a {@link javax.jcr.ValueFactory}
+     *
+     * @throws RepositoryException In case something goes wrong while trying to get the {@link javax.jcr.Session} or {@link javax.jcr.ValueFactory}
+     */
+    public static ValueFactory getValueFactory(Node node) throws RepositoryException {
+        return node.getSession().getValueFactory();
     }
 
 }
