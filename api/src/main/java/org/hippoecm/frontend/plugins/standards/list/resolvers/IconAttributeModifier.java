@@ -22,14 +22,13 @@ import javax.jcr.RepositoryException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.model.LoadableDetachableModel;
-import org.apache.wicket.model.Model;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class IconAttributeModifier extends AbstractNodeAttributeModifier {
+public class IconAttributeModifier extends BaseIconAttributeModifier {
     @SuppressWarnings("unused")
     private final static String SVN_ID = "$Id$";
 
@@ -114,11 +113,6 @@ public class IconAttributeModifier extends AbstractNodeAttributeModifier {
     @Override
     public AttributeModifier getCellAttributeModifier(Node node) {
         return new CssClassAppender(new IconAttributeModel(new JcrNodeModel(node)));
-    }
-
-    @Override
-    public AttributeModifier getColumnAttributeModifier() {
-        return new CssClassAppender(new Model<String>("icon-16"));
     }
 
 }
