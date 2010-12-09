@@ -23,7 +23,7 @@ import org.hippoecm.frontend.plugins.standards.list.AbstractListColumnProviderPl
 import org.hippoecm.frontend.plugins.standards.list.ListColumn;
 import org.hippoecm.frontend.plugins.standards.list.comparators.NameComparator;
 import org.hippoecm.frontend.plugins.standards.list.comparators.TypeComparator;
-import org.hippoecm.frontend.plugins.standards.list.resolvers.BaseIconAttributeModifier;
+import org.hippoecm.frontend.plugins.standards.list.resolvers.IconAttributeModifier;
 import org.hippoecm.frontend.plugins.standards.list.resolvers.DocumentAttributeModifier;
 import org.hippoecm.frontend.plugins.standards.list.resolvers.IconRenderer;
 import org.hippoecm.frontend.plugins.standards.list.resolvers.TypeRenderer;
@@ -47,7 +47,7 @@ public final class DefaultListColumnProviderPlugin extends AbstractListColumnPro
         ListColumn<Node> column = new ListColumn<Node>(new Model<String>(""), "icon");
         column.setComparator(new TypeComparator());
         column.setRenderer(new IconRenderer());
-        column.setAttributeModifier(new BaseIconAttributeModifier());
+        column.setAttributeModifier(new IconAttributeModifier());
         column.setCssClass("doclisting-icon");
         columns.add(column);
 
