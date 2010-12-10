@@ -27,6 +27,7 @@ import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
+import javax.jcr.ValueFormatException;
 
 import org.hippoecm.repository.ext.UpdaterContext;
 import org.hippoecm.repository.ext.UpdaterItemVisitor;
@@ -44,6 +45,7 @@ public class CmsUpgrader18a implements UpdaterModule {
         context.registerName("cms-upgrade-v18a");
         context.registerStartTag("v16a");
         context.registerEndTag("v18-cms");
+        context.registerAfter("repository-upgrade-v18a");
 
         registerNamespaceVisitors(context);
         registerConsoleVisitors(context);
@@ -187,37 +189,35 @@ public class CmsUpgrader18a implements UpdaterModule {
 
                 {
                     Node documentSection = node.getNode("cms-tree-views/documents");
+
+                    Value[] props = getValues(documentSection, "frontend:properties");
+                    Value[] newProps = new Value[props.length + 1];
+                    System.arraycopy(props, 0, newProps, 0, props.length);
+                    newProps[props.length] = documentSection.getSession().getValueFactory().createValue("nodetypes");
+                    documentSection.setProperty("frontend:properties", newProps);
+
                     Node addRootFolder = documentSection.getNode("addfolderPlugin");
                     addRootFolder.setProperty("workflow.translated", new String[] { "new-translated-folder" });
+
                     Node treePlugin = documentSection.getNode("documentsBrowser");
                     if (treePlugin.hasNode("module.workflow")) {
-                        Property categoryProp = treePlugin.getNode("module.workflow")
-                                .getProperty("workflow.categories");
-                        Value[] categories;
-                        if (categoryProp.isMultiple()) {
-                            categories = categoryProp.getValues();
-                        } else {
-                            categories = new Value[] { categoryProp.getValue() };
-                        }
+                        Value[] categories = getValues(treePlugin.getNode("module.workflow"), "workflow.categories");
                         Value[] newCats = new Value[categories.length + 1];
                         System.arraycopy(categories, 0, newCats, 0, categories.length);
                         newCats[categories.length] = treePlugin.getSession().getValueFactory().createValue(
                                 "folder-translations");
                         treePlugin.getNode("module.workflow").setProperty("workflow.categories", newCats);
                     }
+
+                    Node searchingPlugin = documentSection.getNode("sectionPlugin");
+                    searchingPlugin.setProperty("nodetypes", "${nodetypes}");
                 }
 
                 for (String browser : new String[] { "images/imagesBrowser", "assets/filesBrowser" }) {
                     Node browserPlugin = node.getNode("cms-tree-views/" + browser);
                     Node workflowConfig = browserPlugin.getNode("module.workflow");
 
-                    Property categoryProp = workflowConfig.getProperty("workflow.categories");
-                    Value[] categories;
-                    if (categoryProp.isMultiple()) {
-                        categories = categoryProp.getValues();
-                    } else {
-                        categories = new Value[] { categoryProp.getValue() };
-                    }
+                    Value[] categories = getValues(workflowConfig, "workflow.categories");
                     Value[] newCats = new Value[categories.length + 1];
                     System.arraycopy(categories, 0, newCats, 1, categories.length);
                     newCats[0] = workflowConfig.getSession().getValueFactory().createValue("gallery");
@@ -231,7 +231,34 @@ public class CmsUpgrader18a implements UpdaterModule {
                     context.setPrimaryNodeType(translation, "frontend:pluginconfig");
                 }
 
+                {
+                    Node docPicker = node.getNode("cms-pickers/documents");
+                    Value[] properties = getValues(docPicker, "frontend:properties");
+                    Value[] newProps = new Value[properties.length + 1];
+                    System.arraycopy(properties, 0, newProps, 0, properties.length);
+                    newProps[properties.length] = docPicker.getSession().getValueFactory().createValue("nodetypes");
+                    node.setProperty("frontend:properties", newProps);
+
+                    Node docsLoaderCluster = docPicker.getNode("documentsTreeLoader/cluster.config");
+                    docsLoaderCluster.setProperty("nodetypes", "${nodetypes}");
+                }
             }
+
+            private Value[] getValues(Node node, String name) throws RepositoryException, ValueFormatException {
+                if (node.hasProperty(name)) {
+                    Property categoryProp = node.getProperty(name);
+                    Value[] categories;
+                    if (categoryProp.isMultiple()) {
+                        categories = categoryProp.getValues();
+                    } else {
+                        categories = new Value[] { categoryProp.getValue() };
+                    }
+                    return categories;
+                } else {
+                    return new Value[0];
+                }
+            }
+            
         });
     }
 

@@ -18,6 +18,9 @@
   <sv:property sv:name="jcr:primaryType" sv:type="Name">
     <sv:value>hippo:initializefolder</sv:value>
   </sv:property>
+  <sv:property sv:name="hippo:version" sv:type="String">
+    <sv:value>v18-cms-gallery</sv:value>
+  </sv:property>
   <!-- hippogallery namespace -->
   <sv:node sv:name="hippogallery">
     <sv:property sv:name="jcr:primaryType" sv:type="Name">
