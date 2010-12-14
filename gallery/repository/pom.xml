@@ -44,6 +44,10 @@
       <artifactId>jcr</artifactId>
       <scope>provided</scope>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
@@ -57,7 +61,21 @@
           <workingDirectory>${project.build.directory}</workingDirectory>
         </configuration>
       </plugin>
-   </plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+            <manifestEntries>
+              <Hippo-Modules>org.hippoecm.repository.gallery.upgrade.GalleryUpgrader18a</Hippo-Modules>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 
 </project>
