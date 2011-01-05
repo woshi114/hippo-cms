@@ -28,7 +28,7 @@
   <groupId>org.onehippo.cms7</groupId>
   <artifactId>translation-runner</artifactId>
   <packaging>jar</packaging>
-  <version>1.01.00</version>
+  <version>2.18.00</version>
 
   <properties>
     <javax.jcr.version>2.0</javax.jcr.version>
@@ -240,4 +240,10 @@
       <layout>default</layout>
     </repository>
   </repositories>
+
+  <scm>
+    <connection>scm:svn:http://svn.onehippo.org/repos/hippo/hippo-cms7/parent/tags/hippo-cms-2.18.00/hippo-cms7-1/translation-runner</connection>
+    <developerConnection>scm:svn:https://svn.onehippo.org/repos/hippo/hippo-cms7/tags/hippo-cms-2.18.00/hippo-cms7-1/translation-runner</developerConnection>
+    <url>http://svn.onehippo.org/repos/hippo/hippo-cms7/parent/tags/hippo-cms-2.18.00/hippo-cms7-1/translation-runner</url>
+  </scm>
 </project>
