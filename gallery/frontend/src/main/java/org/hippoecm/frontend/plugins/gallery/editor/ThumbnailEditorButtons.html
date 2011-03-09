@@ -1,5 +1,5 @@
 <!--
-  * Copyright 2007 Hippo
+  * Copyright 2008 Hippo
   *
   * Licensed under the Apache License, Version 2.0 (the  "License");
   * you may not use this file except in compliance with the License.
@@ -14,17 +14,12 @@
   * limitations under the License.
 -->
 <html xmlns:wicket="http://wicket.apache.org/">
-<wicket:panel>
-    <form wicket:id="form">
-        <div class="resource-values resource-upload">
-            <!--<label for="upload"><wicket:message key="file">File</wicket:message></label>-->
-            <!--<br/>-->
-            <div wicket:id="multifile">[MultiFile]</div>
-            <!--<input wicket:id="ajaxsubmit" type="button"/>-->
-
-            <!--<input wicket:id="fileInput" id="upload" type="file"/>-->
-            <!--<input wicket:id="submit" type="submit"/>-->
-        </div>
-    </form>
-</wicket:panel>
+  <wicket:panel>
+    <div class="column-wrapper imageset-override-styles">
+      <div wicket:id="extension.display">[display]</div>
+      <div wicket:id="extension.upload" class="imageset-extension-upload">[upload]</div>
+      <div wicket:id="extension.crop" class="imageset-extension-crop">[crop]</div>
+      <div wicket:id="extension.revert" class="imageset-extension-revert">[revert]</div>
+    </div>
+  </wicket:panel>
 </html>

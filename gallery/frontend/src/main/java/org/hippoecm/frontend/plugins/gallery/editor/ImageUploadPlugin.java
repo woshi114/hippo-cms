@@ -22,13 +22,17 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.value.IValueMap;
 import org.apache.wicket.util.value.ValueMap;
 import org.hippoecm.frontend.behaviors.EventStoppingBehavior;
 import org.hippoecm.frontend.dialog.ExceptionDialog;
+import org.hippoecm.frontend.dialog.IDialogService;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
@@ -84,7 +88,6 @@ public class ImageUploadPlugin extends RenderPlugin {
             settings.setHideBrowseDuringUpload(true);
 
             add(widget = new FileUploadWidget("multifile", settings) {
-
                 @Override
                 protected void onFileUpload(FileUpload fileUpload) {
                     handleUpload(fileUpload, context);
@@ -93,11 +96,14 @@ public class ImageUploadPlugin extends RenderPlugin {
             });
         }
 
+
         @Override
         protected void onSubmit() {
             widget.handleNonFlashSubmit();
         }
+
     }
+
 
     private void handleUpload(FileUpload upload, IPluginContext context) {
         String fileName = upload.getClientFileName();
@@ -110,7 +116,7 @@ public class ImageUploadPlugin extends RenderPlugin {
             String extensions = StringUtils.join(types.keySet().toArray(), ", ");
             getDialogService().show(
                     new ExceptionDialog(new StringResourceModel("unrecognized", ImageUploadPlugin.this, null,
-                            new Object[] { extension, extensions }).getString()) {
+                            new Object[]{extension, extensions}).getString()) {
                         public IValueMap getProperties() {
                             return SMALL;
                         }
@@ -122,7 +128,7 @@ public class ImageUploadPlugin extends RenderPlugin {
             Node node = nodeModel.getNode();
             try {
                 GalleryProcessor processor = context.getService(getPluginConfig().getString("gallery.processor.id",
-                    "gallery.processor.service"), GalleryProcessor.class);
+                        "gallery.processor.service"), GalleryProcessor.class);
                 if (processor == null) {
                     processor = new DefaultGalleryProcessor();
                 }
