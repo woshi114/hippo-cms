@@ -1,0 +1,47 @@
+.left-crop-area {
+  float: left;
+  width: 580px;
+  height: 470px;
+  overflow: auto;
+  margin:5px;
+}
+
+.right-crop-area {
+  float: right;
+  border-left: 1px solid #999999;
+  max-width: 216px;
+  width: 216px;
+  padding: 5px;
+  padding-left:12px;
+  margin: 5px 0;
+  min-height: 454px;
+  _height: 454px;
+}
+
+.right-crop-area .preview-container {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid black;
+}
+
+.right-crop-area .preview-title {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  padding-bottom: 14px;
+}
+
+.right-crop-area .preview-description {
+  display: block;
+  padding-bottom: 12px;
+}
+
+.right-crop-area .thumbnail-size {
+  display: block;
+  padding-top: 10px;
+}
+
+/* YUI has a bug when the image is small but the cropping mask large. It repeats the image...*/
+.yui-crop-resize-mask {
+    background-repeat: no-repeat;
+}
