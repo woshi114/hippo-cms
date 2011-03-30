@@ -38,6 +38,7 @@ public class GalleryUpgrader18b implements UpdaterModule {
 
         updateImageEditor(updaterContext);
         updateRichTextImagePicker(updaterContext);
+        updateImageGallery(updaterContext);
     }
 
 
@@ -102,6 +103,36 @@ public class GalleryUpgrader18b implements UpdaterModule {
             }
         });
     }
+
+    private void updateImageGallery(final UpdaterContext context){
+      context.registerVisitor(new UpdaterItemVisitor.PathVisitor("/hippo:namespaces/hippogallery/imageset"){
+            @Override
+            protected void leaving(Node node, int level) throws RepositoryException {
+                Node translationNodeEnOriginal = node.addNode("hippo:translation", "hippo:translation");
+                translationNodeEnOriginal.setProperty("hippo:message", "Original");
+                translationNodeEnOriginal.setProperty("hippo:language", "en");
+                translationNodeEnOriginal.setProperty("hippo:property", "hippogallery:original");
+
+                Node translationNodeEnThumbnail = node.addNode("hippo:translation", "hippo:translation");
+                translationNodeEnThumbnail.setProperty("hippo:message", "Thumbnail");
+                translationNodeEnThumbnail.setProperty("hippo:language", "en");
+                translationNodeEnThumbnail.setProperty("hippo:property", "hippogallery:thumbnail");
+
+                Node translationNodeFrOriginal = node.addNode("hippo:translation", "hippo:translation");
+                translationNodeFrOriginal.setProperty("hippo:message", "Original [FR]");
+                translationNodeFrOriginal.setProperty("hippo:language", "fr");
+                translationNodeFrOriginal.setProperty("hippo:property", "hippogallery:original");
+
+                Node translationNodeFrThumbnail = node.addNode("hippo:translation", "hippo:translation");
+                translationNodeFrThumbnail.setProperty("hippo:message", "Thumbnail [FR]");
+                translationNodeFrThumbnail.setProperty("hippo:language", "fr");
+                translationNodeFrThumbnail.setProperty("hippo:property", "hippogallery:thumbnail");
+
+            }
+        });
+    }
+
+
 
 }
 
