@@ -35,11 +35,11 @@ static final Logger log = LoggerFactory.getLogger(CmsUpgrader18b.class);
         updaterContext.registerEndTag("v18b-cms");
 
         registerConsoleVisitors(updaterContext);
+        updateCmsViewsDefaultColumns(updaterContext);
     }
 
     private void registerConsoleVisitors(final UpdaterContext context) {
         context.registerVisitor(new UpdaterItemVisitor.PathVisitor("/hippo:configuration/hippo:initialize") {
-
             @Override
             protected void leaving(Node node, int level) throws RepositoryException {
                 if (node.hasNode("frontend-console")) {
@@ -49,7 +49,6 @@ static final Logger log = LoggerFactory.getLogger(CmsUpgrader18b.class);
 
         });
         context.registerVisitor(new UpdaterItemVisitor.PathVisitor("/hippo:configuration/hippo:frontend") {
-
             @Override
             protected void leaving(Node node, int level) throws RepositoryException {
                 if (node.hasNode("console")) {
@@ -60,5 +59,28 @@ static final Logger log = LoggerFactory.getLogger(CmsUpgrader18b.class);
         });
 
 
+    }
+
+    private void updateCmsViewsDefaultColumns(UpdaterContext context){
+        context.registerVisitor(new UpdaterItemVisitor.PathVisitor("/hippo:configuration/hippo:frontend/cms/cms-folder-views"){
+            @Override
+            protected void leaving(Node node, int level) throws RepositoryException {
+                Node facetSearchDefaultColumns = node.getNode("hippo:facetsearch").getNode("defaultColumns");
+                facetSearchDefaultColumns.setProperty("documentTypeIconRenderer", "resourceIconRenderer");
+
+                Node directoryDefaultColumns = node.getNode("hippostd:directory").getNode("defaultColumns");
+                directoryDefaultColumns.setProperty("documentTypeIconRenderer", "resourceIconRenderer");
+
+                Node folderDefaultColumns = node.getNode("hippostd:folder").getNode("defaultColumns");
+                folderDefaultColumns.setProperty("documentTypeIconRenderer", "resourceIconRenderer");
+            }
+        });
+        context.registerVisitor(new UpdaterItemVisitor.PathVisitor("/hippo:configuration/hippo:frontend/cms/cms-search-views"){
+            @Override
+            protected void leaving(Node node, int level) throws RepositoryException {
+                Node textDefaultColumns = node.getNode("text").getNode("defaultColumns");
+                textDefaultColumns.setProperty("documentTypeIconRenderer", "resourceIconRenderer");
+            }
+        });
     }
 }

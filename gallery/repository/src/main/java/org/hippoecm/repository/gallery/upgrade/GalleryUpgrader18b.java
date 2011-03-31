@@ -119,12 +119,12 @@ public class GalleryUpgrader18b implements UpdaterModule {
                 translationNodeEnThumbnail.setProperty("hippo:property", "hippogallery:thumbnail");
 
                 Node translationNodeFrOriginal = node.addNode("hippo:translation", "hippo:translation");
-                translationNodeFrOriginal.setProperty("hippo:message", "Original [FR]");
+                translationNodeFrOriginal.setProperty("hippo:message", "Original [fr]");
                 translationNodeFrOriginal.setProperty("hippo:language", "fr");
                 translationNodeFrOriginal.setProperty("hippo:property", "hippogallery:original");
 
                 Node translationNodeFrThumbnail = node.addNode("hippo:translation", "hippo:translation");
-                translationNodeFrThumbnail.setProperty("hippo:message", "Thumbnail [FR]");
+                translationNodeFrThumbnail.setProperty("hippo:message", "Thumbnail [fr]");
                 translationNodeFrThumbnail.setProperty("hippo:language", "fr");
                 translationNodeFrThumbnail.setProperty("hippo:property", "hippogallery:thumbnail");
 
