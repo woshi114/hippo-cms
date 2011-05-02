@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2011 Hippo.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -62,6 +62,23 @@ import org.hippoecm.repository.api.WorkflowManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @deprecated Please directly extend from RenderPlugin.
+   In case you use the getModel and/or getModelObject methods, you should use the 
+   Wicket getDefaultModel/getDefaultModelObject methods and use generics or cast
+   to IModel<WorkflowDescriptor> or WorkflowDescriptor, respectively.
+   Additionally some implementations might need the method
+   <pre>
+    protected void onStart() {
+        super.onStart();
+        modelChanged();
+    }
+   </pre>
+   to be present, though this should be avoided.
+ * @author berry
+ * @param <T> 
+ */
+@Deprecated
 public abstract class CompatibilityWorkflowPlugin<T extends Workflow> extends RenderPlugin<WorkflowDescriptor> {
     @SuppressWarnings("unused")
     private final static String SVN_ID = "$Id: AbstractWorkflowPlugin.java 16815 2009-03-11 16:09:10Z fvlankvelt $";
@@ -94,25 +111,19 @@ public abstract class CompatibilityWorkflowPlugin<T extends Workflow> extends Re
         return (WorkflowDescriptor) getDefaultModelObject();
     }
     
-    public class WorkflowAction extends StdWorkflow {
-        ResourceReference iconModel;
+    /**
+     * @deprecated Please directly extend from StdWorkflow, passing the enclosing RenderPlugin
+     * and it's plugin context as final parameters to the constructor.
+     */
+    @Deprecated
+    public class WorkflowAction extends StdWorkflow<T> {
 
         public WorkflowAction(String id, String name, ResourceReference iconModel) {
-            super(id, name);
-            this.iconModel = iconModel;
+            super(id, name, iconModel, CompatibilityWorkflowPlugin.this.getPluginContext(), CompatibilityWorkflowPlugin.this);
         }
 
         public WorkflowAction(String id, StringResourceModel name) {
-            super(id, (String) name.getObject());
-        }
-
-        @Override
-        protected ResourceReference getIcon() {
-            if (iconModel != null) {
-                return iconModel;
-            } else {
-                return super.getIcon();
-            }
+            super(id, name, CompatibilityWorkflowPlugin.this.getPluginContext(), CompatibilityWorkflowPlugin.this);
         }
 
         @Override
@@ -177,6 +188,8 @@ public abstract class CompatibilityWorkflowPlugin<T extends Workflow> extends Re
             throw new WorkflowException("unsupported operation");
         }
 
+        /** @deprecated Please extend directly from AbstractDialog */
+        @Deprecated
         public class WorkflowDialog extends AbstractDialog {
 
             private static final long serialVersionUID = 1L;
@@ -227,6 +240,8 @@ public abstract class CompatibilityWorkflowPlugin<T extends Workflow> extends Re
             }
         }
 
+        /** @deprecated Either implement a dialog extending directly from WorkflowDialog or use a standard dialog from the CMS API.*/
+        @Deprecated
         public class ConfirmDialog extends WorkflowDialog {
             private static final long serialVersionUID = 1L;
             private IModel title;
@@ -266,6 +281,8 @@ public abstract class CompatibilityWorkflowPlugin<T extends Workflow> extends Re
             }
         }
 
+        /** @deprecated Either implement a dialog extending directly from WorkflowDialog or use a standard dialog from the CMS API.*/
+        @Deprecated
         public class NameDialog extends WorkflowDialog {
             private static final long serialVersionUID = 1L;
             private IModel title;
@@ -291,6 +308,8 @@ public abstract class CompatibilityWorkflowPlugin<T extends Workflow> extends Re
             }
         }
 
+        /** @deprecated Either implement a dialog extending directly from WorkflowDialog or use a standard dialog from the CMS API.*/
+        @Deprecated
         public class TextDialog extends WorkflowDialog {
             private static final long serialVersionUID = 1L;
             private IModel title;
@@ -317,6 +336,8 @@ public abstract class CompatibilityWorkflowPlugin<T extends Workflow> extends Re
             }
         }
 
+        /** @deprecated Either implement a dialog extending directly from WorkflowDialog or use a standard dialog from the CMS API.*/
+        @Deprecated
         public class DestinationDialog extends WorkflowDialog {
 
             private IModel title;
@@ -433,6 +454,8 @@ public abstract class CompatibilityWorkflowPlugin<T extends Workflow> extends Re
             }
         }
 
+        /** @deprecated Either implement a dialog extending directly from WorkflowDialog or use a standard dialog from the CMS API.*/
+        @Deprecated
         public class DateDialog extends WorkflowDialog {
 
             public DateDialog(IModel question, final PropertyModel<Date> dateModel) {
