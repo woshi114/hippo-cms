@@ -16,7 +16,10 @@
 
 package org.hippoecm.frontend.plugins.xinha.dialog.links;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -42,8 +45,14 @@ public class ExternalLinkDialog extends AbstractXinhaDialog<ExternalXinhaLink> {
     public ExternalLinkDialog(IPluginContext context, IPluginConfig config, IModel<ExternalXinhaLink> model) {
         super(model);
 
+
         final DropDownChoice<String> protocolsChoice = new DropDownChoice<String>("protocols",
                 new PropertyModel<String>(model, "protocol"), ExternalXinhaLink.PROTOCOLS);
+        protocolsChoice.add(new OnChangeAjaxBehavior() {
+            protected void onUpdate(AjaxRequestTarget target) {
+                // nothing, just update the model
+            }
+        });
         protocolsChoice.setOutputMarkupId(true);
         add(protocolsChoice);
 
@@ -55,6 +64,7 @@ public class ExternalLinkDialog extends AbstractXinhaDialog<ExternalXinhaLink> {
                 target.addComponent(protocolsChoice);
                 target.addComponent(this);
             }
+
         };
         addressTextField.setOutputMarkupId(true);
         addressTextField.setSize(SIZE);
@@ -68,6 +78,7 @@ public class ExternalLinkDialog extends AbstractXinhaDialog<ExternalXinhaLink> {
         final LabelledBooleanFieldWidget targetField = new LabelledBooleanFieldWidget("popup", new PropertyModel<Boolean>(model, "target"),
                 new StringResourceModel("labels.popup", this, null));
         add(targetField);
+
     }
     
     @Override
