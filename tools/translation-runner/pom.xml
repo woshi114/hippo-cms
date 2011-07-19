@@ -227,7 +227,7 @@
     <repository>
       <id>hippo</id>
       <name>Hippo maven 2 repository.</name>
-      <url>http://repository.hippocms.org/maven2/</url>
+      <url>http://maven.onehippo.com/maven2/</url>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
@@ -239,8 +239,8 @@
   </repositories>
 
   <scm>
-    <connection>scm:svn:http://svn.onehippo.org/repos/hippo/hippo-cms7/project/branches/hippo-cms-2.20.xx/hippo-cms7-project-5/translation-runner</connection>
-    <developerConnection>scm:svn:https://svn.onehippo.org/repos/hippo/hippo-cms7/project/branches/hippo-cms-2.20.xx/hippo-cms7-project-5/translation-runner</developerConnection>
-    <url>http://svn.onehippo.org/repos/hippo/hippo-cms7/project/branches/hippo-cms-2.20.xx/hippo-cms7-project-5/translation-runner</url>
+    <connection>scm:svn:http://svn.onehippo.org/repos/hippo/hippo-cms7/project/branches/hippo-cms-2.20.xx/tools/translation-runner</connection>
+    <developerConnection>scm:svn:https://svn.onehippo.org/repos/hippo/hippo-cms7/project/branches/hippo-cms-2.20.xx/tools/translation-runner</developerConnection>
+    <url>http://svn.onehippo.org/repos/hippo/hippo-cms7/project/branches/hippo-cms-2.20.xx/tools/translation-runner</url>
   </scm>
 </project>
