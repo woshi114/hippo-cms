@@ -548,6 +548,7 @@ config/src/main/resources/cms-static_it.xml -text
 config/src/main/resources/cms.xml -text svneol=unset#text/plain
 config/src/main/resources/domain-defaultread-reporting.xml svneol=native#text/plain
 config/src/main/resources/domain-workflow-frontend.xml svneol=native#text/plain
+config/src/main/resources/embedded-workflows-frontend-addendum.xml svneol=native#text/plain
 config/src/main/resources/embedded-workflows-frontend.xml svneol=native#text/plain
 config/src/main/resources/hippoecm-extension.xml -text svneol=unset#text/plain
 config/src/main/resources/hippostd-workflows-frontend.xml svneol=native#text/plain
