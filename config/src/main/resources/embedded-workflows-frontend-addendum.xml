@@ -23,7 +23,7 @@
       <sv:value>frontend:workflow</sv:value>
     </sv:property>
     <sv:node sv:name="hipposys:config" h:merge="combine">
-      <sv:property sv:name="modify-on-copy" sv:type="String">
+      <sv:property sv:name="modify-on-copy" sv:type="String" h:merge="append">
         <sv:value>./hippotranslation:id</sv:value>
         <sv:value>$uuid</sv:value>
       </sv:property>
@@ -34,7 +34,7 @@
       <sv:value>frontend:workflow</sv:value>
     </sv:property>
     <sv:node sv:name="hipposys:config" h:merge="combine">
-      <sv:property sv:name="modify-on-copy" sv:type="String">
+      <sv:property sv:name="modify-on-copy" sv:type="String" h:merge="append">
         <sv:value>./hippotranslation:id</sv:value>
         <sv:value>$uuid</sv:value>
       </sv:property>
@@ -45,7 +45,7 @@
       <sv:value>frontend:workflow</sv:value>
     </sv:property>
     <sv:node sv:name="hipposys:config" h:merge="combine">
-      <sv:property sv:name="modify-on-copy" sv:type="String">
+      <sv:property sv:name="modify-on-copy" sv:type="String" h:merge="append">
         <sv:value>./hippotranslation:id</sv:value>
         <sv:value>$uuid</sv:value>
       </sv:property>
@@ -56,7 +56,7 @@
       <sv:value>frontend:workflow</sv:value>
     </sv:property>
     <sv:node sv:name="hipposys:config" h:merge="combine">
-      <sv:property sv:name="modify-on-copy" sv:type="String">
+      <sv:property sv:name="modify-on-copy" sv:type="String" h:merge="append">
         <sv:value>./hippotranslation:id</sv:value>
         <sv:value>$uuid</sv:value>
       </sv:property>
