@@ -129,9 +129,9 @@
      This is used by normal plugins, but also to autogenerate documentation in .../target/site/source-repository.html
   -->
   <scm>
-    <connection>scm:svn:http://svn.onehippo.org/repos/hippo/hippo-cms7/cms/tags/hippo-cms-2.21.02-SNAPSHOT</connection>
-    <developerConnection>scm:svn:https://svn.onehippo.org/repos/hippo/hippo-cms7/cms/tags/hippo-cms-2.21.02-SNAPSHOT</developerConnection>
-    <url>http://svn.onehippo.org/repos/hippo/hippo-cms7/cms/tags/hippo-cms-2.21.02-SNAPSHOT</url>
+    <connection>scm:svn:http://svn.onehippo.org/repos/hippo/hippo-cms7/cms/tags/hippo-cms-2.21.02-alpha</connection>
+    <developerConnection>scm:svn:https://svn.onehippo.org/repos/hippo/hippo-cms7/cms/tags/hippo-cms-2.21.02-alpha</developerConnection>
+    <url>http://svn.onehippo.org/repos/hippo/hippo-cms7/cms/tags/hippo-cms-2.21.02-alpha</url>
   </scm>
 
   <build>
