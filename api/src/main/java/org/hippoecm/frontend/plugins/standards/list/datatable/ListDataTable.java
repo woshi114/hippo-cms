@@ -52,8 +52,7 @@ import org.hippoecm.frontend.widgets.ManagedReuseStrategy;
  * not bound to JcrNodeModels.
  */
 public class ListDataTable<T> extends DataTable<T> {
-    @SuppressWarnings("unused")
-    private final static String SVN_ID = "$Id$";
+
     private static final long serialVersionUID = 1L;
 
     private IPluginContext context;
@@ -62,6 +61,8 @@ public class ListDataTable<T> extends DataTable<T> {
     private TableDefinition definition;
     private TableSelectionListener<T> selectionListener;
     private final IDataProvider<T> provider;
+    private boolean scrollSelectedIntoView = false;
+    private boolean scrollSelectedTopAlign = false;
 
     public interface TableSelectionListener<T> extends IClusterable {
 
@@ -102,6 +103,11 @@ public class ListDataTable<T> extends DataTable<T> {
         });
 
         setTableBodyCss("datatable-tbody");
+    }
+
+    public void setScrollSelectedIntoView(boolean enabled, boolean topAlign) {
+        this.scrollSelectedIntoView = enabled;
+        this.scrollSelectedTopAlign = topAlign;
     }
     
     @Override
@@ -208,7 +214,7 @@ public class ListDataTable<T> extends DataTable<T> {
     }
 
     @Override
-    protected Item newRowItem(String id, int index, final IModel model) {
+    protected Item newRowItem(final String id, int index, final IModel model) {
         final OddEvenItem item = new OddEvenItem(id, index, model);
         item.setOutputMarkupId(true);
 
@@ -219,6 +225,13 @@ public class ListDataTable<T> extends DataTable<T> {
             protected String load() {
                 IModel selected = ListDataTable.this.getDefaultModel();
                 if (selected != null && selected.equals(model)) {
+                    if (scrollSelectedIntoView) {
+                        AjaxRequestTarget target = AjaxRequestTarget.get();
+                        if (target != null) {
+                            target.appendJavascript("document.getElementById('" + item.getMarkupId()
+                                    + "').scrollIntoView(" + scrollSelectedTopAlign + ");");
+                        }
+                    }
                     return "hippo-list-selected";
                 } else {
                     return null;
