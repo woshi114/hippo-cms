@@ -95,23 +95,16 @@ public class JcrNodeModel extends ItemModelWrapper<Node> implements IObservable 
         super.detach();
     }
 
+    /**
+     * @deprecated
+     * Use {@link JcrHelper#isVirtualNode(Node)}
+     */
     public boolean isVirtual() {
-        Node node = getNode();
-        if (node == null || !(node instanceof HippoNode)) {
-            return false;
-        }
         try {
-            HippoNode hippoNode = (HippoNode) node;
-            Node canonical = hippoNode.getCanonicalNode();
-            if (canonical == null) {
-                return true;
-            }
-            return !canonical.isSame(hippoNode);
-        } catch (ItemNotFoundException e) {
-            // canonical node no longer exists
-            return true;
-        } catch (RepositoryException e) {
-            log.error(e.getMessage(), e);
+            return JcrHelper.isVirtualNode(getNode());
+        }
+        catch (RepositoryException e) {
+            log.warn("RepositoryException while determining whether node is virtual, returning false", e);
             return false;
         }
     }

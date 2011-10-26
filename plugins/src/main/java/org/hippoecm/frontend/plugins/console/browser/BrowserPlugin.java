@@ -48,6 +48,7 @@ import org.hippoecm.frontend.plugins.console.menu.delete.DeleteDialog;
 import org.hippoecm.frontend.plugins.console.menu.move.MoveDialog;
 import org.hippoecm.frontend.plugins.console.menu.node.NodeDialog;
 import org.hippoecm.frontend.plugins.console.menu.rename.RenameDialog;
+import org.hippoecm.frontend.plugins.console.menu.t9ids.T9idsDialog;
 import org.hippoecm.frontend.plugins.yui.rightclick.RightClickBehavior;
 import org.hippoecm.frontend.plugins.yui.scrollbehavior.ScrollBehavior;
 import org.hippoecm.frontend.plugins.yui.widget.tree.TreeWidgetBehavior;
@@ -293,6 +294,25 @@ public class BrowserPlugin extends RenderPlugin {
             };
             iconXmlImport.setOutputMarkupId(true);
             menuContainer.add(iconXmlImport);
+            // generate t9ids
+            dialogFactory = new IDialogFactory() {
+                private static final long serialVersionUID = 1L;
+                @Override public IDialogService.Dialog createDialog() {
+                    return new T9idsDialog(new NodeModelReference(BrowserPlugin.this, model));
+                }
+                
+            };
+            menuContainer.add(new DialogLink("t9ids", new Model<String>("Generate new t9 ids"), dialogFactory, getDialogService()));
+            // generate t9ids icon
+            Image iconT9ids = new Image("icon-t9ids") {
+                private static final long serialVersionUID = 1L;
+                @Override
+                protected ResourceReference getImageResourceReference() {
+                    return new ResourceReference(BrowserPlugin.class, "t9ids.png");
+                }
+            };
+            iconXmlImport.setOutputMarkupId(true);
+            menuContainer.add(iconT9ids);
             return menuContainer;
         }
 

@@ -28,7 +28,10 @@ import javax.jcr.version.Version;
 import javax.jcr.version.VersionHistory;
 import javax.jcr.version.VersionIterator;
 
+import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.HippoNodeType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Helper class for common jcr operations
@@ -36,6 +39,8 @@ import org.hippoecm.repository.api.HippoNodeType;
 public class JcrHelper {
     @SuppressWarnings("unused")
     private final static String SVN_ID = "$Id$";
+    
+    private static final Logger log = LoggerFactory.getLogger(JcrHelper.class);
 
     private JcrHelper() {
     }
@@ -154,6 +159,29 @@ public class JcrHelper {
             throw new ItemNotFoundException("No primary item definition found in type hierarchy");
         }
         return node.getSession().getItem(node.getPath() + "/" + primaryItemName);
+    }
+
+    /**
+     * Determine whether node in question is a virtual node.
+     * 
+     * @param node  the node to check for virtuality
+     * @return  whether the node is a virtual node or not
+     */
+    public static boolean isVirtualNode(Node node) throws RepositoryException {
+        if (node == null || !(node instanceof HippoNode)) {
+            return false;
+        }
+        try {
+            HippoNode hippoNode = (HippoNode) node;
+            Node canonical = hippoNode.getCanonicalNode();
+            if (canonical == null) {
+                return true;
+            }
+            return !canonical.isSame(hippoNode);
+        } catch (ItemNotFoundException e) {
+            log.debug("Canonical node no longer exists");
+            return true;
+        }
     }
 
 }
