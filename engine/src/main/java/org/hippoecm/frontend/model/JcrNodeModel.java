@@ -95,10 +95,6 @@ public class JcrNodeModel extends ItemModelWrapper<Node> implements IObservable 
         super.detach();
     }
 
-    /**
-     * @deprecated
-     * Use {@link JcrHelper#isVirtualNode(Node)}
-     */
     public boolean isVirtual() {
         try {
             return JcrHelper.isVirtualNode(getNode());
