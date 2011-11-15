@@ -2086,6 +2086,10 @@ li.feedbackPanelERROR {
   display: inline;
 }
 
+.hippo-modal-feedback ul li.feedbackPanelERROR {
+  display: list-item;
+}
+
 table.hippo-defaultcontent td {
   vertical-align: top;
 }
