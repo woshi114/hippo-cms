@@ -36,9 +36,45 @@
 
   <dependencies>
     <dependency>
+      <groupId>javax.jcr</groupId>
+      <artifactId>jcr</artifactId>
+      <scope>compile</scope>
+    </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-log4j12</artifactId>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-jta_1.1_spec</artifactId>
+        <scope>compile</scope>
+      </dependency>
+      <dependency>
+        <groupId>javax.jdo</groupId>
+        <artifactId>jdo2-api</artifactId>
+        <scope>compile</scope>
+      </dependency>
+
+    <dependency>
       <artifactId>jcrrunner</artifactId>
       <groupId>org.onehippo.forge.jcrrunner</groupId>
-      <version>1.01.00</version>
+      <version>1.02.02</version>
       <type>jar</type>
       <exclusions>
         <exclusion>
@@ -72,6 +108,7 @@
       <artifactId>hippo-repository-api</artifactId>
       <groupId>org.onehippo.cms7</groupId>
       <version>${repository.api.version}</version>
+      <scope>compile</scope>
       <exclusions>
         <exclusion>
           <groupId>javax.jdo</groupId>
@@ -88,6 +125,7 @@
       <artifactId>hippo-repository-connector</artifactId>
       <groupId>org.onehippo.cms7</groupId>
       <version>${repository.api.version}</version>
+      <scope>compile</scope>
       <exclusions>
         <exclusion>
           <groupId>org.apache.jackrabbit</groupId>
