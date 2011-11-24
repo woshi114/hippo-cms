@@ -220,7 +220,9 @@ public class LoginPlugin extends RenderPlugin {
             String username = usernameTextField.getDefaultModelObjectAsString();
             HttpSession session = ((WebRequest) SignInForm.this.getRequest()).getHttpServletRequest().getSession(true);
             boolean success = userSession.login(new UserCredentials(this));
-            ConcurrentLoginFilter.validateSession(session, username, false);
+            if (success) {
+                ConcurrentLoginFilter.validateSession(session, username, false);
+            }
             userSession.setLocale(new Locale(selectedLocale));
             redirect(success);
         }
