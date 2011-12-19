@@ -90,4 +90,14 @@ public class WorkflowManagerDecorator implements WorkflowManager {
             Thread.currentThread().setContextClassLoader(old);
         }
     }
+
+    public WorkflowManager getContextWorkflowManager(Object specification) throws MappingException, RepositoryException {
+        ClassLoader old = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(loader);
+        try {
+            return getContextWorkflowManager(specification);
+        } finally {
+            Thread.currentThread().setContextClassLoader(old);
+        }
+    }
 }

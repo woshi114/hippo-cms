@@ -322,6 +322,8 @@ public class HippoTester extends WicketTester {
             throw new UnsupportedRepositoryOperationException();
         }
         
+        public void registerSessionCloseCallback(HippoSession.CloseCallback callback) {
+        }
     }
     
     private IApplicationFactory appFactory;
