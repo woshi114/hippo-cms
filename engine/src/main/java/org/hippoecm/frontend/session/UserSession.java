@@ -278,7 +278,9 @@ public class UserSession extends WebSession {
 
         invalidate();
         dirty();
-        throw new RestartResponseException(WebApplication.get().getHomePage());
+        if (WebApplication.exists()) {
+            throw new RestartResponseException(WebApplication.get().getHomePage());
+        }
     }
 
     /**

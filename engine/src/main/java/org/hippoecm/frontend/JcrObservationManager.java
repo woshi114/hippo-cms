@@ -68,6 +68,7 @@ import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.HippoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.wicket.RestartResponseException;
 
 enum TriState {
     FALSE, TRUE, UNKNOWN
@@ -305,8 +306,13 @@ public class JcrObservationManager implements ObservationManager {
             // during a valid session. If this number is exceeded we can
             // assume the session is no longer valid.
             if (this.events.size() > 10000) {
-                log.error("The event queue is full. Logging out the user.");
-                getSession().logout();
+                String userID = getSession().getJcrSession().getUserID();
+                log.error("The event queue is full. Logging out user " + userID);
+                try {
+                    getSession().logout();
+                } catch (RestartResponseException e) {
+                    // expected: ignore
+                }
             }
         }
 
