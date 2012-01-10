@@ -335,11 +335,18 @@ public class UserSession extends WebSession {
         super.detach();
     }
 
+    public void flush() {
+        JcrObservationManager.getInstance().cleanupListeners(this);
+        ((UnbindingHttpSessionStore) getSessionStore()).setClearPageMaps(sessionId);
+    }
+    
     @SuppressWarnings("unused")
     private boolean bound = false;
-
-    void onBind() {
-        bound = true;
+    private String sessionId;
+    
+    void onBind(String sessionId) {
+        this.bound = true;
+        this.sessionId = sessionId;
     }
 
     void unbind() {

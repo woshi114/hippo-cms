@@ -77,7 +77,8 @@ enum TriState {
 public class JcrObservationManager implements ObservationManager {
     @SuppressWarnings("unused")
     private final static String SVN_ID = "$Id$";
-
+    private static final int MAX_EVENTS = Integer.getInteger("hippoecm.observation.maxevents", 10000);
+    
     static final Logger log = LoggerFactory.getLogger(JcrObservationManager.class);
 
     private static JcrObservationManager INSTANCE = new JcrObservationManager();
@@ -275,6 +276,7 @@ public class JcrObservationManager implements ObservationManager {
     }
 
     private class JcrListener extends WeakReference<EventListener> implements EventListener, Comparable<JcrListener> {
+        
         String path;
         int eventTypes;
         boolean isDeep;
@@ -303,16 +305,13 @@ public class JcrObservationManager implements ObservationManager {
             // its session, then the event queue just keeps growing,
             // risking out of memory errors. We therefore set a limit
             // on the amount of events that may reasonably accumulate
-            // during a valid session. If this number is exceeded we can
-            // assume the session is no longer valid.
-            if (this.events.size() > 10000) {
+            // during a valid session. If this number is exceeded we
+            // flush the session causing its listeners to be removed
+            // and its pagemaps to be cleared.
+            if (this.events.size() > MAX_EVENTS) {
                 String userID = getSession().getJcrSession().getUserID();
-                log.error("The event queue is full. Logging out user " + userID);
-                try {
-                    getSession().logout();
-                } catch (RestartResponseException e) {
-                    // expected: ignore
-                }
+                log.warn("The event queue is full. Flushing session of user " + userID);
+                getSession().flush();
             }
         }
 
