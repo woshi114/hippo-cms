@@ -311,7 +311,10 @@ public class JcrObservationManager implements ObservationManager {
             if (this.events.size() > MAX_EVENTS) {
                 String userID = getSession().getJcrSession().getUserID();
                 log.warn("The event queue is full. Flushing session of user " + userID);
-                getSession().flush();
+                UserSession session = getSession();
+                if (session != null) {
+                    session.flush();
+                }
             }
         }
 
