@@ -309,10 +309,10 @@ public class JcrObservationManager implements ObservationManager {
             // flush the session causing its listeners to be removed
             // and its pagemaps to be cleared.
             if (this.events.size() > MAX_EVENTS) {
-                String userID = getSession().getJcrSession().getUserID();
-                log.warn("The event queue is full. Flushing session of user " + userID);
                 UserSession session = getSession();
                 if (session != null) {
+                    String userID = session.getJcrSession().getUserID();
+                    log.warn("The event queue is full. Flushing session of user " + userID);
                     session.flush();
                 }
             }
