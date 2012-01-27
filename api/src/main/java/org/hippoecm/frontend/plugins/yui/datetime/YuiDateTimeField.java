@@ -34,7 +34,6 @@ import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
@@ -68,8 +67,7 @@ public class YuiDateTimeField extends DateTimeField {
         super(id, model);
 
         if (settings == null) {
-            final StringResourceModel pickerFormat = new StringResourceModel("picker-format", this, null);
-            settings = new YuiDatePickerSettings(pickerFormat.getString());
+            settings = new YuiDatePickerSettings();
         }
 
         this.settings = settings;
