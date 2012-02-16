@@ -15,6 +15,11 @@
  */
 package org.hippoecm.frontend.editor.builder;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,6 +28,7 @@ import java.util.Map;
 import javax.jcr.Node;
 import javax.jcr.Property;
 
+import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.hippoecm.editor.type.JcrTypeStore;
@@ -49,14 +55,7 @@ import org.hippoecm.frontend.types.IFieldDescriptor;
 import org.hippoecm.frontend.types.ITypeDescriptor;
 import org.hippoecm.frontend.types.JavaFieldDescriptor;
 import org.hippoecm.frontend.types.TypeDescriptorEvent;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 public class TemplateBuilderTest extends EditorTestCase {
     @SuppressWarnings("unused")
@@ -407,6 +406,8 @@ public class TemplateBuilderTest extends EditorTestCase {
         cluster.start();
 
         refreshPage();
+        
+        Component comp = tester.getComponentFromLastRenderedPage("root:extension.form:template");
 
         // remove
         tester.clickLink("root:extension.form:template:preview:view:1:item:head:remove");

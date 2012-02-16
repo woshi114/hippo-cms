@@ -119,6 +119,9 @@ public abstract class AbstractFieldPlugin<P extends Item, C extends IModel> exte
     protected AbstractProvider<C> newProvider;
     private ComparingController<C> comparingController;
 
+    // each validator service id for a started clusters must be unique
+    int validatorCount = 0;
+    
     protected AbstractFieldPlugin(IPluginContext context, IPluginConfig config) {
         super(context, config);
 
@@ -511,6 +514,7 @@ public abstract class AbstractFieldPlugin<P extends Item, C extends IModel> exte
         this.parameters.put(ITemplateEngine.ENGINE, getPluginConfig().getString(ITemplateEngine.ENGINE));
         this.parameters.put(RenderService.WICKET_ID, id);
         this.parameters.put(ITemplateEngine.MODE, mode.toString());
+        this.parameters.put(IValidationService.VALIDATE_ID, getPluginContext().getReference(this).getServiceId() + ".validator." + (validatorCount++));
 
         return getPluginContext().newCluster(template, parameters);
     }
