@@ -357,6 +357,8 @@ public abstract class AbstractXinhaPlugin extends RenderPlugin {
         sb.append("showLoading: ").append(configuration.getShowLoading());
         sb.append(", ");
         sb.append("statusBar: ").append(configuration.getStatusBar());
+        sb.append(", ");
+        sb.append("only7BitPrintablesInURLs: ").append(configuration.getOnly7BitPrintablesInURLs());
         sb.append(" }");
         return sb.toString();
     }
@@ -375,6 +377,7 @@ public abstract class AbstractXinhaPlugin extends RenderPlugin {
         private static final String XINHA_KILL_WORD_ON_PASTE = "Xinha.killWordOnPaste";
         private static final String XINHA_SHOW_LOADING = "Xinha.showLoading";
         private static final String XINHA_STATUS_BAR = "Xinha.statusBar";
+        private static final String XINHA_ONLY7BIT_PRINTABLE_URLS = "Xinha.only7BitPrintablesInURLs";
 
         private final Map<String, PluginConfiguration> pluginConfigurations = new HashMap<String, PluginConfiguration>();
 
@@ -396,6 +399,7 @@ public abstract class AbstractXinhaPlugin extends RenderPlugin {
         private final boolean killWordOnPaste;
         private final boolean showLoading;
         private final boolean statusBar;
+        private final boolean only7BitPrintablesInURLs;
 
         public Configuration(IPluginConfig config) {
             addProperty("xinhaParamToken", XINHA_PARAM_PREFIX);
@@ -407,6 +411,7 @@ public abstract class AbstractXinhaPlugin extends RenderPlugin {
             killWordOnPaste = config.getAsBoolean(XINHA_KILL_WORD_ON_PASTE, true);
             showLoading = config.getAsBoolean(XINHA_SHOW_LOADING, false);
             statusBar = config.getAsBoolean(XINHA_STATUS_BAR, false);
+            only7BitPrintablesInURLs = config.getAsBoolean(XINHA_ONLY7BIT_PRINTABLE_URLS, false);
 
             toolbarItems = new ArrayList<String>();
             String[] values = config.getStringArray(XINHA_TOOLBAR);
@@ -442,7 +447,6 @@ public abstract class AbstractXinhaPlugin extends RenderPlugin {
                     addPluginConfiguration(pluginConfig);
                 }
             }
-
         }
 
         /**
@@ -517,6 +521,10 @@ public abstract class AbstractXinhaPlugin extends RenderPlugin {
 
         public boolean getStatusBar() {
             return statusBar;
+        }
+        
+        public boolean getOnly7BitPrintablesInURLs() { 
+            return only7BitPrintablesInURLs;
         }
 
         public void addPluginConfiguration(PluginConfiguration config) {
