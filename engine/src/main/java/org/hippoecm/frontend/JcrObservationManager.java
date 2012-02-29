@@ -15,7 +15,6 @@
  */
 package org.hippoecm.frontend;
 
-import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.math.BigInteger;
@@ -68,7 +67,6 @@ import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.HippoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.wicket.RestartResponseException;
 
 enum TriState {
     FALSE, TRUE, UNKNOWN
@@ -1165,16 +1163,14 @@ public class JcrObservationManager implements ObservationManager {
     }
 
     private void cleanup() {
-        Reference<? extends EventListener> ref;
         synchronized (listeners) {
             // cleanup weak-ref-table
             listeners.size();
 
             // cleanup gc'ed listeners
-            while ((ref = listenerQueue.poll()) != null) {
-                if (ref.get() != null) {
-                    ((JcrListener) ref.get()).dispose();
-                }
+            JcrListener jcrListener;
+            while ((jcrListener = (JcrListener) listenerQueue.poll()) != null) {
+                jcrListener.dispose();
             }
         }
     }
