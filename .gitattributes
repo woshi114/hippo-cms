@@ -1301,6 +1301,7 @@ gallery/frontend/src/main/java/org/hippoecm/repository/gallery/impl/GalleryWorkf
 gallery/frontend/src/main/java/org/hippoecm/repository/gallery/impl/GalleryWorkflowImpl_fr.properties -text
 gallery/frontend/src/main/java/org/hippoecm/repository/gallery/impl/GalleryWorkflowImpl_it.properties -text
 gallery/frontend/src/main/java/org/hippoecm/repository/gallery/impl/GalleryWorkflowImpl_nl.properties svneol=native#text/plain
+gallery/frontend/src/test/java/org/hippoecm/frontend/plugins/gallery/imageutil/ScaleImageOperationTest.java -text
 gallery/pom.xml svneol=native#text/plain
 gallery/repository/pom.xml svneol=native#text/plain
 gallery/repository/src/main/java/org/hippoecm/repository/gallery/impl/GalleryWorkflowImpl.java -text
