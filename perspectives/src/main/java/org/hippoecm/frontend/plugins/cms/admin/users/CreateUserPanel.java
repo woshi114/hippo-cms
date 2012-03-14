@@ -37,14 +37,15 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.validation.validator.EmailAddressValidator;
 import org.apache.wicket.validation.validator.StringValidator;
-import org.hippoecm.audit.AuditLogger;
-import org.hippoecm.audit.HippoEvent;
+import org.hippoecm.frontend.plugins.cms.admin.AuditLogger;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
+import org.hippoecm.frontend.plugins.cms.admin.HippoAdminConstants;
 import org.hippoecm.frontend.plugins.cms.admin.password.validation.IPasswordValidationService;
 import org.hippoecm.frontend.plugins.cms.admin.password.validation.PasswordValidationStatus;
-import org.hippoecm.frontend.plugins.cms.admin.validators.PasswordStrengthValidator;
 import org.hippoecm.frontend.plugins.cms.admin.validators.UsernameValidator;
+import org.hippoecm.frontend.session.UserSession;
+import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,8 +135,11 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
                     try {
                         user.create();
                         user.savePassword(password);
-                        HippoEvent event = new HippoEvent().user(getSession()).action("create-user")
-                                .category(HippoEvent.CATEGORY_USER_MANAGEMENT)
+                        final UserSession userSession = UserSession.get();
+                        HippoEvent event = new HippoEvent(userSession.getApplicationName())
+                                .user(userSession.getJcrSession().getUserID())
+                                .action("create-user")
+                                .category(HippoAdminConstants.CATEGORY_USER_MANAGEMENT)
                                 .message("created user " + username);
                         AuditLogger.getLogger().info(event.toString());
                         UserDataProvider.setDirty();

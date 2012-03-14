@@ -39,13 +39,13 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.protocol.http.WebRequest;
 import org.apache.wicket.protocol.http.WebResponse;
-import org.hippoecm.audit.AuditLogger;
-import org.hippoecm.audit.HippoEvent;
 import org.hippoecm.frontend.model.UserCredentials;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.session.PluginUserSession;
 import org.hippoecm.repository.api.HippoNodeType;
+import org.onehippo.cms7.event.HippoEvent;
+import org.onehippo.cms7.event.HippoSecurityEventConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,6 +56,13 @@ public class RememberMeLoginPlugin extends LoginPlugin {
     private static final long serialVersionUID = 1L;
 
     private static final Logger log = LoggerFactory.getLogger(LoginPlugin.class);
+
+
+    private static final String AUDIT_LOGGER = "org.onehippo.audit";
+
+    private static Logger getAuditLogger() {
+        return LoggerFactory.getLogger(AUDIT_LOGGER);
+    }
 
     /** Algorithm to use for creating the passkey secret.
         Intentionally a relative weak algorithm, as this whole procedure isn't
@@ -192,16 +199,16 @@ public class RememberMeLoginPlugin extends LoginPlugin {
                         }
                     }
                 }
-                HippoEvent event = new HippoEvent().user(getSession()).action("login")
-                        .category(HippoEvent.CATEGORY_SECURITY)
+                HippoEvent event = new HippoEvent(userSession.getApplicationName()).user(username).action("login")
+                        .category(HippoSecurityEventConstants.CATEGORY_SECURITY)
                         .message(username + " logged in");
-                AuditLogger.getLogger().info(event.toString());
+                getAuditLogger().info(event.toString());
             }else{
-                HippoEvent event = new HippoEvent().user(getSession()).action("login")
-                        .category(HippoEvent.CATEGORY_SECURITY)
+                HippoEvent event = new HippoEvent(userSession.getApplicationName()).user(username).action("login")
+                        .category(HippoSecurityEventConstants.CATEGORY_SECURITY)
                         .result("failure")
                         .message(username + " failed to login");
-                AuditLogger.getLogger().info(event.toString());
+                getAuditLogger().info(event.toString());
             }
             userSession.setLocale(new Locale(selectedLocale));
             redirect(success);

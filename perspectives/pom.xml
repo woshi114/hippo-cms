@@ -23,12 +23,17 @@
   <modelVersion>4.0.0</modelVersion>
 
   <name>CMS Perspectives</name>
-  <description>Hippo CMS Browse perspective</description>
+  <description>Hippo CMS perspective</description>
   <groupId>org.onehippo.cms7</groupId>
   <artifactId>hippo-cms-perspectives</artifactId>
   <packaging>jar</packaging>
 
   <dependencies>
+    <dependency>
+      <groupId>org.onehippo.cms7</groupId>
+      <artifactId>hippo-cms7-commons</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>org.onehippo.cms7</groupId>
       <artifactId>hippo-cms-api</artifactId>

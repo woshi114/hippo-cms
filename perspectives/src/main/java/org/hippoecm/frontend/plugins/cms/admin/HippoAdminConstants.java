@@ -13,17 +13,13 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package org.hippoecm.audit;
+package org.hippoecm.frontend.plugins.cms.admin;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public final class HippoAdminConstants {
+    private HippoAdminConstants() {}
 
-public class AuditLogger {
+    public static final String CATEGORY_USER_MANAGEMENT = "user-management";
+    public static final String CATEGORY_GROUP_MANAGEMENT = "group-management";
+    public static final String CATEGORY_PERMISSIONS_MANAGEMENT = "permissions-management";
 
-    private static final String AUDIT_LOGGER = "org.onehippo.audit";
-    private static final Logger log = LoggerFactory.getLogger(AUDIT_LOGGER);
-
-    public static Logger getLogger() {
-        return log;
-    }
 }

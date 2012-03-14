@@ -34,12 +34,14 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.hippoecm.audit.AuditLogger;
-import org.hippoecm.audit.HippoEvent;
 import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
+import org.hippoecm.frontend.plugins.cms.admin.AuditLogger;
+import org.hippoecm.frontend.plugins.cms.admin.HippoAdminConstants;
 import org.hippoecm.frontend.plugins.cms.admin.groups.DetachableGroup;
 import org.hippoecm.frontend.plugins.cms.admin.groups.Group;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.AjaxLinkLabel;
+import org.hippoecm.frontend.session.UserSession;
+import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,8 +76,11 @@ public class SetMembershipsPanel extends AdminBreadCrumbPanel {
                         info(getString("user-membership-already-member", new DetachableGroup(selectedGroup)));
                     } else {
                         selectedGroup.addMembership(user.getUsername());
-                       HippoEvent event = new HippoEvent().user(getSession()).action("add-user-to-group")
-                                .category(HippoEvent.CATEGORY_GROUP_MANAGEMENT)
+                        UserSession userSession = UserSession.get();
+                        HippoEvent event = new HippoEvent(userSession.getApplicationName())
+                                .user(userSession.getJcrSession().getUserID())
+                                .action("add-user-to-group")
+                                .category(HippoAdminConstants.CATEGORY_GROUP_MANAGEMENT)
                                 .message("added user " + user.getUsername() + " to group " + selectedGroup.getGroupname());
                         AuditLogger.getLogger().info(event.toString());
                         info(getString("user-membership-added", new DetachableGroup(selectedGroup)));
@@ -153,8 +158,11 @@ public class SetMembershipsPanel extends AdminBreadCrumbPanel {
                 public void onClick(AjaxRequestTarget target) {
                     try {
                         model.getGroup().removeMembership(user.getUsername());
-                        HippoEvent event = new HippoEvent().user(getSession()).action("remove-user-from-group")
-                                .category(HippoEvent.CATEGORY_GROUP_MANAGEMENT)
+                        UserSession userSession = UserSession.get();
+                        HippoEvent event = new HippoEvent(userSession.getApplicationName())
+                                .user(userSession.getJcrSession().getUserID())
+                                .action("remove-user-from-group")
+                                .category(HippoAdminConstants.CATEGORY_GROUP_MANAGEMENT)
                                 .message("removed user " + user.getUsername() + " from group " + model.getGroup().getGroupname());
                         AuditLogger.getLogger().info(event.toString());
                         info(getString("user-membership-removed", model));
