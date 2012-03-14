@@ -69,6 +69,12 @@ Xinha.prototype._fullscreen = function(resize) {
     e.sizeEditor(w + 'px', h + 'px', e.config.sizeIncludesBars, e.config.sizeIncludesPanels);
     e._sizing = false;
     if ( e._toolbarObjects.fullscreen ) e._toolbarObjects.fullscreen.swapImage(cfg.iconList.fullscreenrestore);
+
+    //Because of HREPTWO-3990 we have to use a custom setHTML implementation that doesn't work in fullscreen.
+    //As a workaround we disable the custom undo behavior that Xinha provides in fullscreen mode, see CMS7-5847 
+    if(Xinha.ie_version == 7 || Xinha.ie_version == 8) {
+      e._customUndo = false;
+    }
   }
 
   function sizeItDown() {
@@ -88,6 +94,11 @@ Xinha.prototype._fullscreen = function(resize) {
 
     e._sizing = false;
     if ( e._toolbarObjects.fullscreen ) e._toolbarObjects.fullscreen.swapImage(cfg.iconList.fullscreen);
+
+    //See CMS7-5847
+    if(Xinha.ie_version == 7 || Xinha.ie_version == 8) {
+      e._customUndo = true;
+    }
   }
 
   /** It's not possible to reliably get scroll events, particularly when we are hiding the scrollbars
