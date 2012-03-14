@@ -2544,6 +2544,7 @@ xinha-resources/src/main/patches/bugfix/CMS7-5277.patch -text
 xinha-resources/src/main/patches/enhancement/HREPTWO-4261.patch -text
 xinha-resources/src/site/apt/index.apt -text
 xinha-resources/src/site/site.xml svneol=native#text/plain
+xinha-resources/webResources/xinha/XinhaCore.js -text
 xinha-resources/webResources/xinha/iconsets/Hippo/de/bold.gif -text
 xinha-resources/webResources/xinha/iconsets/Hippo/de/italic.gif -text
 xinha-resources/webResources/xinha/iconsets/Hippo/de/underline.gif -text
@@ -2555,6 +2556,7 @@ xinha-resources/webResources/xinha/iconsets/Hippo/fr/strikethrough.gif -text
 xinha-resources/webResources/xinha/iconsets/Hippo/fr/underline.gif -text
 xinha-resources/webResources/xinha/iconsets/Hippo/iconset.xml -text svneol=unset#text/plain
 xinha-resources/webResources/xinha/images/ed_buttons_main.gif -text
+xinha-resources/webResources/xinha/modules/FullScreen/full-screen.js -text
 xinha-resources/webResources/xinha/plugins/AutoResize/AutoResize.js svneol=native#text/plain
 xinha-resources/webResources/xinha/plugins/CreateExternalLink/CreateExternalLink.js svneol=native#text/plain
 xinha-resources/webResources/xinha/plugins/CreateExternalLink/lang/nl.js svneol=native#text/plain
