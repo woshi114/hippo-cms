@@ -44,8 +44,8 @@ import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.AdminDataTable;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.AjaxLinkLabel;
-import org.hippoecm.frontend.plugins.cms.admin.widgets.DeleteDialog;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.DefaultFocusBehavior;
+import org.hippoecm.frontend.plugins.cms.admin.widgets.DeleteDialog;
 import org.hippoecm.frontend.plugins.standards.panelperspective.breadcrumb.PanelPluginBreadCrumbLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,10 +92,12 @@ public class ListGroupsPanel extends AdminBreadCrumbPanel {
 
         List<IColumn> columns = new ArrayList<IColumn>();
 
-        columns.add(new AbstractColumn(new ResourceModel("group-name")) {
+        columns.add(new AbstractColumn<Group>(new ResourceModel("group-name")) {
             private static final long serialVersionUID = 1L;
 
-            public void populateItem(final Item item, final String componentId, final IModel model) {
+            public void populateItem(final Item<ICellPopulator<Group>> item,
+                                     final String componentId,
+                                     final IModel<Group> model) {
 
                 AjaxLinkLabel action = new AjaxLinkLabel(componentId, new PropertyModel(model, "groupname")) {
                     private static final long serialVersionUID = 1L;
@@ -105,7 +107,7 @@ public class ListGroupsPanel extends AdminBreadCrumbPanel {
                         activate(new IBreadCrumbPanelFactory() {
                             public BreadCrumbPanel create(final String componentId,
                                                           final IBreadCrumbModel breadCrumbModel) {
-                                return new ViewGroupPanel(componentId, context, breadCrumbModel, model);
+                                return new ViewGroupPanel(componentId, context, breadCrumbModel, model.getObject());
                             }
                         });
                     }

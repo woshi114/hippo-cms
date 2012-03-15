@@ -36,14 +36,12 @@ import javax.jcr.query.QueryManager;
 
 import org.apache.wicket.IClusterable;
 import org.apache.wicket.Session;
-import org.hippoecm.frontend.plugins.cms.admin.AuditLogger;
-import org.hippoecm.frontend.plugins.cms.admin.HippoAdminConstants;
 import org.hippoecm.frontend.plugins.cms.admin.groups.DetachableGroup;
+import org.hippoecm.frontend.plugins.cms.admin.groups.Group;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.repository.PasswordHelper;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.NodeNameCodec;
-import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -349,6 +347,14 @@ public class User implements Comparable<User>, IClusterable {
         return localMemberships;
     }
 
+    public List<Group> getLocalMemberShips() {
+        List<Group> groups = new ArrayList<Group>();
+        for (DetachableGroup group : getLocalMemberships()) {
+            groups.add(group.getObject());
+        }
+        return groups;
+    }
+
     /**
      * Returns the User's external memberships.
      *
@@ -455,13 +461,6 @@ public class User implements Comparable<User>, IClusterable {
         node.remove();
         parent.getSession().save();
 
-        // Let the outside world know that this user got deleted
-        final UserSession userSession = UserSession.get();
-        HippoEvent event = new HippoEvent(userSession.getApplicationName())
-                .user(userSession.getJcrSession().getUserID()).action("delete-user")
-                .category(HippoAdminConstants.CATEGORY_USER_MANAGEMENT)
-                .message("deleted user " + username);
-        AuditLogger.getLogger().info(event.toString());
     }
 
     public void removeAllGroupMemberships() throws RepositoryException {

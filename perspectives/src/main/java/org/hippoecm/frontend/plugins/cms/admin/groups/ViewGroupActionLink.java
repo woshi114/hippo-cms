@@ -48,7 +48,7 @@ public class ViewGroupActionLink extends AjaxFallbackLink<String> {
     public void onClick(AjaxRequestTarget target) {
         breadCrumbPanel.activate(new IBreadCrumbPanelFactory() {
             public BreadCrumbPanel create(String componentId, IBreadCrumbModel breadCrumbModel) {
-                return new ViewGroupPanel(componentId, context, breadCrumbModel, new DetachableGroup(group));
+                return new ViewGroupPanel(componentId, context, breadCrumbModel, group);
             }
         });
     }
