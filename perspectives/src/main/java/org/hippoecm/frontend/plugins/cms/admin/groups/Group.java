@@ -29,9 +29,12 @@ import javax.jcr.query.QueryManager;
 
 import org.apache.wicket.IClusterable;
 import org.apache.wicket.Session;
+import org.hippoecm.frontend.plugins.cms.admin.AuditLogger;
+import org.hippoecm.frontend.plugins.cms.admin.HippoAdminConstants;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.NodeNameCodec;
+import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +42,7 @@ public class Group implements Comparable<Group>, IClusterable {
 
     @SuppressWarnings("unused")
     private final static String SVN_ID = "$Id$";
-    
+
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(Group.class);
 
@@ -49,19 +52,19 @@ public class Group implements Comparable<Group>, IClusterable {
     private final static String QUERY_ALL_ROLES = "select * from hipposys:role";
     private final static String QUERY_GROUP_EXISTS = "SELECT * FROM hipposys:group WHERE fn:name()='{}'";
 
-        
+
     private String path;
     private String groupname;
-    
+
     private String description;
     private boolean external = false;
 
     private transient Node node;
-    
+
     public static QueryManager getQueryManager() throws RepositoryException {
         return ((UserSession) Session.get()).getQueryManager();
     }
-    
+
 
     public static boolean exists(String groupname) {
         String queryString = QUERY_GROUP_EXISTS.replace("{}", groupname);
@@ -100,7 +103,7 @@ public class Group implements Comparable<Group>, IClusterable {
         Collections.sort(groups);
         return groups;
     }
-    
+
 
     public static List<Group> getAllGroups() {
         List<Group> groups = new ArrayList<Group>();
@@ -125,11 +128,10 @@ public class Group implements Comparable<Group>, IClusterable {
         Collections.sort(groups);
         return groups;
     }
-    
+
 
     /**
-     * FIXME: should move to roles class or something the like
-     * when the admin perspective gets support for it
+     * FIXME: should move to roles class or something the like when the admin perspective gets support for it
      */
     public static List<String> getAllRoles() {
         List<String> roles = new ArrayList<String>();
@@ -154,7 +156,7 @@ public class Group implements Comparable<Group>, IClusterable {
         Collections.sort(roles);
         return roles;
     }
-    
+
     public boolean isExternal() {
         return external;
     }
@@ -183,21 +185,21 @@ public class Group implements Comparable<Group>, IClusterable {
     //----------------------- constructors ---------//
     public Group() {
     }
-    
+
     public Group(final Node node) throws RepositoryException {
         this.path = node.getPath().substring(1);
         this.groupname = NodeNameCodec.decode(node.getName());
         this.node = node;
-        
+
         if (node.isNodeType(HippoNodeType.NT_EXTERNALGROUP)) {
             external = true;
         }
 
         if (node.hasProperty(PROP_DESCRIPTION)) {
             setDescription(node.getProperty(PROP_DESCRIPTION).getString());
-        } else if (node.hasProperty("description")){
+        } else if (node.hasProperty("description")) {
             setDescription(node.getProperty("description").getString());
-            
+
         }
     }
 
@@ -214,8 +216,10 @@ public class Group implements Comparable<Group>, IClusterable {
     }
 
     //-------------------- persistence helpers ----------//
+
     /**
      * Wrapper needed for spi layer which doesn't know if a property exists or not
+     *
      * @param node
      * @param name
      * @param value
@@ -227,9 +231,10 @@ public class Group implements Comparable<Group>, IClusterable {
         }
         node.setProperty(name, value);
     }
-    
+
     /**
      * Create a new group
+     *
      * @throws RepositoryException
      */
     public void create() throws RepositoryException {
@@ -253,6 +258,7 @@ public class Group implements Comparable<Group>, IClusterable {
 
     /**
      * save the current group
+     *
      * @throws RepositoryException
      */
     public void save() throws RepositoryException {
@@ -266,12 +272,21 @@ public class Group implements Comparable<Group>, IClusterable {
 
     /**
      * Delete the current group
+     *
      * @throws RepositoryException
      */
     public void delete() throws RepositoryException {
         Node parent = node.getParent();
         node.remove();
         parent.getSession().save();
+
+        UserSession userSession = UserSession.get();
+        HippoEvent event = new HippoEvent(userSession.getApplicationName())
+                .user(userSession.getJcrSession().getUserID())
+                .action("delete-group")
+                .category(HippoAdminConstants.CATEGORY_GROUP_MANAGEMENT)
+                .message("deleted group " + groupname);
+        AuditLogger.getLogger().info(event.toString());
     }
 
     public void removeMembership(String user) throws RepositoryException {
@@ -289,6 +304,7 @@ public class Group implements Comparable<Group>, IClusterable {
     }
 
     //--------------------- default object -------------------//
+
     /**
      * @see java.lang.Object#equals(java.lang.Object)
      */
@@ -306,39 +322,8 @@ public class Group implements Comparable<Group>, IClusterable {
     public int hashCode() {
         return (null == path ? 0 : path.hashCode());
     }
-    
-    public int compareTo(Group o) {
-        String thisName = getGroupname();
-        String otherName = o.getGroupname();
-        // 
-        int len1 = thisName.length();
-        int len2 = otherName.length();
-        int n = Math.min(len1, len2);
-        char v1[] = thisName.toCharArray();
-        char v2[] = otherName.toCharArray();
-        int i = 0;
-        int j = 0;
 
-        if (i == j) {
-            int k = i;
-            int lim = n + i;
-            while (k < lim) {
-            char c1 = v1[k];
-            char c2 = v2[k];
-            if (c1 != c2) {
-                return c1 - c2;
-            }
-            k++;
-            }
-        } else {
-            while (n-- != 0) {
-            char c1 = v1[i++];
-            char c2 = v2[j++];
-            if (c1 != c2) {
-                return c1 - c2;
-            }
-            }
-        }
-        return len1 - len2;
+    public int compareTo(Group o) {
+        return groupname.compareTo(o.getGroupname());
     }
 }

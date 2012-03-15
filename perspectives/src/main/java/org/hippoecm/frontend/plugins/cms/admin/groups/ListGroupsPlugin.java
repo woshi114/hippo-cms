@@ -17,7 +17,6 @@ package org.hippoecm.frontend.plugins.cms.admin.groups;
 
 import org.apache.wicket.ResourceReference;
 import org.apache.wicket.extensions.breadcrumb.IBreadCrumbModel;
-import org.apache.wicket.extensions.breadcrumb.panel.BreadCrumbPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.ResourceModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
@@ -48,6 +47,6 @@ public class ListGroupsPlugin extends AdminPanelPlugin {
 
     @Override
     public PanelPluginBreadCrumbPanel create(final String componentId, final IBreadCrumbModel breadCrumbModel) {
-        return new ListGroupsPanel(componentId, getPluginContext(), breadCrumbModel);
+        return new ListGroupsPanel(componentId, getPluginContext(), breadCrumbModel, new GroupDataProvider());
     }
 }

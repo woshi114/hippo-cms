@@ -55,7 +55,7 @@ public class CreateGroupPanel extends AdminBreadCrumbPanel {
     public CreateGroupPanel(final String id, final IBreadCrumbModel breadCrumbModel) {
         super(id, breadCrumbModel);
         setOutputMarkupId(true);
-        
+
         // add form with markup id setter so it can be updated via ajax
         form = new Form("form", new CompoundPropertyModel(groupModel));
         form.setOutputMarkupId(true);
@@ -66,7 +66,7 @@ public class CreateGroupPanel extends AdminBreadCrumbPanel {
         fc.add(StringValidator.minimumLength(2));
         fc.add(new GroupValidator());
         form.add(fc);
-        
+
         form.add(new TextField("description"));
 
         form.add(new AjaxButton("create-button", form) {
@@ -86,16 +86,16 @@ public class CreateGroupPanel extends AdminBreadCrumbPanel {
                             .category(HippoAdminConstants.CATEGORY_GROUP_MANAGEMENT)
                             .message("added group " + groupname);
                     AuditLogger.getLogger().info(event.toString());
-                    GroupDataProvider.setDirty();
                     Session.get().info(getString("group-created", groupModel));
                     // one up
                     List<IBreadCrumbParticipant> l = breadCrumbModel.allBreadCrumbParticipants();
-                    breadCrumbModel.setActive(l.get(l.size() -2));
+                    breadCrumbModel.setActive(l.get(l.size() - 2));
                 } catch (RepositoryException e) {
                     Session.get().warn(getString("group-create-failed", groupModel));
                     log.error("Unable to create group '" + groupname + "' : ", e);
                 }
             }
+
             @Override
             protected void onError(AjaxRequestTarget target, Form form) {
                 // make sure the feedback panel is shown
@@ -111,7 +111,7 @@ public class CreateGroupPanel extends AdminBreadCrumbPanel {
             protected void onSubmit(AjaxRequestTarget target, Form form) {
                 // one up
                 List<IBreadCrumbParticipant> l = breadCrumbModel.allBreadCrumbParticipants();
-                breadCrumbModel.setActive(l.get(l.size() -2));
+                breadCrumbModel.setActive(l.get(l.size() - 2));
             }
         }.setDefaultFormProcessing(false));
     }

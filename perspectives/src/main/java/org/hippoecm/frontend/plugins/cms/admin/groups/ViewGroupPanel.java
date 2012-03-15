@@ -53,10 +53,10 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
     private final IModel model;
 
     public ViewGroupPanel(final String id, final IPluginContext context, final IBreadCrumbModel breadCrumbModel,
-            final IModel model) {
+                          final IModel model) {
         super(id, breadCrumbModel);
         setOutputMarkupId(true);
-        
+
         this.model = model;
         final Group group = (Group) model.getObject();
 
@@ -76,7 +76,7 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
         };
         edit.setVisible(!group.isExternal());
         add(edit);
-        
+
         PanelPluginBreadCrumbLink members = new PanelPluginBreadCrumbLink("set-group-members", breadCrumbModel) {
             @Override
             protected IBreadCrumbParticipant getParticipant(final String componentId) {
@@ -113,7 +113,7 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
             }
         });
     }
-    
+
     private void deleteGroup(IModel model) {
         Group group = (Group) model.getObject();
         String groupname = group.getGroupname();
@@ -127,18 +127,19 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
                     .category(HippoAdminConstants.CATEGORY_GROUP_MANAGEMENT)
                     .message("deleted group " + groupname);
             AuditLogger.getLogger().info(event.toString());
-            GroupDataProvider.setDirty();
             Session.get().info(getString("group-removed", model));
             // one up
             List<IBreadCrumbParticipant> l = getBreadCrumbModel().allBreadCrumbParticipants();
-            getBreadCrumbModel().setActive(l.get(l.size() -2));
+            getBreadCrumbModel().setActive(l.get(l.size() - 2));
         } catch (RepositoryException e) {
             Session.get().warn(getString("group-remove-failed", model));
             log.error("Unable to delete group '" + groupname + "' : ", e);
         }
     }
-    
-    /** list view to be nested in the form. */
+
+    /**
+     * list view to be nested in the form.
+     */
     private static final class MembershipsListView extends ListView {
         private static final long serialVersionUID = 1L;
         private String labelId;
