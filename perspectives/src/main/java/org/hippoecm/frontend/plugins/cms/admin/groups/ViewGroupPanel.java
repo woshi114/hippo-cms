@@ -37,7 +37,7 @@ import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
 import org.hippoecm.frontend.plugins.cms.admin.AuditLogger;
 import org.hippoecm.frontend.plugins.cms.admin.HippoAdminConstants;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.AjaxLinkLabel;
-import org.hippoecm.frontend.plugins.cms.admin.widgets.ConfirmDeleteDialog;
+import org.hippoecm.frontend.plugins.cms.admin.widgets.DeleteDialog;
 import org.hippoecm.frontend.plugins.standards.panelperspective.breadcrumb.PanelPluginBreadCrumbLink;
 import org.hippoecm.frontend.session.UserSession;
 import org.onehippo.cms7.event.HippoEvent;
@@ -53,12 +53,12 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
     private final IModel model;
 
     public ViewGroupPanel(final String id, final IPluginContext context, final IBreadCrumbModel breadCrumbModel,
-                          final IModel model) {
+                          final IModel<Group> model) {
         super(id, breadCrumbModel);
         setOutputMarkupId(true);
 
         this.model = model;
-        final Group group = (Group) model.getObject();
+        final Group group = model.getObject();
 
         // common group properties
         add(new Label("groupname", new PropertyModel(model, "groupname")));
@@ -66,7 +66,7 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
 
         // local memberships
         add(new Label("group-members-label", new ResourceModel("group-members-label")));
-        add(new MembershipsListView("members", "member", new PropertyModel(group, "members")));
+        add(new GroupMembersListView("members", "member", new PropertyModel<List<String>>(group, "members")));
 
         // actions
         PanelPluginBreadCrumbLink edit = new PanelPluginBreadCrumbLink("edit-group", breadCrumbModel) {
@@ -92,7 +92,7 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 context.getService(IDialogService.class.getName(), IDialogService.class).show(
-                        new ConfirmDeleteDialog(model, this) {
+                        new DeleteDialog<Group>(model, this) {
                             private static final long serialVersionUID = 1L;
 
                             @Override
@@ -119,8 +119,7 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
         String groupname = group.getGroupname();
         try {
             group.delete();
-
-            UserSession userSession = UserSession.get();
+            final UserSession userSession = UserSession.get();
             HippoEvent event = new HippoEvent(userSession.getApplicationName())
                     .user(userSession.getJcrSession().getUserID())
                     .action("delete-group")
@@ -140,11 +139,11 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
     /**
      * list view to be nested in the form.
      */
-    private static final class MembershipsListView extends ListView {
+    private static final class GroupMembersListView extends ListView<String> {
         private static final long serialVersionUID = 1L;
         private String labelId;
 
-        public MembershipsListView(final String id, final String labelId, IModel listModel) {
+        public GroupMembersListView(final String id, final String labelId, IModel<List<String>> listModel) {
             super(id, listModel);
             this.labelId = labelId;
             setReuseItems(false);

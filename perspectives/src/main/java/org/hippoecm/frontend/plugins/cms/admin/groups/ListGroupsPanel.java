@@ -44,7 +44,7 @@ import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.AdminDataTable;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.AjaxLinkLabel;
-import org.hippoecm.frontend.plugins.cms.admin.widgets.ConfirmDeleteDialog;
+import org.hippoecm.frontend.plugins.cms.admin.widgets.DeleteDialog;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.DefaultFocusBehavior;
 import org.hippoecm.frontend.plugins.standards.panelperspective.breadcrumb.PanelPluginBreadCrumbLink;
 import org.slf4j.Logger;
@@ -175,7 +175,7 @@ public class ListGroupsPanel extends AdminBreadCrumbPanel {
         @Override
         public void onClick(final AjaxRequestTarget target) {
             context.getService(IDialogService.class.getName(), IDialogService.class).show(
-                    new ConfirmDeleteDialog<Group>(groupModel, this) {
+                    new DeleteDialog<Group>(groupModel, this) {
                         private static final long serialVersionUID = 1L;
 
                         @Override

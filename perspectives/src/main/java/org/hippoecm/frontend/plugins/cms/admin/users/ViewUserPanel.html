@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  * Copyright 2008-2012 Hippo
+  * Copyright 2008 Hippo
   *
   * Licensed under the Apache License, Version 2.0 (the  "License");
   * you may not use this file except in compliance with the License.
@@ -16,9 +16,10 @@
 -->
 <html xmlns:wicket="http://wicket.apache.org/">
 <wicket:extend>
-    <h2>
+    <h2><label wicket:id="view-user-panel-title"></label></h2>
+    <h3>
         <wicket:message key="user-view-actions-title"/>
-    </h2>
+    </h3>
     <ul class="hippo-controlpanel-options">
         <li wicket:id="edit-user"><a href="#">
             <wicket:message key="user-edit"/>
@@ -26,13 +27,13 @@
         <li wicket:id="set-user-password"><a href="#">
             <wicket:message key="user-set-password"/>
         </a></li>
-        <li wicket:id="set-user-memberships"><a href="#">
-            <wicket:message key="user-set-memberships"/>
-        </a></li>
         <li class="delete" wicket:id="delete-user"/>
     </ul>
     <div class="hippo-controlpanel-form">
         <div class="icons-128 user-128">
+            <h3>
+                <wicket:message key="user-properties"/>
+            </h3>
             <table>
                 <tr>
                     <td>
@@ -78,24 +79,10 @@
                 </tr>
             </table>
         </div>
-        <h3 wicket:id="local-memberships-label"/>
-        <table class="hippo-controlpanel-table-default hippo-list-details">
-            <tr wicket:id="local-memberships">
-                <td><label wicket:id="local-membership"/></td>
-                <td>
-                    <li class="delete-16-disabled icon-16"/>
-                </td>
-            </tr>
-        </table>
-        <h3 wicket:id="external-memberships-label"/>
-        <table class="hippo-controlpanel-table-default hippo-list-details">
-            <tr wicket:id="external-memberships">
-                <td><label wicket:id="external-membership"/></td>
-                <td>
-                    <li class="delete-16 icon-16"/>
-                </td>
-            </tr>
-        </table>
+        <br/>
+        <h3>
+            <wicket:message key="user-memberships"/>
+        </h3>
         <label wicket:id="properties-label"/>
         <table class="hippo-controlpanel-table-default hippo-list-details">
             <tr wicket:id="properties">
@@ -103,6 +90,8 @@
                 <td><label wicket:id="value"/></td>
             </tr>
         </table>
+        <span wicket:id="set-member-ship-panel"></span>
     </div>
+
 </wicket:extend>
 </html>
