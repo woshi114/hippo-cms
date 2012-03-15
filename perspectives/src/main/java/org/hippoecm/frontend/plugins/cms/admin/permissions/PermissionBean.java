@@ -135,7 +135,7 @@ public class PermissionBean implements Serializable {
         }
     }
 
-    public static class PermissionsBeanByDomainNameComparator implements Comparator<PermissionBean> {
+    public static class PermissionsBeanByDomainNameComparator implements Comparator<PermissionBean>, Serializable {
         @Override
         public int compare(final PermissionBean o1, final PermissionBean o2) {
             String domainName1 = o1.getDomain().getObject().getName();
