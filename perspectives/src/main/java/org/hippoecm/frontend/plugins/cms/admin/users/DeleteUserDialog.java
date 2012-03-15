@@ -15,10 +15,6 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin.users;
 
-import java.util.List;
-
-import javax.jcr.RepositoryException;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
 import org.apache.wicket.extensions.breadcrumb.IBreadCrumbModel;
@@ -35,6 +31,9 @@ import org.hippoecm.frontend.session.UserSession;
 import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.jcr.RepositoryException;
+import java.util.List;
 
 /**
  * Prompts the user if he's sure that he wants to delete a user and then executes the delete and sends an update event.
@@ -82,7 +81,7 @@ public class DeleteUserDialog extends DeleteDialog<User> {
         String username = user.getUsername();
         try {
             user.delete();
-            Session.get().info(getString("user-removed", model));
+            Session.get().info(breadCrumbPanel.getString("user-removed", model));
 
             // Let the outside world know that this user got deleted
             final UserSession userSession = UserSession.get();
@@ -102,7 +101,7 @@ public class DeleteUserDialog extends DeleteDialog<User> {
                 }
             });
         } catch (RepositoryException e) {
-            Session.get().warn(getString("user-remove-failed", model));
+            Session.get().warn(breadCrumbPanel.getString("user-remove-failed", model));
             log.error("Unable to delete user '" + username + "' : ", e);
         }
     }
