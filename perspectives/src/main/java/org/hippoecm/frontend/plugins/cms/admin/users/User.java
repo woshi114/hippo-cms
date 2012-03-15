@@ -247,18 +247,20 @@ public class User implements Comparable<User>, IClusterable {
      * this object.
      *
      * @param username the name of the user to fetch
-     * @throws RepositoryException thrown when the user with supplied username does not exist in the repository
      */
-    public User(final String username) throws RepositoryException {
+    public User(final String username) {
         String queryString = QUERY_USER_EXISTS.replace("{}", username);
         try {
             Query query = getQueryManager().createQuery(queryString, Query.SQL);
             NodeIterator iter = query.execute().getNodes();
             if (iter.hasNext()) {
                 init(iter.nextNode());
+            } else {
+                log.error("User {} does not exist, returning object without state.", username);
             }
         } catch (RepositoryException e) {
             log.error("Unable to get node for user '{}' while constructing user", username, e);
+            throw new IllegalStateException("Error while obtaining user", e);
         }
     }
 
