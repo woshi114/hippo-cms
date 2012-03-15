@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2012 Hippo.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.jcr.RepositoryException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class SetPermissionsPanel extends AdminBreadCrumbPanel {
@@ -67,11 +68,21 @@ public class SetPermissionsPanel extends AdminBreadCrumbPanel {
         return selectedRole;
     }
 
+    /**
+     * Constructs a new SetPermissionsPanel.
+     *
+     * @param id              the id
+     * @param breadCrumbModel the breadCrumbModel
+     * @param model           the model
+     */
     public SetPermissionsPanel(final String id, final IBreadCrumbModel breadCrumbModel, final IModel<Domain> model) {
         super(id, breadCrumbModel);
         setOutputMarkupId(true);
         this.model = model;
         this.domain = model.getObject();
+
+        Label title = new Label("permissions-set-title", new StringResourceModel("permissions-set-title", this, model));
+        add(title);
 
         // All local groups
         Form form = new Form("form");
@@ -120,9 +131,6 @@ public class SetPermissionsPanel extends AdminBreadCrumbPanel {
 
         add(form);
 
-        // local memberships
-        Label currentPerms = new Label("current-permissions-label", new ResourceModel("permissions-current"));
-        add(currentPerms);
         final ListView roleList = new RoleListView("role-row");
         add(roleList);
     }
@@ -153,25 +161,26 @@ public class SetPermissionsPanel extends AdminBreadCrumbPanel {
 
         protected void populateItem(final ListItem<String> item) {
             item.setOutputMarkupId(true);
-            final String group = item.getModelObject();
-            item.add(new Label("group-label", group));
+            final String groupName = item.getModelObject();
+            item.add(new Label("group-label", groupName));
             item.add(new AjaxLinkLabel("group-remove", new ResourceModel("permissions-remove-action")) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 public void onClick(AjaxRequestTarget target) {
                     try {
-                        domain.removeGroupFromRole(role, group);
+                        domain.removeGroupFromRole(role, groupName);
                         UserSession userSession = UserSession.get();
                         HippoEvent event = new HippoEvent(userSession.getApplicationName())
                                 .user(userSession.getJcrSession().getUserID())
                                 .action("revoke-role")
                                 .category(HippoAdminConstants.CATEGORY_PERMISSIONS_MANAGEMENT)
-                                .message("revoke " + selectedRole + " role from group " + group + " for domain " + domain.getName());
+                                .message("revoke " + selectedRole + " role from group " + groupName + " for domain " +
+                                        domain.getName());
                         AuditLogger.getLogger().info(event.toString());
 
                         info(getString("permissions-group-removed", model));
-                        log.info("Revoke " + selectedRole + " role from group " + group + " for domain " +
+                        log.info("Revoke " + selectedRole + " role from group " + groupName + " for domain " +
                                 domain.getName());
                         this.removeAll();
                         target.addComponent(SetPermissionsPanel.this);
@@ -198,15 +207,16 @@ public class SetPermissionsPanel extends AdminBreadCrumbPanel {
         protected void populateItem(final ListItem<String> item) {
             String role = item.getModelObject();
             item.add(new Label("role", role));
-            List<String> groups = new ArrayList<String>();
-            for (Domain.AuthRole authRole : domain.getAuthRoles().values()) {
-                if (role.equals(authRole.getRole())) {
-                    groups.addAll(authRole.getGroupnames());
-                }
+
+            Domain.AuthRole authRole = domain.getAuthRoles().get(role);
+            List<String> groups;
+            if (authRole != null) {
+                groups = new ArrayList<String>(authRole.getGroupnames());
+            } else {
+                groups = Collections.emptyList();
             }
 
             item.add(new DomainRoleListView("groups", role, groups));
-
         }
     }
 
