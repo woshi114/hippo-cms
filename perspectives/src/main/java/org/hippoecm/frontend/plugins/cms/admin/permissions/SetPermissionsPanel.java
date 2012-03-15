@@ -15,11 +15,6 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin.permissions;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.jcr.RepositoryException;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
@@ -45,24 +40,38 @@ import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.jcr.RepositoryException;
+import java.util.ArrayList;
+import java.util.List;
+
 public class SetPermissionsPanel extends AdminBreadCrumbPanel {
-    @SuppressWarnings("unused")
+    private static final String UNUSED = "unused";
+
+    @SuppressWarnings(UNUSED)
     private static final String SVN_ID = "$Id$";
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(SetPermissionsPanel.class);
 
     private Group selectedGroup;
     private String selectedRole;
-    private final IModel model;
-    private ListView roleList;
-    //private final ListView externalList;
+    private final IModel<Domain> model;
     private final Domain domain;
 
-    public SetPermissionsPanel(final String id, final IBreadCrumbModel breadCrumbModel, final IModel model) {
+    @SuppressWarnings({UNUSED})
+    public Group getSelectedGroup() {
+        return selectedGroup;
+    }
+
+    @SuppressWarnings({UNUSED})
+    public String getSelectedRole() {
+        return selectedRole;
+    }
+
+    public SetPermissionsPanel(final String id, final IBreadCrumbModel breadCrumbModel, final IModel<Domain> model) {
         super(id, breadCrumbModel);
         setOutputMarkupId(true);
         this.model = model;
-        this.domain = (Domain) model.getObject();
+        this.domain = model.getObject();
 
         // All local groups
         Form form = new Form("form");
@@ -95,30 +104,43 @@ public class SetPermissionsPanel extends AdminBreadCrumbPanel {
         form.add(submit);
 
         List<String> allRoles = Group.getAllRoles();
-        DropDownChoice roleChoice = new DropDownChoice("roles-select", new PropertyModel(this, "selectedRole"), allRoles);
+        DropDownChoice<String> roleChoice = new DropDownChoice<String>("roles-select",
+                new PropertyModel<String>(this, "selectedRole"), allRoles);
         roleChoice.setNullValid(false);
         roleChoice.setRequired(true);
         form.add(roleChoice);
-        
+
         List<Group> allGroups = Group.getAllGroups();
-        DropDownChoice groupChoice = new DropDownChoice("groups-select", new PropertyModel(this, "selectedGroup"), allGroups,
-                new ChoiceRenderer("groupname"));
+        DropDownChoice<Group> groupChoice = new DropDownChoice<Group>("groups-select",
+                new PropertyModel<Group>(this, "selectedGroup"), allGroups, new ChoiceRenderer<Group>("groupname"));
         groupChoice.setNullValid(false);
         groupChoice.setRequired(true);
         form.add(groupChoice);
-        
-        
+
+
         add(form);
 
         // local memberships
         Label currentPerms = new Label("current-permissions-label", new ResourceModel("permissions-current"));
         add(currentPerms);
-        roleList = new RoleListView("role-row");
+        final ListView roleList = new RoleListView("role-row");
         add(roleList);
     }
 
-    /** list view to be nested in the form. */
-    private final class DomainRoleListView extends ListView {
+    @SuppressWarnings({UNUSED})
+    public void setSelectedGroup(final Group selectedGroup) {
+        this.selectedGroup = selectedGroup;
+    }
+
+    @SuppressWarnings({UNUSED})
+    public void setSelectedRole(final String selectedRole) {
+        this.selectedRole = selectedRole;
+    }
+
+    /**
+     * list view to be nested in the form.
+     */
+    private final class DomainRoleListView extends ListView<String> {
         private static final long serialVersionUID = 1L;
         private final String role;
 
@@ -129,9 +151,9 @@ public class SetPermissionsPanel extends AdminBreadCrumbPanel {
             this.role = role;
         }
 
-        protected void populateItem(final ListItem item) {
+        protected void populateItem(final ListItem<String> item) {
             item.setOutputMarkupId(true);
-            final String group = (String) item.getDefaultModelObjectAsString();
+            final String group = item.getModelObject();
             item.add(new Label("group-label", group));
             item.add(new AjaxLinkLabel("group-remove", new ResourceModel("permissions-remove-action")) {
                 private static final long serialVersionUID = 1L;
@@ -149,7 +171,8 @@ public class SetPermissionsPanel extends AdminBreadCrumbPanel {
                         AuditLogger.getLogger().info(event.toString());
 
                         info(getString("permissions-group-removed", model));
-                        log.info("Revoke " + selectedRole + " role from group " + group + " for domain " + domain.getName());
+                        log.info("Revoke " + selectedRole + " role from group " + group + " for domain " +
+                                domain.getName());
                         this.removeAll();
                         target.addComponent(SetPermissionsPanel.this);
                     } catch (RepositoryException e) {
@@ -161,19 +184,19 @@ public class SetPermissionsPanel extends AdminBreadCrumbPanel {
         }
     }
 
-    
-    
-    /** list view to be nested in the form. */
-    private final class RoleListView extends ListView {
+    /**
+     * list view to be nested in the form.
+     */
+    private final class RoleListView extends ListView<String> {
         private static final long serialVersionUID = 1L;
-        
+
         public RoleListView(final String id) {
             super(id, Group.getAllRoles());
             setReuseItems(false);
         }
 
-        protected void populateItem(final ListItem item) {
-            String role = item.getDefaultModelObjectAsString();
+        protected void populateItem(final ListItem<String> item) {
+            String role = item.getModelObject();
             item.add(new Label("role", role));
             List<String> groups = new ArrayList<String>();
             for (Domain.AuthRole authRole : domain.getAuthRoles().values()) {
@@ -181,9 +204,9 @@ public class SetPermissionsPanel extends AdminBreadCrumbPanel {
                     groups.addAll(authRole.getGroupnames());
                 }
             }
-            
+
             item.add(new DomainRoleListView("groups", role, groups));
-            
+
         }
     }
 

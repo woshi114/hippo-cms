@@ -16,20 +16,6 @@
 package org.hippoecm.frontend.plugins.cms.admin.groups;
 
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.Value;
-import javax.jcr.query.InvalidQueryException;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
-
 import org.apache.wicket.IClusterable;
 import org.apache.wicket.Session;
 import org.hippoecm.frontend.plugins.cms.admin.AuditLogger;
@@ -44,6 +30,19 @@ import org.hippoecm.repository.api.NodeNameCodec;
 import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
+import javax.jcr.query.InvalidQueryException;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class Group implements Comparable<Group>, IClusterable {
 
@@ -74,24 +73,14 @@ public class Group implements Comparable<Group>, IClusterable {
 
 
     public static boolean exists(String groupname) {
-        String queryString = QUERY_GROUP_EXISTS.replace("{}", groupname);
-        try {
-            Query query = getQueryManager().createQuery(queryString, Query.SQL);
-            if (query.execute().getNodes().hasNext()) {
-                return true;
-            }
-        } catch (RepositoryException e) {
-            log.error("Unable to check if group '{}' exists, returning true", groupname, e);
-            return true;
-        }
-        return false;
+        return getGroup(groupname) != null;
     }
 
     public static List<Group> getLocalGroups() {
         List<Group> groups = new ArrayList<Group>();
         NodeIterator iter;
         try {
-            Query query = getQueryManager().createQuery(QUERY_ALL_LOCAL, Query.SQL);
+            @SuppressWarnings({"deprecation"}) Query query = getQueryManager().createQuery(QUERY_ALL_LOCAL, Query.SQL);
             iter = query.execute().getNodes();
             while (iter.hasNext()) {
                 Node node = iter.nextNode();
@@ -116,7 +105,7 @@ public class Group implements Comparable<Group>, IClusterable {
         List<Group> groups = new ArrayList<Group>();
         NodeIterator iter;
         try {
-            Query query = getQueryManager().createQuery(QUERY_ALL, Query.SQL);
+            @SuppressWarnings({"deprecation"}) Query query = getQueryManager().createQuery(QUERY_ALL, Query.SQL);
             iter = query.execute().getNodes();
             while (iter.hasNext()) {
                 Node node = iter.nextNode();
@@ -138,13 +127,36 @@ public class Group implements Comparable<Group>, IClusterable {
 
 
     /**
-     * FIXME: should move to roles class or something the like when the admin perspective gets support for it
+     * Gets the Group with the specified name. If no Group with the specified name exists, null is returned.
+     *
+     * @param groupName the name of the Group to return
+     * @return the Group with name groupName
      */
+    public static Group getGroup(String groupName) {
+        String queryString = QUERY_GROUP_EXISTS.replace("{}", groupName);
+        try {
+            @SuppressWarnings("deprecation") Query query = getQueryManager().createQuery(queryString, Query.SQL);
+            QueryResult queryResult = query.execute();
+            if (queryResult.getNodes().hasNext()) {
+                return new Group((Node) queryResult.getNodes().next());
+            }
+        } catch (RepositoryException e) {
+            log.error("Unable to check if group '{}' exists, returning true", groupName, e);
+            return null;
+        }
+        return null;
+    }
+
+    /*
+    * FIXME: should move to roles class or something the like when the admin perspective gets support for it
+    *
+    * @return A list of all roles defined in the system
+    */
     public static List<String> getAllRoles() {
         List<String> roles = new ArrayList<String>();
         NodeIterator iter;
         try {
-            Query query = getQueryManager().createQuery(QUERY_ALL_ROLES, Query.SQL);
+            @SuppressWarnings({"deprecation"}) Query query = getQueryManager().createQuery(QUERY_ALL_ROLES, Query.SQL);
             iter = query.execute().getNodes();
             while (iter.hasNext()) {
                 Node node = iter.nextNode();
@@ -172,11 +184,11 @@ public class Group implements Comparable<Group>, IClusterable {
         return groupname;
     }
 
-    public void setGroupname(String groupname) {
+    @SuppressWarnings({"unused"})
+    public void setGroupname(final String groupname) {
         this.groupname = groupname;
     }
 
-    @SuppressWarnings({"unused"})
     public String getPath() {
         return path;
     }
@@ -215,6 +227,7 @@ public class Group implements Comparable<Group>, IClusterable {
         String queryString = QUERY_GROUP_EXISTS.replace("{}", groupName);
         Query query;
         try {
+            //noinspection deprecation
             query = getQueryManager().createQuery(queryString, Query.SQL);
         } catch (RepositoryException e) {
             throw new IllegalStateException("Cannot get the Query Manager", e);
@@ -323,7 +336,7 @@ public class Group implements Comparable<Group>, IClusterable {
     }
 
     /**
-     * Delete the current group
+     * Delete the current group.
      *
      * @throws RepositoryException
      */
