@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2012 Hippo.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -55,11 +55,11 @@ public class ViewUserPanel extends AdminBreadCrumbPanel {
     private final IModel model;
 
     public ViewUserPanel(final String id, final IPluginContext context, final IBreadCrumbModel breadCrumbModel,
-            final IModel model) {
+                         final IModel model) {
         super(id, breadCrumbModel);
         setOutputMarkupId(true);
-        
-        
+
+
         this.model = model;
         final User user = (User) model.getObject();
 
@@ -118,7 +118,7 @@ public class ViewUserPanel extends AdminBreadCrumbPanel {
         };
         edit.setVisible(!user.isExternal());
         add(edit);
-        
+
         PanelPluginBreadCrumbLink password = new PanelPluginBreadCrumbLink("set-user-password", breadCrumbModel) {
             @Override
             protected IBreadCrumbParticipant getParticipant(final String componentId) {
@@ -127,7 +127,7 @@ public class ViewUserPanel extends AdminBreadCrumbPanel {
         };
         password.setVisible(!user.isExternal());
         add(password);
-        
+
         PanelPluginBreadCrumbLink memberships = new PanelPluginBreadCrumbLink("set-user-memberships", breadCrumbModel) {
             @Override
             protected IBreadCrumbParticipant getParticipant(final String componentId) {
@@ -135,7 +135,7 @@ public class ViewUserPanel extends AdminBreadCrumbPanel {
             }
         };
         add(memberships);
-        
+
         add(new AjaxLinkLabel("delete-user", new ResourceModel("user-delete")) {
             private static final long serialVersionUID = 1L;
 
@@ -183,18 +183,19 @@ public class ViewUserPanel extends AdminBreadCrumbPanel {
                     .category(HippoAdminConstants.CATEGORY_USER_MANAGEMENT)
                     .message("deleted user " + username);
             AuditLogger.getLogger().info(event.toString());
-            UserDataProvider.setDirty();
             Session.get().info(getString("user-removed", model));
             // one up
             List<IBreadCrumbParticipant> l = getBreadCrumbModel().allBreadCrumbParticipants();
-            getBreadCrumbModel().setActive(l.get(l.size() -2));
+            getBreadCrumbModel().setActive(l.get(l.size() - 2));
         } catch (RepositoryException e) {
             Session.get().warn(getString("user-remove-failed", model));
             log.error("Unable to delete user '" + username + "' : ", e);
         }
     }
 
-    /** list view to be nested in the form. */
+    /**
+     * list view to be nested in the form.
+     */
     private static final class MembershipsListView extends ListView {
         private static final long serialVersionUID = 1L;
         private String labelId;

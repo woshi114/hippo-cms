@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2012 Hippo.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,99 +17,60 @@ package org.hippoecm.frontend.plugins.cms.admin.users;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 import javax.jcr.Node;
-import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
 
-import org.apache.wicket.Session;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.commons.collections.comparators.NullComparator;
 import org.apache.wicket.model.IModel;
-import org.hippoecm.frontend.session.UserSession;
-import org.hippoecm.repository.api.HippoQuery;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.hippoecm.frontend.plugins.cms.admin.SearchableDataProvider;
+import org.hippoecm.repository.api.HippoNodeType;
 
-/**
- * TODO: Remove primitive total count accounting when it's 
- * possible to get the site of the resultset without going
- * through the accessmanager.
- */
-public class UserDataProvider extends SortableDataProvider {
 
-    @SuppressWarnings("unused")
-    private static final String SVN_ID = "$Id$";
+public class UserDataProvider extends SearchableDataProvider<User> {
+
     private static final long serialVersionUID = 1L;
-    private static final Logger log = LoggerFactory.getLogger(DetachableUser.class);
-
-    private static final String QUERY_USER_LIST = "SELECT * FROM hipposys:user where hipposys:system <> 'true' or hipposys:system IS NULL";
-    private static transient List<User> userList = new ArrayList<User>();
-    private static volatile boolean dirty = true;
-    
-    private static String sessionId = "none";
+    private static final String QUERY_USER_LIST = "SELECT * FROM " + HippoNodeType.NT_USER
+            + " where (hipposys:system <> 'true' or hipposys:system IS NULL)";
 
     public UserDataProvider() {
+        super(QUERY_USER_LIST, "/hippo:configuration/hippo:users", HippoNodeType.NT_USER);
+        setSort("username", true);
     }
 
+    @Override
+    public IModel<User> model(final User user) {
+        return new DetachableUser(user);
+    }
+
+    @Override
+    protected User createBean(final Node node) throws RepositoryException {
+        return new User(node);
+    }
+
+    @Override
     public Iterator<User> iterator(int first, int count) {
-        List<User> users = new ArrayList<User>();
-        for (int i = first; i < (count + first); i++) {
-            users.add(userList.get(i));
-        }
-        return users.iterator();
-    }
+        List<User> userList = new ArrayList<User>(getList());
 
-    public IModel model(Object object) {
-        return new DetachableUser((User) object);
-    }
+        final Comparator<String> nullSafeComparator = new NullComparator(false);
 
-    public int size() {
-        populateUserList();
-        return userList.size();
-    }
+        Collections.sort(userList, new Comparator<User>() {
+            public int compare(User user1, User user2) {
+                int direction = getSort().isAscending() ? 1 : -1;
 
-    /**
-     * Actively invalidate cached list
-     */
-    public static void setDirty() {
-        dirty = true;
-    }
-
-    /**
-     * Populate list, refresh when a new session id is found or when dirty
-     */
-    private static void populateUserList() {
-        synchronized (UserDataProvider.class) {
-            if (!dirty && sessionId.equals(Session.get().getId())) {
-                return;
-            }
-            userList.clear();
-            NodeIterator iter;
-            try {
-                Query listQuery = ((UserSession) Session.get()).getQueryManager().createQuery(QUERY_USER_LIST, Query.SQL);
-                iter = listQuery.execute().getNodes();
-                while (iter.hasNext()) {
-                    Node node = iter.nextNode();
-                    if (node != null) {
-                        try {
-                            userList.add(new User(node));
-                        } catch (RepositoryException e) {
-                            log.warn("Unable to instantiate new user.", e);
-                        }
-                    }
+                if ("frontend:firstname".equals(getSort().getProperty())) {
+                    return direction * (nullSafeComparator.compare(user1.getFirstName(), user2.getFirstName()));
+                } else if ("frontend:lastname".equals(getSort().getProperty())) {
+                    return direction * (nullSafeComparator.compare(user1.getLastName(), user2.getLastName()));
+                } else {
+                    return direction * (nullSafeComparator.compare(user1.getUsername(), user2.getUsername()));
                 }
-                Collections.sort(userList);
-                sessionId = Session.get().getId();
-                dirty = false;
-            } catch (RepositoryException e) {
-                log.error("Error while trying to query user nodes.", e);
-            }   
-        }
-    }
+            }
+        });
 
+        return userList.subList(first, Math.min(first + count, userList.size())).iterator();
+    }
 }

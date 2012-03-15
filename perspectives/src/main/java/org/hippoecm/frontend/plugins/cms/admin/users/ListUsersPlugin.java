@@ -1,5 +1,5 @@
 /*
- *  Copyright 2011 Hippo.
+ *  Copyright 2011-2012 Hippo.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -47,6 +47,6 @@ public class ListUsersPlugin extends AdminPanelPlugin {
 
     @Override
     public PanelPluginBreadCrumbPanel create(final String componentId, final IBreadCrumbModel breadCrumbModel) {
-        return new ListUsersPanel(componentId, getPluginContext(), breadCrumbModel);
+        return new ListUsersPanel(componentId, getPluginContext(), breadCrumbModel, new UserDataProvider());
     }
 }

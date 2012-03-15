@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2012 Hippo.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
-import org.hippoecm.frontend.plugins.cms.admin.users.UserDataProvider;
 import org.hippoecm.frontend.session.UserSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +45,10 @@ public class EditGroupPanel extends AdminBreadCrumbPanel {
     private final IModel model;
 
     public EditGroupPanel(final String id, final IBreadCrumbModel breadCrumbModel,
-            final IModel model) {
+                          final IModel model) {
         super(id, breadCrumbModel);
         setOutputMarkupId(true);
-        
+
         this.model = model;
 
         // add form with markup id setter so it can be updated via ajax
@@ -59,7 +58,7 @@ public class EditGroupPanel extends AdminBreadCrumbPanel {
 
         form.add(new TextField("description"));
 
-        
+
         // add a button that can be used to submit the form via ajax
         form.add(new AjaxButton("save-button", form) {
             private static final long serialVersionUID = 1L;
@@ -72,11 +71,10 @@ public class EditGroupPanel extends AdminBreadCrumbPanel {
                     group.save();
                     log.info("Group '" + groupname + "' saved by "
                             + ((UserSession) Session.get()).getJcrSession().getUserID());
-                    UserDataProvider.setDirty();
                     Session.get().info(getString("group-saved", model));
                     // one up
                     List<IBreadCrumbParticipant> l = breadCrumbModel.allBreadCrumbParticipants();
-                    breadCrumbModel.setActive(l.get(l.size() -2));
+                    breadCrumbModel.setActive(l.get(l.size() - 2));
                 } catch (RepositoryException e) {
                     Session.get().warn(getString("group-save-failed", model));
                     log.error("Unable to save group '" + groupname + "' : ", e);
@@ -91,10 +89,11 @@ public class EditGroupPanel extends AdminBreadCrumbPanel {
             protected void onSubmit(AjaxRequestTarget target, Form form) {
                 // one up
                 List<IBreadCrumbParticipant> l = breadCrumbModel.allBreadCrumbParticipants();
-                breadCrumbModel.setActive(l.get(l.size() -2));
+                breadCrumbModel.setActive(l.get(l.size() - 2));
             }
         }.setDefaultFormProcessing(false));
     }
+
     public IModel<String> getTitle(Component component) {
         return new StringResourceModel("group-edit-title", component, model);
     }

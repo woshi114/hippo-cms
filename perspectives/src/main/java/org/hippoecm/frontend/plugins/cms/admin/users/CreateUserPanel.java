@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2012 Hippo.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -56,12 +56,11 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
     private static final Logger log = LoggerFactory.getLogger(CreateUserPanel.class);
 
     private final Form form;
-    
+
     private String password;
     private String passwordCheck;
-    
-    private final IPasswordValidationService passwordValidationService;
 
+    private final IPasswordValidationService passwordValidationService;
 
 
     private DetachableUser userModel = new DetachableUser();
@@ -69,7 +68,7 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
     public CreateUserPanel(final String id, final IBreadCrumbModel breadCrumbModel, final IPluginContext context) {
         super(id, breadCrumbModel);
         setOutputMarkupId(true);
-        
+
         this.passwordValidationService = context.getService(IPasswordValidationService.class.getName(), IPasswordValidationService.class);
 
         // add form with markup id setter so it can be updated via ajax
@@ -111,10 +110,10 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form form) {
-                
+
                 User user = userModel.getUser();
                 String username = user.getUsername();
-                
+
                 boolean passwordValidated = true;
                 if (passwordValidationService != null) {
                     try {
@@ -125,13 +124,12 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
                                 passwordValidated = false;
                             }
                         }
-                    }
-                    catch (RepositoryException e) {
+                    } catch (RepositoryException e) {
                         log.error("Failed to validate password using password validation service", e);
                     }
                 }
-                
-                if (passwordValidated) {                    
+
+                if (passwordValidated) {
                     try {
                         user.create();
                         user.savePassword(password);
@@ -142,25 +140,25 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
                                 .category(HippoAdminConstants.CATEGORY_USER_MANAGEMENT)
                                 .message("created user " + username);
                         AuditLogger.getLogger().info(event.toString());
-                        UserDataProvider.setDirty();
                         Session.get().info(getString("user-created", userModel));
                         // one up
                         List<IBreadCrumbParticipant> l = breadCrumbModel.allBreadCrumbParticipants();
-                        breadCrumbModel.setActive(l.get(l.size() -2));
+                        breadCrumbModel.setActive(l.get(l.size() - 2));
                     } catch (RepositoryException e) {
                         Session.get().warn(getString("user-create-failed", userModel));
                         log.error("Unable to create user '" + username + "' : ", e);
                     }
-                    
+
                 }
             }
+
             @Override
             protected void onError(AjaxRequestTarget target, Form form) {
                 // make sure the feedback panel is shown
                 target.addComponent(CreateUserPanel.this);
             }
         });
-        
+
         // add a button that can be used to submit the form via ajax
         form.add(new AjaxButton("cancel-button") {
             private static final long serialVersionUID = 1L;
@@ -169,12 +167,12 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
             protected void onSubmit(AjaxRequestTarget target, Form form) {
                 // one up
                 List<IBreadCrumbParticipant> l = breadCrumbModel.allBreadCrumbParticipants();
-                breadCrumbModel.setActive(l.get(l.size() -2));
+                breadCrumbModel.setActive(l.get(l.size() - 2));
             }
         }.setDefaultFormProcessing(false));
     }
 
-    
+
     public IModel<String> getTitle(Component component) {
         return new StringResourceModel("user-create", component, null);
     }
