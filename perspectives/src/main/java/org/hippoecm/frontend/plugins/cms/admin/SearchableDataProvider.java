@@ -15,17 +15,6 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.observation.Event;
-import javax.jcr.query.Query;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
@@ -38,6 +27,16 @@ import org.hippoecm.frontend.model.event.JcrEventListener;
 import org.hippoecm.frontend.session.UserSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
+import javax.jcr.observation.Event;
+import javax.jcr.query.Query;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Provides a searchable list of beans. Subclasses provide the query to search for all beans. The query to limit the
@@ -109,7 +108,7 @@ public abstract class SearchableDataProvider<T extends Comparable<T>> extends So
      *
      * @param node the JCR node
      * @return the bean representing the JCR node
-     * @throws javax.jcr.RepositoryException when creating the bean failed
+     * @throws RepositoryException when creating the bean failed
      */
     protected abstract T createBean(Node node) throws RepositoryException;
 

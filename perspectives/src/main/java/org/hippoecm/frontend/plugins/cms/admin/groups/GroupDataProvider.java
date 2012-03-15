@@ -15,18 +15,17 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin.groups;
 
+import org.apache.wicket.model.IModel;
+import org.hippoecm.frontend.plugins.cms.admin.SearchableDataProvider;
+import org.hippoecm.repository.api.HippoNodeType;
+
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-
-import org.apache.wicket.model.IModel;
-import org.hippoecm.frontend.plugins.cms.admin.SearchableDataProvider;
-import org.hippoecm.repository.api.HippoNodeType;
 
 public class GroupDataProvider extends SearchableDataProvider<Group> {
 

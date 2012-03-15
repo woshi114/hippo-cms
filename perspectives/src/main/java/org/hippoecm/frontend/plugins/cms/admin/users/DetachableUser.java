@@ -15,16 +15,16 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin.users;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-
 import org.apache.wicket.Session;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.hippoecm.frontend.session.UserSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class DetachableUser extends LoadableDetachableModel {
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+
+public final class DetachableUser extends LoadableDetachableModel<User> {
 
     @SuppressWarnings("unused")
     private static final String SVN_ID = "$Id$";
@@ -52,7 +52,7 @@ public final class DetachableUser extends LoadableDetachableModel {
     }
 
     public User getUser() {
-        return (User) getObject();
+        return getObject();
     }
 
     @Override
@@ -65,7 +65,7 @@ public final class DetachableUser extends LoadableDetachableModel {
 
     /**
      * used for dataview with ReuseIfModelsEqualStrategy item reuse strategy
-     * 
+     *
      * @see org.apache.wicket.markup.repeater.ReuseIfModelsEqualStrategy
      * @see java.lang.Object#equals(java.lang.Object)
      */

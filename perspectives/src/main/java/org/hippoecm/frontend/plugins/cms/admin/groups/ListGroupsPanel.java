@@ -15,11 +15,6 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin.groups;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.jcr.RepositoryException;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,6 +46,10 @@ import org.hippoecm.frontend.plugins.cms.admin.widgets.DeleteDialog;
 import org.hippoecm.frontend.plugins.standards.panelperspective.breadcrumb.PanelPluginBreadCrumbLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.jcr.RepositoryException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This panel displays a pageable, searchable list of groups.
@@ -92,9 +91,9 @@ public class ListGroupsPanel extends AdminBreadCrumbPanel {
             }
         });
 
-        List<IColumn> columns = new ArrayList<IColumn>();
+        List<IColumn<Group>> columns = new ArrayList<IColumn<Group>>();
 
-        columns.add(new AbstractColumn<Group>(new ResourceModel("group-name")) {
+        columns.add(new AbstractColumn<Group>(new ResourceModel("group-name"), "groupname") {
             private static final long serialVersionUID = 1L;
 
             public void populateItem(final Item<ICellPopulator<Group>> item,
@@ -107,7 +106,7 @@ public class ListGroupsPanel extends AdminBreadCrumbPanel {
             }
         });
 
-        columns.add(new PropertyColumn(new ResourceModel("group-description"), "description"));
+        columns.add(new PropertyColumn<Group>(new ResourceModel("group-description"), "description"));
 
         columns.add(new GroupDeleteLinkColumn(new ResourceModel("group-view-actions-title")));
 
@@ -130,7 +129,7 @@ public class ListGroupsPanel extends AdminBreadCrumbPanel {
             }
         });
 
-        table = new AdminDataTable("table", columns, groupDataProvider, NUMBER_OF_ITEMS_PER_PAGE);
+        table = new AdminDataTable<Group>("table", columns, groupDataProvider, NUMBER_OF_ITEMS_PER_PAGE);
         add(table);
     }
 
