@@ -30,6 +30,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
@@ -43,11 +44,8 @@ import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
 import org.hippoecm.frontend.plugins.cms.admin.groups.DetachableGroup;
 import org.hippoecm.frontend.plugins.cms.admin.groups.Group;
-import org.hippoecm.frontend.plugins.cms.admin.groups.ViewGroupActionLink;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.AdminDataTable;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.AjaxLinkLabel;
-import org.hippoecm.frontend.plugins.cms.admin.widgets.AjaxLinkLabelContainer;
-import org.hippoecm.frontend.plugins.cms.admin.widgets.AjaxLinkLabelListPanel;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.DefaultFocusBehavior;
 import org.hippoecm.frontend.plugins.standards.panelperspective.breadcrumb.PanelPluginBreadCrumbLink;
 
@@ -99,7 +97,6 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
 
                     @Override
                     public void onClick(final AjaxRequestTarget target) {
-                        //panel.showView(target, model);
                         activate(new IBreadCrumbPanelFactory() {
                             public BreadCrumbPanel create(final String componentId,
                                                           final IBreadCrumbModel breadCrumbModel) {
@@ -123,27 +120,32 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
             @Override
             public void populateItem(final Item cellItem, final String componentId, final IModel model) {
                 User user = (User) model.getObject();
-
-                ArrayList<AjaxLinkLabelContainer> list = new ArrayList<AjaxLinkLabelContainer>();
-                for (DetachableGroup detachableGroup : user.getLocalMemberships()) {
-                    Group group = detachableGroup.getGroup();
-                    final IModel<Group> groupModel = new Model<Group>(group);
-
-                    AjaxLinkLabelContainer action = new ViewGroupActionLink(
-                            componentId,
-                            new PropertyModel(groupModel, "groupname"),
-                            groupModel,
-                            context,
-                            ListUsersPanel.this
-                    );
-
-                    list.add(action);
+                List<DetachableGroup> groupModels = user.getLocalMemberships();
+                List<Group> groups = new ArrayList<Group>();
+                for (DetachableGroup detachableGroup : groupModels) {
+                    groups.add(detachableGroup.getObject());
                 }
 
-                AjaxLinkLabelListPanel multipleLinkLabel = new AjaxLinkLabelListPanel(componentId,
-                        new Model<ArrayList<AjaxLinkLabelContainer>>(list));
+                GroupsLinkListPanel groupsLinkListPanel = new GroupsLinkListPanel(
+                        componentId,
+                        groups,
+                        context,
+                        ListUsersPanel.this
+                );
 
-                cellItem.add(multipleLinkLabel);
+                cellItem.add(groupsLinkListPanel);
+            }
+        });
+        columns.add(new AbstractColumn<User>(new Model<String>("Type")) {
+            private static final long serialVersionUID = 1L;
+
+            public void populateItem(Item<ICellPopulator<User>> cellItem, String componentId, IModel<User> model) {
+                User user = model.getObject();
+                if (user.isExternal()) {
+                    cellItem.add(new Label(componentId, "external"));
+                } else {
+                    cellItem.add(new Label(componentId, "repository"));
+                }
             }
         });
         columns.add(new AbstractColumn<User>(new ResourceModel("user-view-actions-title")) {
