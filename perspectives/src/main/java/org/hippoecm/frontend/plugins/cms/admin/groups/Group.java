@@ -39,6 +39,7 @@ import javax.jcr.query.InvalidQueryException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -341,6 +342,13 @@ public class Group implements Comparable<Group>, IClusterable {
      * @throws RepositoryException
      */
     public void delete() throws RepositoryException {
+
+        // Remove the permissions for this group before deleting the group
+        List<PermissionBean> permissions = PermissionBean.forGroup(this);
+        for (PermissionBean permission : permissions) {
+            permission.getAuthRole().removeGroup(groupname);
+        }
+
         Node parent = node.getParent();
         node.remove();
         parent.getSession().save();

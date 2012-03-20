@@ -41,6 +41,7 @@ import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
 import org.hippoecm.frontend.plugins.cms.admin.AuditLogger;
 import org.hippoecm.frontend.plugins.cms.admin.HippoAdminConstants;
 import org.hippoecm.frontend.plugins.cms.admin.domains.Domain;
+import org.hippoecm.frontend.plugins.cms.admin.domains.DomainDataProvider;
 import org.hippoecm.frontend.plugins.cms.admin.permissions.PermissionBean;
 import org.hippoecm.frontend.plugins.cms.admin.permissions.ViewDomainActionLink;
 import org.hippoecm.frontend.plugins.cms.admin.users.DetachableUser;
@@ -115,6 +116,7 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
                             @Override
                             protected void onOk() {
                                 deleteGroup(group, context);
+                                DomainDataProvider.setDirty();
                             }
 
                             @Override
