@@ -57,6 +57,7 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
     private static final int NUMBER_OF_ITEMS_PER_PAGE = 20;
 
     private final AdminDataTable table;
+    private final UserDataProvider userDataProvider;
 
     /**
      * Constructs a new ListUsersPanel.
@@ -72,6 +73,7 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
 
         setOutputMarkupId(true);
 
+        this.userDataProvider = userDataProvider;
         userDataProvider.setDirty();
 
         add(new PanelPluginBreadCrumbLink("create-user", breadCrumbModel) {
@@ -176,6 +178,13 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
 
     public IModel<String> getTitle(final Component component) {
         return new ResourceModel("admin-users-title");
+    }
+
+    /**
+     * Tells this panel to set it's dataprovider to dirty, indicating the list of users has possibly changed.
+     */
+    public void setDirty() {
+        userDataProvider.setDirty();
     }
 
 }
