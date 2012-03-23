@@ -16,6 +16,7 @@
 package org.hippoecm.frontend.plugins.cms.admin.users;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.wicket.Component;
@@ -38,6 +39,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.validation.validator.StringValidator;
 import org.hippoecm.frontend.dialog.IDialogService;
+import org.hippoecm.frontend.model.event.IObserver;
+import org.hippoecm.frontend.model.event.Observer;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
 import org.hippoecm.frontend.plugins.cms.admin.groups.Group;
@@ -56,8 +59,10 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
 
     private static final int NUMBER_OF_ITEMS_PER_PAGE = 20;
 
+    private final IPluginContext context;
     private final AdminDataTable table;
     private final UserDataProvider userDataProvider;
+    private Observer userDataProviderObserver;
 
     /**
      * Constructs a new ListUsersPanel.
@@ -68,11 +73,12 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
      * @param userDataProvider the userDataProvider
      */
     public ListUsersPanel(final String id, final IPluginContext context, final IBreadCrumbModel breadCrumbModel,
-                          final UserDataProvider userDataProvider) {
+            final UserDataProvider userDataProvider) {
         super(id, breadCrumbModel);
 
         setOutputMarkupId(true);
 
+        this.context = context;
         this.userDataProvider = userDataProvider;
         userDataProvider.setDirty();
 
@@ -89,7 +95,7 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
             private static final long serialVersionUID = 1L;
 
             public void populateItem(final Item<ICellPopulator<User>> item,
-                                     final String componentId, final IModel<User> model) {
+                    final String componentId, final IModel<User> model) {
 
                 ViewUserLinkLabel action = new ViewUserLinkLabel(componentId, model, ListUsersPanel.this, context);
                 item.add(action);
@@ -106,7 +112,7 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
         columns.add(new AbstractColumn<User>(new ResourceModel("user-group")) {
             @Override
             public void populateItem(final Item<ICellPopulator<User>> cellItem, final String componentId,
-                                     final IModel<User> model) {
+                    final IModel<User> model) {
                 User user = model.getObject();
                 List<Group> groups = user.getLocalMembershipsAsListOfGroups();
                 GroupsLinkListPanel groupsLinkListPanel = new GroupsLinkListPanel(
@@ -133,16 +139,15 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
         });
         columns.add(new AbstractColumn<User>(new ResourceModel("user-view-actions-title")) {
             @Override
-            public void populateItem(final Item<ICellPopulator<User>> item, final String componentId,
-                                     final IModel<User> model) {
+            public void populateItem(final Item<ICellPopulator<User>> item, final String componentId, final IModel<User> model) {
 
                 AjaxLinkLabel action = new AjaxLinkLabel(componentId, new ResourceModel("user-remove-action")) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(final AjaxRequestTarget target) {
-                        context.getService(IDialogService.class.getName(), IDialogService.class)
-                                .show(new DeleteUserDialog(model, this, context, ListUsersPanel.this));
+                        context.getService(IDialogService.class.getName(), IDialogService.class).show(
+                                new DeleteUserDialog(model, this, context, ListUsersPanel.this));
                     }
                 };
                 item.add(action);
@@ -180,11 +185,23 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
         return new ResourceModel("admin-users-title");
     }
 
-    /**
-     * Tells this panel to set it's dataprovider to dirty, indicating the list of users has possibly changed.
-     */
-    public void setDirty() {
-        userDataProvider.setDirty();
+    @Override
+    protected void onAddedToBreadCrumbsBar() {
+        userDataProviderObserver = new Observer(userDataProvider) {
+
+            @Override
+            public void onEvent(final Iterator events) {
+                userDataProvider.setDirty();
+            }
+        };
+        context.registerService(userDataProviderObserver, IObserver.class.getName());
     }
 
+    @Override
+    protected void onRemovedFromBreadCrumbsBar() {
+        if (userDataProviderObserver != null) {
+            context.unregisterService(userDataProviderObserver, IObserver.class.getName());
+            userDataProviderObserver = null;
+        }
+    }
 }

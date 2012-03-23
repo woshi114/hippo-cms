@@ -141,17 +141,9 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
                                 .message("created user " + username);
                         AuditLogger.getLogger().info(event.toString());
                         Session.get().info(getString("user-created", userModel));
-                        List<IBreadCrumbParticipant> allBreadCrumbParticipants =
-                                breadCrumbModel.allBreadCrumbParticipants();
-                        int indexOfNewActivePanel = allBreadCrumbParticipants.size() - 2;
-                        IBreadCrumbParticipant newActivePanel = allBreadCrumbParticipants.get(indexOfNewActivePanel);
-                        for (IBreadCrumbParticipant breadCrumbParticipant : allBreadCrumbParticipants) {
-                            if (breadCrumbParticipant instanceof ListUsersPanel) {
-                                ListUsersPanel listUsersPanel = (ListUsersPanel) breadCrumbParticipant;
-                                listUsersPanel.setDirty();
-                            }
-                        }
-                        breadCrumbModel.setActive(newActivePanel);
+                        // one up
+                        List<IBreadCrumbParticipant> l = breadCrumbModel.allBreadCrumbParticipants();
+                        breadCrumbModel.setActive(l.get(l.size() - 2));
                     } catch (RepositoryException e) {
                         Session.get().warn(getString("user-create-failed", userModel));
                         log.error("Unable to create user '" + username + "' : ", e);
