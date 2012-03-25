@@ -46,9 +46,7 @@ import org.hippoecm.frontend.service.render.RenderPlugin;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.Ignore;
 
-@Ignore // YUI 2.9.0 uses getBoundingRectClient, which is not supported by htmlunit
 public class EditorManagerTest extends PluginTest implements IClusterable {
     @SuppressWarnings("unused")
     private final static String SVN_ID = "$Id$";
