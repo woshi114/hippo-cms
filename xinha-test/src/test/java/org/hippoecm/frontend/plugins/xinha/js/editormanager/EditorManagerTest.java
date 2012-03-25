@@ -36,7 +36,7 @@ import org.junit.Test;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlInlineFrame;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import org.junit.Ignore
+import org.junit.Ignore;
 
 @Ignore // YUI 2.9.0 uses getBoundingRectClient, which is not supported by htmlunit
 public class EditorManagerTest extends XinhaTest {
