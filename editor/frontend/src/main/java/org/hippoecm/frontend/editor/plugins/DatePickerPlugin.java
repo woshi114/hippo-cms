@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 public class DatePickerPlugin extends RenderPlugin<Date> {
     @SuppressWarnings("unused")
-    private final static String SVN_ID = "$Id:$";
+    private final static String SVN_ID = "$Id$";
 
     private static final long serialVersionUID = 1L;
 
