@@ -1666,6 +1666,7 @@ plugins/src/main/resources/frontend-console.xml -text svneol=unset#text/plain
 plugins/src/main/resources/hippoecm-extension.xml -text svneol=unset#text/plain
 plugins/src/site/apt/index.apt -text
 plugins/src/site/site.xml svneol=native#text/plain
+plugins/src/test/java/org/hippoecm/frontend/plugins/login/Base64EncodingTest.java -text
 plugins/src/test/java/org/hippoecm/frontend/plugins/login/BrowserTest.java -text svneol=unset#text/plain
 /pom.xml svneol=native#text/plain
 reporting/pom.xml svneol=native#text/plain
