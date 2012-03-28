@@ -1797,6 +1797,7 @@ plugins/src/main/java/org/hippoecm/frontend/plugins/console/menu/t9ids/T9idsDial
 plugins/src/main/java/org/hippoecm/frontend/plugins/console/menu/t9ids/T9idsDialog.properties -text
 plugins/src/main/java/org/hippoecm/frontend/plugins/console/menu/t9ids/T9idsDialog_de.properties -text
 plugins/src/main/java/org/hippoecm/frontend/plugins/console/menu/t9ids/T9idsDialog_it.properties -text
+plugins/src/main/java/org/hippoecm/frontend/plugins/console/menu/t9ids/T9idsDialog_nl.properties -text
 plugins/src/main/java/org/hippoecm/frontend/plugins/console/menu/workflow/WorkflowPlugin.html -text
 plugins/src/main/java/org/hippoecm/frontend/plugins/console/menu/workflow/WorkflowPlugin.java -text
 plugins/src/main/java/org/hippoecm/frontend/plugins/logout/LogoutDialog.html svneol=native#text/plain
