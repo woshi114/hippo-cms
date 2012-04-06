@@ -103,7 +103,7 @@ public class SetMembersPanel extends AdminBreadCrumbPanel {
                                         .action("add-user-to-group")
                                         .category(HippoAdminConstants.CATEGORY_GROUP_MANAGEMENT)
                                         .message("added user " + user.getUsername() + " to group " + group.getGroupname());
-                                AuditLogger.getLogger().info(event.toString());
+                                AuditLogger.logHippoEvent(event);
                                 info(getString("group-member-added", model));
                                 localList.removeAll();
                             }
@@ -179,7 +179,7 @@ public class SetMembersPanel extends AdminBreadCrumbPanel {
                                 .action("remove-user-from-group")
                                 .category(HippoAdminConstants.CATEGORY_GROUP_MANAGEMENT)
                                 .message("removed user " + username + " from group " + group.getGroupname());
-                        AuditLogger.getLogger().info(event.toString());
+                        AuditLogger.logHippoEvent(event);
                         info(getString("group-member-removed", null));
                         localList.removeAll();
                     } catch (RepositoryException e) {

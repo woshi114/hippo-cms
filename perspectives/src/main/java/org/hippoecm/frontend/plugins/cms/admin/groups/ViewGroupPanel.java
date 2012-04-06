@@ -260,7 +260,7 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
                     .message(
                             "removed group " + groupToChange.getGroupname()
                                     + " from role " + authRole.getRole());
-            AuditLogger.getLogger().info(event.toString());
+            AuditLogger.logHippoEvent(event);
             Session.get().info(getString("group-role-domain-combination-removed", new Model<Group>(groupToChange)));
             List<IBreadCrumbParticipant> l = getBreadCrumbModel().allBreadCrumbParticipants();
             getBreadCrumbModel().setActive(l.get(l.size() - 1));
@@ -356,7 +356,7 @@ public class ViewGroupPanel extends AdminBreadCrumbPanel {
                     .action("remove-user-from-group")
                     .category(HippoAdminConstants.CATEGORY_GROUP_MANAGEMENT)
                     .message("removed user " + userName + " from group " + groupToChange.getGroupname());
-            AuditLogger.getLogger().info(event.toString());
+            AuditLogger.logHippoEvent(event);
             Session.get().info(getString("group-member-removed", null));
             List<IBreadCrumbParticipant> l = getBreadCrumbModel().allBreadCrumbParticipants();
             getBreadCrumbModel().setActive(l.get(l.size() - 1));

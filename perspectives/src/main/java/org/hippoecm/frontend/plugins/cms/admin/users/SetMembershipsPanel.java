@@ -104,7 +104,7 @@ public class SetMembershipsPanel extends Panel {
                                 .action("add-user-to-group")
                                 .category(HippoAdminConstants.CATEGORY_GROUP_MANAGEMENT)
                                 .message("added user " + user.getUsername() + " to group " + selectedGroup.getGroupname());
-                        AuditLogger.getLogger().info(event.toString());
+                        AuditLogger.logHippoEvent(event);
                         info(getString("user-membership-added", new DetachableGroup(selectedGroup)));
                     }
                 } catch (RepositoryException e) {
@@ -225,7 +225,7 @@ public class SetMembershipsPanel extends Panel {
                                 .message(
                                         "removed user " + user.getUsername()
                                                 + " from group " + group.getGroupname());
-                        AuditLogger.getLogger().info(event.toString());
+                        AuditLogger.logHippoEvent(event);
                         info(getString("user-membership-removed", new Model<Group>(group)));
                     } catch (RepositoryException e) {
                         error(getString("user-membership-remove-failed", new Model<Group>(group)));

@@ -85,7 +85,7 @@ public class CreateGroupPanel extends AdminBreadCrumbPanel {
                             .action("create-group")
                             .category(HippoAdminConstants.CATEGORY_GROUP_MANAGEMENT)
                             .message("added group " + groupname);
-                    AuditLogger.getLogger().info(event.toString());
+                    AuditLogger.logHippoEvent(event);
                     Session.get().info(getString("group-created", groupModel));
                     // one up
                     List<IBreadCrumbParticipant> l = breadCrumbModel.allBreadCrumbParticipants();

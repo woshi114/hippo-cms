@@ -139,7 +139,7 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
                                 .action("create-user")
                                 .category(HippoAdminConstants.CATEGORY_USER_MANAGEMENT)
                                 .message("created user " + username);
-                        AuditLogger.getLogger().info(event.toString());
+                        AuditLogger.logHippoEvent(event);
                         Session.get().info(getString("user-created", userModel));
                         // one up
                         List<IBreadCrumbParticipant> l = breadCrumbModel.allBreadCrumbParticipants();

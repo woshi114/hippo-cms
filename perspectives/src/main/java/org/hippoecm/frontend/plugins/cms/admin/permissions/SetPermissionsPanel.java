@@ -102,7 +102,7 @@ public class SetPermissionsPanel extends AdminBreadCrumbPanel {
                             .action("grant-role")
                             .category(HippoAdminConstants.CATEGORY_PERMISSIONS_MANAGEMENT)
                             .message("grant " + selectedRole + " role to group " + selectedGroup.getGroupname() + " for domain " + domain.getName());
-                    AuditLogger.getLogger().info(event.toString());
+                    AuditLogger.logHippoEvent(event);
                     this.removeAll();
                     target.addComponent(SetPermissionsPanel.this);
                 } catch (RepositoryException e) {
@@ -177,7 +177,7 @@ public class SetPermissionsPanel extends AdminBreadCrumbPanel {
                                 .category(HippoAdminConstants.CATEGORY_PERMISSIONS_MANAGEMENT)
                                 .message("revoke " + selectedRole + " role from group " + groupName + " for domain " +
                                         domain.getName());
-                        AuditLogger.getLogger().info(event.toString());
+                        AuditLogger.logHippoEvent(event);
 
                         info(getString("permissions-group-removed", model));
                         log.info("Revoke " + selectedRole + " role from group " + groupName + " for domain " +

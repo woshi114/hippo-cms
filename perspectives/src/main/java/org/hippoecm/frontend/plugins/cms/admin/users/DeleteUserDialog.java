@@ -89,7 +89,7 @@ public class DeleteUserDialog extends DeleteDialog<User> {
                     .user(userSession.getJcrSession().getUserID()).action("delete-user")
                     .category(HippoAdminConstants.CATEGORY_USER_MANAGEMENT)
                     .message("deleted user " + username);
-            AuditLogger.getLogger().info(event.toString());
+            AuditLogger.logHippoEvent(event);
 
             // one up
             List<IBreadCrumbParticipant> l = breadCrumbPanel.getBreadCrumbModel().allBreadCrumbParticipants();

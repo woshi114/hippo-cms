@@ -359,7 +359,7 @@ public class Group implements Comparable<Group>, IClusterable {
                 .action("delete-group")
                 .category(HippoAdminConstants.CATEGORY_GROUP_MANAGEMENT)
                 .message("deleted group " + groupname);
-        AuditLogger.getLogger().info(event.toString());
+        AuditLogger.logHippoEvent(event);
     }
 
     public void removeMembership(String user) throws RepositoryException {

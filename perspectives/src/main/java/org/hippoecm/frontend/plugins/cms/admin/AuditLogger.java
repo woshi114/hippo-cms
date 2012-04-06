@@ -15,15 +15,23 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin;
 
+import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import net.sf.json.JSONObject;
 
 public class AuditLogger {
 
     private static final String AUDIT_LOGGER = "org.onehippo.audit";
     private static final Logger log = LoggerFactory.getLogger(AUDIT_LOGGER);
 
-    public static Logger getLogger() {
-        return log;
+    public static void logHippoEvent(HippoEvent event) {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.putAll(event.getValues());
+
+        log.info(jsonObject.toString());
     }
+
 }
+
