@@ -1,4 +1,3 @@
-
 .yui-date-time-field-input {
   height: 24px;
   float: left;
@@ -17,7 +16,7 @@
 }
 
 .yui-date-time-field input.date {
-  width: 50px;
+  width: 70px;
 }
 
 .yui-date-time-field input.time {
