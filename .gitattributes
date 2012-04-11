@@ -2727,12 +2727,15 @@ xinha-resources/webResources/xinha/images/ed_buttons_main.gif -text
 xinha-resources/webResources/xinha/modules/FullScreen/full-screen.js -text
 xinha-resources/webResources/xinha/plugins/AutoResize/AutoResize.js svneol=native#text/plain
 xinha-resources/webResources/xinha/plugins/CreateExternalLink/CreateExternalLink.js svneol=native#text/plain
+xinha-resources/webResources/xinha/plugins/CreateExternalLink/lang/de.js -text
 xinha-resources/webResources/xinha/plugins/CreateExternalLink/lang/nl.js svneol=native#text/plain
 xinha-resources/webResources/xinha/plugins/CreateLink/CreateLink.js svneol=native#text/plain
+xinha-resources/webResources/xinha/plugins/CreateLink/lang/de.js -text
 xinha-resources/webResources/xinha/plugins/CreateLink/lang/nl.js svneol=native#text/plain
 xinha-resources/webResources/xinha/plugins/FullscreenCompatible/FullscreenCompatible.js svneol=native#text/plain
 xinha-resources/webResources/xinha/plugins/InsertAnchor/InsertAnchor.js -text
 xinha-resources/webResources/xinha/plugins/InsertImage/InsertImage.js svneol=native#text/plain
+xinha-resources/webResources/xinha/plugins/TableOperations/lang/de.js -text
 xinha-resources/webResources/xinha/skins/hippo-gray/back.png -text
 xinha-resources/webResources/xinha/skins/hippo-gray/button-background.png -text
 xinha-resources/webResources/xinha/skins/hippo-gray/ed_buttons_main.gif -text
