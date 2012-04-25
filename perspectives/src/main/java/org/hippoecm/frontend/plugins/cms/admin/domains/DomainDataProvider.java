@@ -15,22 +15,23 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin.domains;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
+import javax.jcr.query.Query;
+
 import org.apache.wicket.Session;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.hippoecm.frontend.session.UserSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.query.Query;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
 
 public class DomainDataProvider extends SortableDataProvider<Domain> {
 
@@ -53,12 +54,7 @@ public class DomainDataProvider extends SortableDataProvider<Domain> {
 
     @Override
     public Iterator<Domain> iterator(int first, int count) {
-        populateDomainList();
-        List<Domain> domains = new ArrayList<Domain>();
-        for (int i = first; i < (count + first); i++) {
-            domains.add(domainList.get(i));
-        }
-
+        List<Domain> domains = getDomainList();
         Collections.sort(domains, new Comparator<Domain>() {
             public int compare(Domain domain1, Domain domain2) {
                 int direction = getSort().isAscending() ? 1 : -1;
@@ -67,7 +63,8 @@ public class DomainDataProvider extends SortableDataProvider<Domain> {
             }
         });
 
-        return domains.subList(first, Math.min(first + count, domains.size())).iterator();
+        final int endIndex = Math.min(first + count, domains.size());
+        return domains.subList(first, endIndex).iterator();
     }
 
     @Override
@@ -77,8 +74,7 @@ public class DomainDataProvider extends SortableDataProvider<Domain> {
 
     @Override
     public int size() {
-        populateDomainList();
-        return domainList.size();
+        return getDomainList().size();
     }
 
     /**
@@ -119,5 +115,10 @@ public class DomainDataProvider extends SortableDataProvider<Domain> {
                 log.error("Error while trying to query domain nodes.", e);
             }
         }
+    }
+
+    public List<Domain> getDomainList() {
+        populateDomainList();
+        return domainList;
     }
 }
