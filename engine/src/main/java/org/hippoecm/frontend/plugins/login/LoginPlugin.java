@@ -308,12 +308,12 @@ public class LoginPlugin extends RenderPlugin {
         }
 
     }
-
-    public WebRequest retrieveWebRequest() {
+    
+    protected WebRequest retrieveWebRequest() {
         return (WebRequest) RequestCycle.get().getRequest();
     }
 
-    public WebResponse retrieveWebResponse() {
+    protected WebResponse retrieveWebResponse() {
         return (WebResponse) RequestCycle.get().getResponse();
     }
 
