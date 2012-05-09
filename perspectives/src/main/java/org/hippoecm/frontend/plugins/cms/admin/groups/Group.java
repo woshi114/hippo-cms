@@ -16,9 +16,23 @@
 package org.hippoecm.frontend.plugins.cms.admin.groups;
 
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
+import javax.jcr.query.InvalidQueryException;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
+
 import org.apache.wicket.IClusterable;
 import org.apache.wicket.Session;
-import org.hippoecm.frontend.plugins.cms.admin.AuditLogger;
+import org.hippoecm.frontend.AuditLogger;
 import org.hippoecm.frontend.plugins.cms.admin.HippoAdminConstants;
 import org.hippoecm.frontend.plugins.cms.admin.domains.Domain;
 import org.hippoecm.frontend.plugins.cms.admin.permissions.PermissionBean;
@@ -30,20 +44,6 @@ import org.hippoecm.repository.api.NodeNameCodec;
 import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.jcr.Node;
-import javax.jcr.NodeIterator;
-import javax.jcr.RepositoryException;
-import javax.jcr.Value;
-import javax.jcr.query.InvalidQueryException;
-import javax.jcr.query.Query;
-import javax.jcr.query.QueryManager;
-import javax.jcr.query.QueryResult;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 public class Group implements Comparable<Group>, IClusterable {
 

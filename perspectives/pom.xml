@@ -58,6 +58,13 @@
       <version>${joda-time.version}</version>
     </dependency>
 
+    <!-- audit logging -->
+    <dependency>
+      <groupId>org.onehippo.cms7</groupId>
+      <artifactId>hippo-cms-engine</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- test -->
     <dependency>
       <groupId>org.onehippo.cms7</groupId>

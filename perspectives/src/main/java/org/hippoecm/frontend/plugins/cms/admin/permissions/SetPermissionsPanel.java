@@ -15,6 +15,12 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin.permissions;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.jcr.RepositoryException;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
@@ -29,8 +35,8 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.hippoecm.frontend.AuditLogger;
 import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
-import org.hippoecm.frontend.plugins.cms.admin.AuditLogger;
 import org.hippoecm.frontend.plugins.cms.admin.HippoAdminConstants;
 import org.hippoecm.frontend.plugins.cms.admin.domains.Domain;
 import org.hippoecm.frontend.plugins.cms.admin.groups.Group;
@@ -39,11 +45,6 @@ import org.hippoecm.frontend.session.UserSession;
 import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.jcr.RepositoryException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 public class SetPermissionsPanel extends AdminBreadCrumbPanel {
     private static final String UNUSED = "unused";

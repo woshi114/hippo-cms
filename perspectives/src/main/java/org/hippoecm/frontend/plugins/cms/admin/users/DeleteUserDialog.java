@@ -15,6 +15,10 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin.users;
 
+import java.util.List;
+
+import javax.jcr.RepositoryException;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
 import org.apache.wicket.extensions.breadcrumb.IBreadCrumbModel;
@@ -22,18 +26,15 @@ import org.apache.wicket.extensions.breadcrumb.IBreadCrumbParticipant;
 import org.apache.wicket.extensions.breadcrumb.panel.BreadCrumbPanel;
 import org.apache.wicket.extensions.breadcrumb.panel.IBreadCrumbPanelFactory;
 import org.apache.wicket.model.IModel;
+import org.hippoecm.frontend.AuditLogger;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
-import org.hippoecm.frontend.plugins.cms.admin.AuditLogger;
 import org.hippoecm.frontend.plugins.cms.admin.HippoAdminConstants;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.DeleteDialog;
 import org.hippoecm.frontend.session.UserSession;
 import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.jcr.RepositoryException;
-import java.util.List;
 
 /**
  * Prompts the user if he's sure that he wants to delete a user and then executes the delete and sends an update event.
