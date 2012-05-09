@@ -40,6 +40,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.protocol.http.WebRequest;
 import org.apache.wicket.protocol.http.WebResponse;
+import org.hippoecm.frontend.custom.ServerCookie;
 import org.hippoecm.frontend.model.UserCredentials;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
@@ -176,8 +177,19 @@ public class RememberMeLoginPlugin extends LoginPlugin {
                             digest.update(username.getBytes());
                             digest.update(password.getBytes());
                             String passphrase = digest.getAlgorithm() + "$" + Base64.encode(username) + "$" + Base64.encode(new String(digest.digest()));
-                            ((WebResponse)RequestCycle.get().getResponse()).addCookie(new Cookie(
-                                RememberMeLoginPlugin.class.getName(), passphrase));
+                            final Cookie rememberMeCookie = new Cookie(RememberMeLoginPlugin.class.getName(), passphrase);
+                            rememberMeCookie.setSecure(RememberMeLoginPlugin.this.getPluginConfig().getAsBoolean("use.secure.cookies", false));
+//                            ((WebResponse)RequestCycle.get().getResponse()).addCookie(new Cookie(
+//                                RememberMeLoginPlugin.class.getName(), passphrase));
+                            // Replace with Cookie#setHttpOnly when we upgrade to a container compliant with
+                            // Servlet API(s) v3.0t his was added cause the setHttpOnly/isHttpOnly at the time of
+                            // developing this code were not available cause we used to use Servlet API(s) v2.5
+                            RememberMeLoginPlugin.this.addCookieWithHttpOnly(
+                                    rememberMeCookie,
+                                    (WebResponse)RequestCycle.get().getResponse(),
+                                    RememberMeLoginPlugin.this.getPluginConfig().getAsBoolean("use.httponly.cookies",
+                                            false));
+
                             Node userinfo = jcrSession.getRootNode().getNode(HippoNodeType.CONFIGURATION_PATH + "/" + HippoNodeType.USERS_PATH + "/" + username);
                             String[] strings = passphrase.split("\\$");
                             userinfo.setProperty(HippoNodeType.HIPPO_PASSKEY, strings[0] + "$" + strings[2]);
@@ -248,4 +260,21 @@ public class RememberMeLoginPlugin extends LoginPlugin {
             return new String(decoded);
         }
     }
+
+    // TO be deleted when we upgrade to a container compliant with Servlet API(s) v3.0
+    // This was added cause the setHttpOnly/isHttpOnly at the time of developing this code were not available
+    // cause we used to use Servlet API(s) v2.5
+    private void addCookieWithHttpOnly(Cookie cookie, WebResponse response, boolean useHttpOnly) {
+        if (useHttpOnly) {
+            final StringBuffer setCookieHeaderBuffer = new StringBuffer();
+            ServerCookie.appendCookieValue(setCookieHeaderBuffer, cookie.getVersion(), cookie.getName(),
+                    cookie.getValue(), cookie.getPath(), cookie.getDomain(), cookie.getComment(), cookie.getMaxAge(),
+                    cookie.getSecure(), useHttpOnly);
+
+            response.getHttpServletResponse().addHeader("Set-Cookie", setCookieHeaderBuffer.toString());
+        } else {
+            response.addCookie(cookie);
+        }
+    }
+
 }
