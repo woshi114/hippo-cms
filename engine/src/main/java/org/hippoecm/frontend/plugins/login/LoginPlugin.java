@@ -50,7 +50,6 @@ import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.protocol.http.WebRequest;
 import org.apache.wicket.protocol.http.WebRequestCycle;
-import org.apache.wicket.protocol.http.WebResponse;
 import org.hippoecm.frontend.InvalidLoginPage;
 import org.hippoecm.frontend.Main;
 import org.hippoecm.frontend.PluginPage;
@@ -61,6 +60,7 @@ import org.hippoecm.frontend.service.render.RenderPlugin;
 import org.hippoecm.frontend.session.LoginException;
 import org.hippoecm.frontend.session.PluginUserSession;
 import org.hippoecm.frontend.session.UserSession;
+import org.hippoecm.frontend.util.WebApplicationHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,7 +130,7 @@ public class LoginPlugin extends RenderPlugin {
             }
 
             // check if user has previously selected a locale
-            Cookie[] cookies = retrieveWebRequest().getHttpServletRequest().getCookies();
+            Cookie[] cookies = WebApplicationHelper.retrieveWebRequest().getHttpServletRequest().getCookies();
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
                     if (LOCALE_COOKIE.equals(cookie.getName())) {
@@ -178,7 +178,7 @@ public class LoginPlugin extends RenderPlugin {
                     //immediately set the locale when the user changes it
                     Cookie localeCookie = new Cookie(LOCALE_COOKIE, selectedLocale);
                     localeCookie.setMaxAge(365 * 24 * 3600); // expire one year from now
-                    retrieveWebResponse().addCookie(localeCookie);
+                    WebApplicationHelper.retrieveWebResponse().addCookie(localeCookie);
                     getSession().setLocale(new Locale(selectedLocale));
                     setResponsePage(this.getFormComponent().getPage());
                 }
@@ -292,12 +292,4 @@ public class LoginPlugin extends RenderPlugin {
 
     }
     
-    protected WebRequest retrieveWebRequest() {
-        return (WebRequest) RequestCycle.get().getRequest();
-    }
-
-    protected WebResponse retrieveWebResponse() {
-        return (WebResponse) RequestCycle.get().getResponse();
-    }
-
 }
