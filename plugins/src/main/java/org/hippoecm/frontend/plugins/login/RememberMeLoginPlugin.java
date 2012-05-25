@@ -109,9 +109,13 @@ public class RememberMeLoginPlugin extends LoginPlugin {
         public SignInForm(final String id, boolean rememberme) {
             super(id);
             this.rememberme = rememberme;
-            if (rememberme) {
+
+            if (RememberMeLoginPlugin.this.getPluginConfig().getAsBoolean("signin.form.autocomplete", true)) {
+                add(new AttributeModifier("autocomplete", true, new Model<String>("on")));
+            } else {
                 add(new AttributeModifier("autocomplete", true, new Model<String>("off")));
             }
+
             CheckBox rememberMeCheckbox = new CheckBox("rememberme", new PropertyModel<Boolean>(this, "rememberme"));
             add(rememberMeCheckbox);
             rememberMeCheckbox.add(new AjaxFormComponentUpdatingBehavior("onchange") {
