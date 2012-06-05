@@ -34,7 +34,6 @@ import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RequestCycle;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -62,6 +61,7 @@ public class RememberMeLoginPlugin extends LoginPlugin {
         too safe to begin with.
     */
     static final String ALGORITHM = "MD5";
+    public static final String HIDDEN_PASSWORD = "********";
 
     public RememberMeLoginPlugin(IPluginContext context, IPluginConfig config) {
         super(context, config);
@@ -77,12 +77,12 @@ public class RememberMeLoginPlugin extends LoginPlugin {
         boolean rememberme = false;
         Cookie[] cookies = ((WebRequest) RequestCycle.get().getRequest()).getHttpServletRequest().getCookies();
         if (cookies != null) {
-            for (int i = 0; i < cookies.length; i++) {
-                if (RememberMeLoginPlugin.class.getName().equals(cookies[i].getName())) {
-                    String passphrase = cookies[i].getValue();
+            for (final Cookie cookie : cookies) {
+                if (RememberMeLoginPlugin.class.getName().equals(cookie.getName())) {
+                    String passphrase = cookie.getValue();
                     if (passphrase != null && passphrase.contains("$")) {
                         username = Base64.decode(passphrase.split("\\$")[1]);
-                        password = "********";
+                        password = HIDDEN_PASSWORD;
                         rememberme = true;
                     }
                     break;
@@ -133,22 +133,27 @@ public class RememberMeLoginPlugin extends LoginPlugin {
             if (rememberme) {
                 if (password == null || password.equals("") || password.replaceAll("\\*", "").equals("")) {
                     Cookie[] cookies = ((WebRequest)RequestCycle.get().getRequest()).getHttpServletRequest().getCookies();
-                    for (int i = 0; i < cookies.length; i++) {
-                        if (RememberMeLoginPlugin.class.getName().equals(cookies[i].getName())) {
-                            String passphrase = cookies[i].getValue();
-                            String strings[] = passphrase.split("\\$");
-                            if (strings.length == 3) {
-                                username = Base64.decode(strings[1]);
-                                password = strings[0] + "$" + strings[2];
+                    if (cookies != null) {
+                        for (final Cookie cookie : cookies) {
+                            if (RememberMeLoginPlugin.class.getName().equals(cookie.getName())) {
+                                String passphrase = cookie.getValue();
+                                String strings[] = passphrase.split("\\$");
+                                if (strings.length == 3) {
+                                    String encoded = Base64.decode(strings[1]);
+                                    if (username == null || username.equals("") || username.equals(encoded)) {
+                                        username = encoded;
+                                        password = strings[0] + "$" + strings[2];
+                                    }
+                                }
+                                break;
                             }
-                            break;
                         }
                     }
                     for (Callback callback : callbacks) {
                         if (callback instanceof NameCallback) {
                             ((NameCallback)callback).setName(username);
                         } else if (callback instanceof PasswordCallback) {
-                            ((PasswordCallback)callback).setPassword(password.toCharArray());
+                            ((PasswordCallback)callback).setPassword(password == null ? null : password.toCharArray());
                         }
                     }
                     return;
@@ -163,9 +168,10 @@ public class RememberMeLoginPlugin extends LoginPlugin {
             if (!rememberme) {
                 Cookie[] cookies = ((WebRequest)RequestCycle.get().getRequest()).getHttpServletRequest().getCookies();
                 if (cookies != null) {
-                    for (int i = 0; i < cookies.length; i++) {
-                        if (RememberMeLoginPlugin.class.getName().equals(cookies[i].getName()) || getClass().getName().equals(cookies[i].getName())) {
-                            ((WebResponse)RequestCycle.get().getResponse()).clearCookie(cookies[i]);
+                    for (final Cookie cookie : cookies) {
+                        if (RememberMeLoginPlugin.class.getName().equals(
+                                cookie.getName()) || getClass().getName().equals(cookie.getName())) {
+                            ((WebResponse) RequestCycle.get().getResponse()).clearCookie(cookie);
                         }
                     }
                 }
