@@ -29,6 +29,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
@@ -42,6 +43,7 @@ import org.hippoecm.frontend.dialog.IDialogService;
 import org.hippoecm.frontend.model.event.IObserver;
 import org.hippoecm.frontend.model.event.Observer;
 import org.hippoecm.frontend.plugin.IPluginContext;
+import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
 import org.hippoecm.frontend.plugins.cms.admin.groups.Group;
 import org.hippoecm.frontend.plugins.cms.admin.widgets.AdminDataTable;
@@ -59,6 +61,7 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
 
     private static final int NUMBER_OF_ITEMS_PER_PAGE = 20;
 
+    private final IPluginConfig config;
     private final IPluginContext context;
     private final AdminDataTable table;
     private final UserDataProvider userDataProvider;
@@ -72,30 +75,45 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
      * @param breadCrumbModel  the breadCrumbModel
      * @param userDataProvider the userDataProvider
      */
-    public ListUsersPanel(final String id, final IPluginContext context, final IBreadCrumbModel breadCrumbModel,
-            final UserDataProvider userDataProvider) {
+    public ListUsersPanel(final String id, final IPluginContext context, final IPluginConfig config, final IBreadCrumbModel breadCrumbModel, final UserDataProvider userDataProvider) {
         super(id, breadCrumbModel);
 
         setOutputMarkupId(true);
 
+        this.config = config;
         this.context = context;
         this.userDataProvider = userDataProvider;
         userDataProvider.setDirty();
 
-        add(new PanelPluginBreadCrumbLink("create-user", breadCrumbModel) {
+        PanelPluginBreadCrumbLink createUserLink = new PanelPluginBreadCrumbLink("create-user-link", breadCrumbModel) {
             @Override
             protected IBreadCrumbParticipant getParticipant(final String componentId) {
                 return new CreateUserPanel(componentId, breadCrumbModel, context);
             }
-        });
+
+            @Override
+            public boolean isVisible() {
+                return isUserCreationEnabled();
+            }
+        };
+
+        WebMarkupContainer createButtonContainer = new WebMarkupContainer("create-user-button-container") {
+
+            @Override
+            public boolean isVisible() {
+                return isUserCreationEnabled();
+            }
+        };
+
+        createButtonContainer.add(createUserLink);
+        add(createButtonContainer);
 
         List<IColumn> columns = new ArrayList<IColumn>();
 
         columns.add(new AbstractColumn<User>(new ResourceModel("user-username"), "username") {
             private static final long serialVersionUID = 1L;
 
-            public void populateItem(final Item<ICellPopulator<User>> item,
-                    final String componentId, final IModel<User> model) {
+            public void populateItem(final Item<ICellPopulator<User>> item, final String componentId, final IModel<User> model) {
 
                 ViewUserLinkLabel action = new ViewUserLinkLabel(componentId, model, ListUsersPanel.this, context);
                 item.add(action);
@@ -111,16 +129,11 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
         });
         columns.add(new AbstractColumn<User>(new ResourceModel("user-group")) {
             @Override
-            public void populateItem(final Item<ICellPopulator<User>> cellItem, final String componentId,
-                    final IModel<User> model) {
+            public void populateItem(final Item<ICellPopulator<User>> cellItem, final String componentId, final IModel<User> model) {
                 User user = model.getObject();
                 List<Group> groups = user.getLocalMembershipsAsListOfGroups();
-                GroupsLinkListPanel groupsLinkListPanel = new GroupsLinkListPanel(
-                        componentId,
-                        groups,
-                        context,
-                        ListUsersPanel.this
-                );
+                GroupsLinkListPanel groupsLinkListPanel = new GroupsLinkListPanel(componentId, groups, context,
+                                                                                  ListUsersPanel.this);
 
                 cellItem.add(groupsLinkListPanel);
             }
@@ -158,10 +171,8 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
         form.setOutputMarkupId(true);
         add(form);
 
-        final TextField<String> search = new TextField<String>(
-                "search-query",
-                new PropertyModel<String>(userDataProvider, "query")
-        );
+        final TextField<String> search = new TextField<String>("search-query",
+                                                               new PropertyModel<String>(userDataProvider, "query"));
         search.add(StringValidator.minimumLength(1));
         search.setRequired(false);
         search.add(new DefaultFocusBehavior());
@@ -179,6 +190,10 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
         table = new AdminDataTable("table", columns, userDataProvider, NUMBER_OF_ITEMS_PER_PAGE);
         table.setOutputMarkupId(true);
         add(table);
+    }
+
+    protected boolean isUserCreationEnabled() {
+        return config.getAsBoolean(ListUsersPlugin.USER_CREATION_ENABLED_KEY, true);
     }
 
     public IModel<String> getTitle(final Component component) {

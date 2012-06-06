@@ -16,6 +16,7 @@
 package org.hippoecm.frontend.plugins.cms.admin.users;
 
 import java.util.Map;
+import java.util.List;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -116,7 +117,17 @@ public class ViewUserPanel extends AdminBreadCrumbPanel {
             @Override
             public void onClick(final AjaxRequestTarget target) {
                 context.getService(IDialogService.class.getName(), IDialogService.class).show(
-                        new DeleteUserDialog(userModel, this, context, ViewUserPanel.this));
+                        new DeleteUserDialog(userModel, this, context, ViewUserPanel.this) {
+
+                            @Override
+                            protected void onOk() {
+                                super.onOk();
+
+                                // one up
+                                List<IBreadCrumbParticipant> l = breadCrumbModel.allBreadCrumbParticipants();
+                                breadCrumbModel.setActive(l.get(l.size() - 2));
+                            }
+                        });
             }
         });
         add(new SetMembershipsPanel("set-member-ship-panel", context, breadCrumbModel, userModel));

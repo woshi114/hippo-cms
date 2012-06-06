@@ -91,16 +91,6 @@ public class DeleteUserDialog extends DeleteDialog<User> {
                     .category(HippoAdminConstants.CATEGORY_USER_MANAGEMENT)
                     .message("deleted user " + username);
             AuditLogger.logHippoEvent(event);
-
-            // one up
-            List<IBreadCrumbParticipant> l = breadCrumbPanel.getBreadCrumbModel().allBreadCrumbParticipants();
-            breadCrumbPanel.getBreadCrumbModel().setActive(l.get(l.size() - 2));
-            breadCrumbPanel.activate(new IBreadCrumbPanelFactory() {
-                public BreadCrumbPanel create(final String componentId,
-                                              final IBreadCrumbModel breadCrumbModel) {
-                    return new ListUsersPanel(componentId, context, breadCrumbModel, new UserDataProvider());
-                }
-            });
         } catch (RepositoryException e) {
             Session.get().warn(breadCrumbPanel.getString("user-remove-failed", model));
             log.error("Unable to delete user '" + username + "' : ", e);
