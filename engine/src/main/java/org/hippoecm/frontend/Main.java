@@ -288,6 +288,10 @@ public class Main extends WebApplication {
             
         });
 
+        if (log.isInfoEnabled()) {
+            String applicationName = getConfigurationParameter(PLUGIN_APPLICATION_NAME, "cms");
+            log.info("Hippo CMS application " + applicationName + " has started");
+        }
     }
 
     @Override
