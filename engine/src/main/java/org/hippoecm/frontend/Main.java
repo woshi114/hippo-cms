@@ -86,6 +86,7 @@ public class Main extends WebApplication {
     public final static String MAXUPLOAD_PARAM = "upload-limit";
     public final static String ENCRYPT_URLS = "encrypt-urls";
     public final static String OUTPUT_WICKETPATHS = "output-wicketpaths";
+    public final static String PLUGIN_APPLICATION_NAME = "config";
 
     @Override
     protected void init() {
