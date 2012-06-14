@@ -28,7 +28,9 @@ import org.junit.internal.runners.InitializationError;
 import org.junit.runner.RunWith;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.Suite;
+import org.junit.Ignore;
 
+@Ignore
 @RunWith(RemoteTest.class)
 @Suite.SuiteClasses({
     org.hippoecm.frontend.config.PluginConfigTest.class,
