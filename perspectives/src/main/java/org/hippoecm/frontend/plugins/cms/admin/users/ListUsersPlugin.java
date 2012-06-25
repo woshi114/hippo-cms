@@ -58,4 +58,5 @@ public class ListUsersPlugin extends AdminPanelPlugin {
     public PanelPluginBreadCrumbPanel create(final String componentId, final IBreadCrumbModel breadCrumbModel) {
         return new ListUsersPanel(componentId, getPluginContext(), getPluginConfig(), breadCrumbModel, userDataProvider);
     }
+
 }

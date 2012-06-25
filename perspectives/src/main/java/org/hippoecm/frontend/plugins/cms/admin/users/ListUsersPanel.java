@@ -40,8 +40,8 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.validation.validator.StringValidator;
 import org.hippoecm.frontend.dialog.IDialogService;
+import org.hippoecm.frontend.model.event.IEvent;
 import org.hippoecm.frontend.model.event.IObserver;
-import org.hippoecm.frontend.model.event.Observer;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.cms.admin.AdminBreadCrumbPanel;
@@ -54,7 +54,7 @@ import org.hippoecm.frontend.plugins.standards.panelperspective.breadcrumb.Panel
 /**
  * This panel displays a pageable, searchable list of users.
  */
-public class ListUsersPanel extends AdminBreadCrumbPanel {
+public class ListUsersPanel extends AdminBreadCrumbPanel implements IObserver<UserDataProvider> {
     @SuppressWarnings("unused")
     private static final String SVN_ID = "$Id$";
     private static final long serialVersionUID = 1L;
@@ -65,7 +65,6 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
     private final IPluginContext context;
     private final AdminDataTable table;
     private final UserDataProvider userDataProvider;
-    private Observer userDataProviderObserver;
 
     /**
      * Constructs a new ListUsersPanel.
@@ -83,7 +82,6 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
         this.config = config;
         this.context = context;
         this.userDataProvider = userDataProvider;
-        userDataProvider.setDirty();
 
         PanelPluginBreadCrumbLink createUserLink = new PanelPluginBreadCrumbLink("create-user-link", breadCrumbModel) {
             @Override
@@ -202,21 +200,22 @@ public class ListUsersPanel extends AdminBreadCrumbPanel {
 
     @Override
     protected void onAddedToBreadCrumbsBar() {
-        userDataProviderObserver = new Observer(userDataProvider) {
-
-            @Override
-            public void onEvent(final Iterator events) {
-                userDataProvider.setDirty();
-            }
-        };
-        context.registerService(userDataProviderObserver, IObserver.class.getName());
+        context.registerService(this, IObserver.class.getName());
     }
 
     @Override
     protected void onRemovedFromBreadCrumbsBar() {
-        if (userDataProviderObserver != null) {
-            context.unregisterService(userDataProviderObserver, IObserver.class.getName());
-            userDataProviderObserver = null;
-        }
+        context.unregisterService(this, IObserver.class.getName());
     }
+
+    @Override
+    public UserDataProvider getObservable() {
+        return userDataProvider;
+    }
+
+    @Override
+    public void onEvent(final Iterator<? extends IEvent<UserDataProvider>> events) {
+        redraw();
+    }
+
 }

@@ -15,16 +15,10 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin.users;
 
-import java.util.List;
-
 import javax.jcr.RepositoryException;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
-import org.apache.wicket.extensions.breadcrumb.IBreadCrumbModel;
-import org.apache.wicket.extensions.breadcrumb.IBreadCrumbParticipant;
-import org.apache.wicket.extensions.breadcrumb.panel.BreadCrumbPanel;
-import org.apache.wicket.extensions.breadcrumb.panel.IBreadCrumbPanelFactory;
 import org.apache.wicket.model.IModel;
 import org.hippoecm.frontend.AuditLogger;
 import org.hippoecm.frontend.plugin.IPluginContext;
