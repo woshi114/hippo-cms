@@ -15,9 +15,12 @@
  */
 package org.hippoecm.frontend.plugins.login;
 
+import java.security.AccessControlException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.jcr.LoginException;
 import javax.jcr.Node;
@@ -27,6 +30,7 @@ import javax.jcr.SimpleCredentials;
 import javax.servlet.http.Cookie;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.PageParameters;
 import org.apache.wicket.RestartResponseException;
@@ -35,6 +39,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.protocol.http.WebRequest;
 import org.apache.wicket.protocol.http.WebResponse;
 import org.hippoecm.frontend.AuditLogger;
@@ -45,6 +50,7 @@ import org.hippoecm.frontend.model.UserCredentials;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.session.PluginUserSession;
+import org.hippoecm.frontend.util.AclChecker;
 import org.hippoecm.frontend.util.WebApplicationHelper;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.onehippo.cms7.event.HippoEvent;
@@ -55,6 +61,17 @@ import org.slf4j.LoggerFactory;
 public class RememberMeLoginPlugin extends LoginPlugin {
     @SuppressWarnings("unused")
     private final static String SVN_ID = "$Id: $";
+
+    private final static String DEFAULT_KEY = "invalid.login";
+    private final static Map<String, String> causeKeys;
+
+    static {
+        causeKeys = new HashMap<String, String>(3);
+        causeKeys.put(org.hippoecm.frontend.session.LoginException.CAUSE.INCORRECT_CREDENTIALS.name(), "invalid.login");
+        causeKeys.put(org.hippoecm.frontend.session.LoginException.CAUSE.INCORRECT_CAPTACHA.name(), "invalid.captcha");
+        causeKeys.put(org.hippoecm.frontend.session.LoginException.CAUSE.ACCESS_DENIED.name(), "access.denied");
+        causeKeys.put(org.hippoecm.frontend.session.LoginException.CAUSE.REPOSITORY_ERROR.name(), "repository.error");
+    }
 
     private static final int COOKIE_DEFAULT_MAX_AGE = 1209600;
     private final String REMEMBERME_COOKIE_NAME = WebApplicationHelper.getFullyQualifiedCookieName(WebApplicationHelper.REMEMBERME_COOKIE_BASE_NAME);
@@ -86,13 +103,17 @@ public class RememberMeLoginPlugin extends LoginPlugin {
             // Check for remember me cookie
             if ((WebApplicationHelper.retrieveWebRequest().getCookie(REMEMBERME_COOKIE_NAME) != null)
                     && (WebApplicationHelper.retrieveWebRequest().getCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME) != null)
-                    && (WebApplicationHelper.retrieveWebRequest().getHttpServletRequest().getAttribute(HAL_REQUEST_ATTRIBUTE_NAME) == null)) {
+                    && (WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
+                            .getAttribute(HAL_REQUEST_ATTRIBUTE_NAME) == null)) {
 
-                WebApplicationHelper.retrieveWebRequest().getHttpServletRequest().setAttribute(HAL_REQUEST_ATTRIBUTE_NAME, true);
+                WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
+                        .setAttribute(HAL_REQUEST_ATTRIBUTE_NAME, true);
+
                 try {
                     tryToAutoLoginWithRememberMe();
                 } finally {
-                    WebApplicationHelper.retrieveWebRequest().getHttpServletRequest().removeAttribute(HAL_REQUEST_ATTRIBUTE_NAME);
+                    WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
+                            .removeAttribute(HAL_REQUEST_ATTRIBUTE_NAME);
                 }
             }
         }
@@ -119,7 +140,9 @@ public class RememberMeLoginPlugin extends LoginPlugin {
 
     @Override
     protected LoginPlugin.SignInForm createSignInForm(String id) {
-        Cookie rememberMeCookie = WebApplicationHelper.retrieveWebRequest().getCookie(WebApplicationHelper.getFullyQualifiedCookieName(WebApplicationHelper.REMEMBERME_COOKIE_BASE_NAME)); 
+        Cookie rememberMeCookie = WebApplicationHelper.retrieveWebRequest().getCookie(
+                WebApplicationHelper.getFullyQualifiedCookieName(WebApplicationHelper.REMEMBERME_COOKIE_BASE_NAME));
+
         boolean rememberme = (rememberMeCookie != null) ? Boolean.valueOf(rememberMeCookie.getValue()) : false;
 
         if (rememberme) {
@@ -176,7 +199,9 @@ public class RememberMeLoginPlugin extends LoginPlugin {
                         WebApplicationHelper.clearCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME);
                     } else {
                         Cookie remembermeCookie = new Cookie(REMEMBERME_COOKIE_NAME, String.valueOf(true));
-                        remembermeCookie.setMaxAge(RememberMeLoginPlugin.this.getPluginConfig().getAsInteger("rememberme.cookie.maxage", COOKIE_DEFAULT_MAX_AGE));
+                        remembermeCookie.setMaxAge(RememberMeLoginPlugin.this.getPluginConfig().getAsInteger(
+                                "rememberme.cookie.maxage", COOKIE_DEFAULT_MAX_AGE));
+
                         WebApplicationHelper.retrieveWebResponse().addCookie(remembermeCookie);
                     }
 
@@ -218,17 +243,36 @@ public class RememberMeLoginPlugin extends LoginPlugin {
 
             try {
                 userSession.login(new UserCredentials(new SimpleCredentials(username, password.toCharArray())));
+                AclChecker.checkAccess(getPluginConfig(), userSession.getJcrSession());
             } catch (org.hippoecm.frontend.session.LoginException le) {
                 success = false;
-                loginExceptionPageParameters = buildPageParameters(le);
+                loginExceptionPageParameters = buildPageParameters(le.getLoginExceptionCause());
+            } catch (AccessControlException ace) {
+                success = false;
+                // Invalidate the current obtained JCR session and create an anonymous one
+                userSession.login();
+                loginExceptionPageParameters = buildPageParameters(org.hippoecm.frontend.session.LoginException.CAUSE.ACCESS_DENIED);
+            } catch (RepositoryException re) {
+                success = false;
+                // Invalidate the current obtained JCR session and create an anonymous one
+                userSession.login();
+                if (log.isDebugEnabled()) {
+                    log.warn("Repository error while trying to access the "
+                            + WebApplicationHelper.getApplicationName("cms") + " application with user '" + username
+                            + "'", re);
+                }
+
+                loginExceptionPageParameters = buildPageParameters(org.hippoecm.frontend.session.LoginException.CAUSE.REPOSITORY_ERROR);
             }
 
             if (success) {
-                ConcurrentLoginFilter.validateSession(((WebRequest) SignInForm.this.getRequest()).getHttpServletRequest().getSession(true),
-                        username, false);
+                ConcurrentLoginFilter.validateSession(((WebRequest) SignInForm.this.getRequest())
+                        .getHttpServletRequest().getSession(true), username, false);
 
                 // If rememberme checkbox is checked and there is no cookie already, this happens in case of autologin
-                if (rememberme && WebApplicationHelper.retrieveWebRequest().getCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME) == null) {
+                if (rememberme
+                        && WebApplicationHelper.retrieveWebRequest().getCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME) == null) {
+
                     Session jcrSession = userSession.getJcrSession();
                     if (jcrSession.getUserID().equals(username)) {
                         try {
@@ -240,8 +284,11 @@ public class RememberMeLoginPlugin extends LoginPlugin {
                                     + Base64.encodeBase64URLSafeString(digest.digest());
 
                             final Cookie halCookie = new Cookie(HIPPO_AUTO_LOGIN_COOKIE_NAME, passphrase);
-                            halCookie.setMaxAge(RememberMeLoginPlugin.this.getPluginConfig().getAsInteger("hal.cookie.maxage", COOKIE_DEFAULT_MAX_AGE));
-                            halCookie.setSecure(RememberMeLoginPlugin.this.getPluginConfig().getAsBoolean("use.secure.cookies", false));
+                            halCookie.setMaxAge(RememberMeLoginPlugin.this.getPluginConfig().getAsInteger(
+                                    "hal.cookie.maxage", COOKIE_DEFAULT_MAX_AGE));
+
+                            halCookie.setSecure(RememberMeLoginPlugin.this.getPluginConfig().getAsBoolean(
+                                    "use.secure.cookies", false));
 
                             // Replace with Cookie#setHttpOnly when we upgrade to a container compliant with
                             // Servlet API(s) v3.0t his was added cause the setHttpOnly/isHttpOnly at the time of
@@ -252,7 +299,9 @@ public class RememberMeLoginPlugin extends LoginPlugin {
                                     RememberMeLoginPlugin.this.getPluginConfig().getAsBoolean("use.httponly.cookies",
                                             false));
 
-                            Node userinfo = jcrSession.getRootNode().getNode(HippoNodeType.CONFIGURATION_PATH + "/" + HippoNodeType.USERS_PATH + "/" + username);
+                            Node userinfo = jcrSession.getRootNode().getNode(
+                                    HippoNodeType.CONFIGURATION_PATH + "/" + HippoNodeType.USERS_PATH + "/" + username);
+
                             String[] strings = passphrase.split("\\$");
                             userinfo.setProperty(HippoNodeType.HIPPO_PASSKEY, strings[0] + "$" + strings[2]);
                             userinfo.save();
@@ -272,7 +321,7 @@ public class RememberMeLoginPlugin extends LoginPlugin {
 
                 AuditLogger.logHippoEvent(event);
             }else{
-                // Clear the Hippo Auto Login cookie
+             // Clear the Hippo Auto Login cookie
                 WebApplicationHelper.clearCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME);
                 // Get an anonymous session, this is in case the user provided valid username and password
                 // but failed to provide a valid captcha is case it was enabled and displayed

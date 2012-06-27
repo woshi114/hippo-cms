@@ -243,7 +243,7 @@ public class LoginPlugin extends RenderPlugin {
             } catch (LoginException le) {
                 log.debug(ERROR_MESSAGE_LOGIN_FAILURE, le);
                 success = false;
-                loginExceptionPageParameters = buildPageParameters(le);
+                loginExceptionPageParameters = buildPageParameters(le.getLoginExceptionCause());
             }
 
             ConcurrentLoginFilter.validateSession(session, username, false);
@@ -290,7 +290,14 @@ public class LoginPlugin extends RenderPlugin {
         protected void redirect(boolean success) {
             redirect(success, null);
         }
+        
+        protected PageParameters buildPageParameters(LoginException.CAUSE cause) {
+            Map<String, String> pageParameters = new HashMap<String, String>(1);
+            
+            pageParameters.put(PAGE_PARAMS_KEY_LOGIN_EXCEPTION_CAUSE, cause.name());
+            return new PageParameters(pageParameters);
+        }
 
     }
-    
+
 }
