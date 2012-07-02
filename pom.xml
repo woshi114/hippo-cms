@@ -110,6 +110,7 @@
     <lucene.version>2.2.0</lucene.version>
     <wicket.version>1.4.19</wicket.version>
     <wicket-extjs.version>0.7</wicket-extjs.version>
+		<yui.sources.version>1.01.10</yui.sources.version>
     <nekohtml.version>1.9.13</nekohtml.version>
     <jetty.version>6.1.22</jetty.version>
     <joda-time.version>1.6</joda-time.version>
@@ -310,7 +311,7 @@
       <dependency>
         <groupId>org.onehippo.yui</groupId>
         <artifactId>yui-2.xx-sources</artifactId>
-        <version>1.01.10</version>
+        <version>${yui.sources.version}</version>
         <exclusions>
           <exclusion>
             <groupId>org.slf4j</groupId>
