@@ -93,6 +93,24 @@ public class RememberMeLoginPlugin extends LoginPlugin {
         return form;
     }
 
+    protected void clearCookie(String cookieName) {
+        validateNotBlank(cookieName);
+
+        Cookie cookie = ((WebRequest) RequestCycle.get().getRequest()).getCookie(cookieName);
+
+        if (cookie != null) {
+            cookie.setMaxAge(0);
+            cookie.setValue("");
+            ((WebResponse) RequestCycle.get().getResponse()).addCookie(cookie);
+        }
+    }
+    
+    protected void validateNotBlank(String value) {
+        if (value == null || "".equals(value)) {
+            throw new IllegalArgumentException("Null or '' are not allowed values!");
+        }
+    }
+
     protected class SignInForm extends org.hippoecm.frontend.plugins.login.LoginPlugin.SignInForm {
         private static final long serialVersionUID = 1L;
 
@@ -121,6 +139,14 @@ public class RememberMeLoginPlugin extends LoginPlugin {
             rememberMeCheckbox.add(new AjaxFormComponentUpdatingBehavior("onchange") {
                 private static final long serialVersionUID = 1L;
                 protected void onUpdate(AjaxRequestTarget target) {
+                    // When the 'Remember me' check-box is un-checked Username and Password fields should be cleared
+                    if (!SignInForm.this.getRememberme()) {
+                        SignInForm.this.usernameTextField.setModelObject("");
+                        SignInForm.this.passwordTextField.setModelObject("");
+                        // Also remove the cookie which contains user information
+                        clearCookie(RememberMeLoginPlugin.class.getName());
+                    }
+
                     setResponsePage(this.getFormComponent().getPage());
                 }
             });
@@ -189,8 +215,6 @@ public class RememberMeLoginPlugin extends LoginPlugin {
                             String passphrase = digest.getAlgorithm() + "$" + Base64.encode(username) + "$" + Base64.encode(new String(digest.digest()));
                             final Cookie rememberMeCookie = new Cookie(RememberMeLoginPlugin.class.getName(), passphrase);
                             rememberMeCookie.setSecure(RememberMeLoginPlugin.this.getPluginConfig().getAsBoolean("use.secure.cookies", false));
-//                            ((WebResponse)RequestCycle.get().getResponse()).addCookie(new Cookie(
-//                                RememberMeLoginPlugin.class.getName(), passphrase));
                             // Replace with Cookie#setHttpOnly when we upgrade to a container compliant with
                             // Servlet API(s) v3.0t his was added cause the setHttpOnly/isHttpOnly at the time of
                             // developing this code were not available cause we used to use Servlet API(s) v2.5
