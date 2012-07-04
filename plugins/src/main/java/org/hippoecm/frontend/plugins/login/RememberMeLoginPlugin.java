@@ -136,7 +136,7 @@ public class RememberMeLoginPlugin extends LoginPlugin {
 
             CheckBox rememberMeCheckbox = new CheckBox("rememberme", new PropertyModel<Boolean>(this, "rememberme"));
             add(rememberMeCheckbox);
-            rememberMeCheckbox.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+            rememberMeCheckbox.add(new AjaxFormComponentUpdatingBehavior("onclick") {
                 private static final long serialVersionUID = 1L;
                 protected void onUpdate(AjaxRequestTarget target) {
                     // When the 'Remember me' check-box is un-checked Username and Password fields should be cleared
