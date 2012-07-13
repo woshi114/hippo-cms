@@ -169,7 +169,7 @@ if (!YAHOO.hippo.EditorManager) {
 
             getEditorByWidgetId : function(id) {
                 var editor = null;
-                this.forEachContext(function(context) {
+                this.forEachContext(function(key, context) {
                     if (editor == null) {
                         editor = context.getEditorByWidgetId(id);
                     }
