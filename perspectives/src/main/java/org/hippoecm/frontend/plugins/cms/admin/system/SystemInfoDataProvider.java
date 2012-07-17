@@ -17,7 +17,6 @@ package org.hippoecm.frontend.plugins.cms.admin.system;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -32,7 +31,6 @@ import java.util.jar.Manifest;
 import javax.jcr.Repository;
 import javax.servlet.ServletContext;
 
-import org.apache.wicket.Application;
 import org.apache.wicket.Session;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -41,11 +39,12 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.hippoecm.frontend.Home;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.repository.HippoRepositoryFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SystemInfoDataProvider implements IDataProvider {
 
-    @SuppressWarnings("unused")
-    private final static String SVN_ID = "$Id$";
+    private static final Logger log = LoggerFactory.getLogger(SystemInfoDataProvider.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -107,6 +106,8 @@ public class SystemInfoDataProvider implements IDataProvider {
         info.put("Memory total free", nf.format(((double) 
                 (runtime.maxMemory() - runtime.totalMemory() + runtime.freeMemory())) / MB) + " MB");
         info.put("Hippo CMS version", getCMSVersion());
+        info.put("Project Version", getProjectVersion());
+        info.put("Hippo Release Version", getReleaseVersion());
         info.put("Repository vendor", getRepositoryVendor());
         info.put("Repository version", getRepositoryVersion());
         info.put("Java vendor", System.getProperty("java.vendor"));
@@ -125,45 +126,76 @@ public class SystemInfoDataProvider implements IDataProvider {
     public void detach() {
     }
 
-    private String getCMSVersion() {
-        StringBuffer sb = new StringBuffer();
-        InputStream istream = null;
+    private String getReleaseVersion() {
         try {
-            try {
-                // try to get the version from the frontend-engine manifest
-                istream = HippoRepositoryFactory.getManifest(Home.class).openStream();
-            } catch (FileNotFoundException ex) {
-            } catch (IOException ex) {
-            }
-            if (istream == null) {
-                ServletContext servletContext = ((WebApplication) Application.get()).getServletContext();
-                istream = servletContext.getResourceAsStream("META-INF/MANIFEST.MF");
-                if (istream == null) {
-                    File manifestFile = new File(servletContext.getRealPath("/"), "META-INF/MANIFEST.MF");
-                    if (manifestFile.exists()) {
-                        istream = new FileInputStream(manifestFile);
-                    }
-                }
-            }
-            if (istream != null) {
-                Manifest manifest = new Manifest(istream);
-                Attributes atts = manifest.getMainAttributes();
-                if (atts.getValue("Implementation-Version") != null) {
-                    sb.append(atts.getValue("Implementation-Version"));
-                }
-                if (atts.getValue("Implementation-Build") != null) {
-                    sb.append(" build ");
-                    sb.append(atts.getValue("Implementation-Build"));
-                }
-            }
-        } catch (IOException ex) {
-            // deliberate ignore
+            final Manifest manifest = getWebAppManifest();
+            return manifest.getMainAttributes().getValue("Hippo-Release-Version");
+        } catch(IOException iOException) {
+            log.debug("Error occurred getting the hippo cms release version from the webapp-manifest.", iOException);
         }
-        if (sb.length() == 0) {
-            return "unknown";
-        } else {
-            return sb.toString();
+        return "unknown";
+    }
+
+    private String getProjectVersion() {
+        try {
+            final Manifest manifest = getWebAppManifest();
+            return buildVersionString(manifest, "Project-Version", "Project-Build");
+        } catch(IOException iOException) {
+            log.debug("Error occurred getting the project version from the webapp-manifest.", iOException);
         }
+        return "unknown";
+    }
+
+    private String getCMSVersion() {
+        try {
+            final Manifest manifest;
+            // try to get the version from the cms-api manifest
+            final InputStream manifestInputStream = HippoRepositoryFactory.getManifest(Home.class).openStream();
+            if (manifestInputStream != null) {
+                manifest = new Manifest(manifestInputStream);
+            } else {
+                manifest = getWebAppManifest();
+            }
+            if (manifest != null) {
+                return buildVersionString(manifest, "Implementation-Version", "Implementation-Build");
+            }
+        } catch (IOException iOException) {
+            log.debug("Error occurred getting the cms version from the manifest.", iOException);
+        }
+
+        return "unknown";
+    }
+
+    private Manifest getWebAppManifest() throws IOException {
+        final ServletContext servletContext = WebApplication.get().getServletContext();
+        final InputStream manifestInputStream = servletContext.getResourceAsStream("META-INF/MANIFEST.MF");
+        if (manifestInputStream != null) {
+            return new Manifest(manifestInputStream);
+        }
+
+        final File manifestFile = new File(servletContext.getRealPath("/"), "META-INF/MANIFEST.MF");
+        if (manifestFile.exists()) {
+            return new Manifest(new FileInputStream(manifestFile));
+        }
+        return null;
+    }
+
+    private String buildVersionString(final Manifest manifest, final String versionAttribute, final String buildAttribute) {
+        StringBuilder versionString = new StringBuilder();
+
+        final Attributes attributes = manifest.getMainAttributes();
+        final String projectVersion = attributes.getValue(versionAttribute);
+        if (projectVersion != null) {
+            versionString.append(projectVersion);
+        }
+        final String projectBuild = attributes.getValue(buildAttribute);
+        if (projectBuild != null && !"-1".equals(projectBuild)) {
+            if (versionString.length() > 0) {
+                versionString.append(", build: ");
+            }
+            versionString.append(projectBuild);
+        }
+        return versionString.toString();
     }
 
     private String getRepositoryVersion() {
