@@ -31,9 +31,11 @@ import org.apache.wicket.WicketRuntimeException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.IAjaxIndicatorAware;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
+import org.apache.wicket.behavior.IBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxIndicatorAppender;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessagesModel;
+import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.DefaultMarkupCacheKeyProvider;
 import org.apache.wicket.markup.DefaultMarkupResourceStreamProvider;
 import org.apache.wicket.markup.IMarkupCacheKeyProvider;
@@ -50,12 +52,14 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.ResourceModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.resource.IResourceStream;
+import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.util.value.IValueMap;
 import org.apache.wicket.util.value.ValueMap;
 import org.hippoecm.frontend.PluginRequestTarget;
@@ -316,15 +320,47 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
                 if (ajax) {
                     AjaxRequestTarget target = AjaxRequestTarget.get();
                     if (target != null) {
-                        target.addComponent(button);
+                        if (!isset) {
+                            renderAttribute(target, "disabled", "disabled");
+                        } else {
+                            target.appendJavascript("Wicket.$('" + button.getMarkupId() + "').removeAttribute('disabled')");
+                            for (IBehavior behavior : button.getBehaviors()) {
+                                ComponentTag tag = new ComponentTag("button", XmlTag.OPEN_CLOSE);
+                                behavior.onComponentTag(button, tag);
+
+                                for (Map.Entry<String, Object> entry : tag.getAttributes().entrySet()) {
+                                    renderAttribute(target, entry.getKey(), entry.getValue());
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
+        /**
+         * Reverse the encoding that was done by {@link AjaxEventBehavior#onComponentTag} method.
+         * That is needed for rendering to html, but is not usable in an ajax response.
+         *
+         * @param target
+         * @param key
+         * @param value
+         */
+        private void renderAttribute(final AjaxRequestTarget target, String key, Object value) {
+            if (value != null) {
+                value = Strings.replaceAll(value.toString(), "&nbsp;", " ");
+                value = Strings.replaceAll(value.toString(), "&amp;", "&");
+                value = Strings.replaceAll(value.toString(), "&gt;", ">");
+                value = Strings.replaceAll(value.toString(), "&lt;", "<");
+                value = Strings.replaceAll(value.toString(), "&quot;", "\\\"");
+            }
+            target.appendJavascript(
+                    "Wicket.$('" + button.getMarkupId() + "').setAttribute('" + key + "', \"" + value + "\")");
+        }
+
         public void setVisible(boolean isset) {
             visible = isset;
-            if (button != null) {
+            if (button != null && button.isVisible() != isset) {
                 button.setVisible(isset);
                 if (ajax) {
                     AjaxRequestTarget target = AjaxRequestTarget.get();
