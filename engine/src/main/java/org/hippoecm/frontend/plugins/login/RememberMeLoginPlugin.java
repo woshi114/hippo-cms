@@ -68,7 +68,6 @@ public class RememberMeLoginPlugin extends LoginPlugin {
     static {
         causeKeys = new HashMap<String, String>(3);
         causeKeys.put(org.hippoecm.frontend.session.LoginException.CAUSE.INCORRECT_CREDENTIALS.name(), "invalid.login");
-        causeKeys.put(org.hippoecm.frontend.session.LoginException.CAUSE.INCORRECT_CAPTACHA.name(), "invalid.captcha");
         causeKeys.put(org.hippoecm.frontend.session.LoginException.CAUSE.ACCESS_DENIED.name(), "access.denied");
         causeKeys.put(org.hippoecm.frontend.session.LoginException.CAUSE.REPOSITORY_ERROR.name(), "repository.error");
     }
@@ -321,11 +320,8 @@ public class RememberMeLoginPlugin extends LoginPlugin {
 
                 AuditLogger.logHippoEvent(event);
             }else{
-             // Clear the Hippo Auto Login cookie
+                // Clear the Hippo Auto Login cookie
                 WebApplicationHelper.clearCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME);
-                // Get an anonymous session, this is in case the user provided valid username and password
-                // but failed to provide a valid captcha is case it was enabled and displayed
-                userSession.login();
 
                 HippoEvent event = new HippoEvent(userSession.getApplicationName()).user(username).action("login")
                         .category(HippoSecurityEventConstants.CATEGORY_SECURITY)
