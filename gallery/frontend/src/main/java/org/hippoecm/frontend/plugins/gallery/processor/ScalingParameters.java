@@ -33,6 +33,7 @@ public class ScalingParameters implements Serializable {
     private final int height;
     private final boolean upscaling;
     private final ImageUtils.ScalingStrategy strategy;
+    private final float compressionQuality;
 
     /**
      * Creates a set of scaling parameters: the width and height of the bounding box, and whether to
@@ -43,7 +44,7 @@ public class ScalingParameters implements Serializable {
      * @param upscaling whether to do upscaling of images that are smaller than the bounding box
      */
     public ScalingParameters(int width, int height, boolean upscaling) {
-        this(width, height, upscaling, ImageUtils.ScalingStrategy.QUALITY);
+        this(width, height, upscaling, ImageUtils.ScalingStrategy.QUALITY, 1f);
     }
 
     /**
@@ -56,10 +57,25 @@ public class ScalingParameters implements Serializable {
      * @param strategy the scaling strategy to use
      */
     public ScalingParameters(int width, int height, boolean upscaling, ImageUtils.ScalingStrategy strategy) {
+        this(width, height, upscaling, strategy, 1f);
+    }
+
+    /**
+     * Creates a set of scaling parameters: the width and height of the bounding box, and whether to do upscaling. A
+     * width or height of 0 or less means 'unspecified'.
+     *
+     * @param width     the width of the bounding box
+     * @param height    the height of the bounding box
+     * @param upscaling whether to do upscaling of images that are smaller than the bounding box
+     * @param strategy  the scaling strategy to use
+     * @param compressionQuality compression quality
+     */
+    public ScalingParameters(int width, int height, boolean upscaling, ImageUtils.ScalingStrategy strategy, float compressionQuality) {
         this.width = width;
         this.height = height;
         this.upscaling = upscaling;
         this.strategy = strategy;
+        this.compressionQuality = compressionQuality;
     }
 
     /**
@@ -104,6 +120,10 @@ public class ScalingParameters implements Serializable {
         return width == other.width && height == other.height && upscaling == other.upscaling && strategy == other.strategy;
     }
 
+    public float getCompressionQuality() {
+        return compressionQuality;
+    }
+
     @Override
     public int hashCode() {
         return toString().hashCode();
@@ -111,7 +131,7 @@ public class ScalingParameters implements Serializable {
 
     @Override
     public String toString() {
-        return width + "x" + height + ",upscaling=" + upscaling + ",strategy=" + strategy.name();
+        return width + "x" + height + ",upscaling=" + upscaling + ",strategy=" + strategy.name() + ",compression=" + compressionQuality;
     }
 
 }
