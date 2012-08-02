@@ -60,7 +60,7 @@ public class FacetRootsObserver implements IFacetRootsObserver {
         this.sessionRef = new WeakReference<Session>(session);
         this.upstream = new HashSet<UpstreamEntry>();
         this.listeners = new HashMap<String, List<FacetRootListener>>();
-        log.info("Facet roots observation is {}", enabled ? "enabled" : "disabled");
+        log.info("Facet roots observation is {}", disabled ? "disabled" : "enabled");
     }
 
     /**
