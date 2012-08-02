@@ -54,6 +54,7 @@ public class FacetRootsObserver implements IFacetRootsObserver {
     private Map<String, List<FacetRootListener>> listeners;
     private Set<UpstreamEntry> upstream;
     private boolean broadcast = false;
+    private boolean enabled = getBooleanSystemProperty("hippoecm.facetrootsobserver.enabled", true);
 
     public FacetRootsObserver(Session session) {
         this.sessionRef = new WeakReference<Session>(session);
@@ -144,6 +145,9 @@ public class FacetRootsObserver implements IFacetRootsObserver {
     }
 
     void subscribe(EventListener listener, String basePath) {
+        if (!enabled) {
+            return;
+        }
         synchronized (upstream) {
             if (upstream.size() == 0) {
                 start();
@@ -291,6 +295,10 @@ public class FacetRootsObserver implements IFacetRootsObserver {
             }
         }
 
+    }
+
+    private static boolean getBooleanSystemProperty(String propertyName, boolean defaultValue) {
+        return !System.getProperty(propertyName, Boolean.valueOf(defaultValue).toString()).equalsIgnoreCase("false");
     }
 
 }
