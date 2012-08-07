@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import javax.jcr.Credentials;
+import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -37,6 +38,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.util.value.ValueMap;
+import org.hippoecm.frontend.FrontendNodeType;
 import org.hippoecm.frontend.Home;
 import org.hippoecm.frontend.Main;
 import org.hippoecm.frontend.NoRepositoryAvailablePage;
@@ -54,19 +56,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A Wicket {@link org.apache.wicket.Session} that maintains a reference
- * to a JCR {@link javax.jcr.Session}.  It is available to plugins as a
- * threadlocal variable during request processing.
- * <p>
- * When the Wicket session is no longer referenced, the JCR session model
- * is detached.
+ * A Wicket {@link org.apache.wicket.Session} that maintains a reference to a JCR {@link javax.jcr.Session}.  It is
+ * available to plugins as a threadlocal variable during request processing.
+ * <p/>
+ * When the Wicket session is no longer referenced, the JCR session model is detached.
  */
 public class PluginUserSession extends UserSession {
     @SuppressWarnings("unused")
     private final static String SVN_ID = "$Id$";
 
     private static final long serialVersionUID = 1L;
-    private static final String FRONTEND_APPLICATION_ABSOLUTE_PATH = "/hippo:configuration/hippo:frontend/%s";
+    private static final String FRONTEND_APPLICATION_ABSOLUTE_PATH = "/hippo:configuration/hippo:frontend/";
 
     static final Logger log = LoggerFactory.getLogger(UserSession.class);
 
@@ -136,6 +136,7 @@ public class PluginUserSession extends UserSession {
         super(request);
         classLoader = new LoadableDetachableModel<ClassLoader>() {
             private static final long serialVersionUID = 1L;
+
             @Override
             protected ClassLoader load() {
                 return null;
@@ -143,12 +144,13 @@ public class PluginUserSession extends UserSession {
         };
         workflowManager = new LoadableDetachableModel<WorkflowManager>() {
             private static final long serialVersionUID = 1L;
+
             @Override
             protected WorkflowManager load() {
                 return null;
             }
         };
-        login((UserCredentials)null, jcrSessionModel);
+        login((UserCredentials) null, jcrSessionModel);
         //Calling the dirty() method causes this wicket session to be reset in the http session
         //so that it knows that the wicket session has changed (we've just added the jcr session model etc.)
         dirty();
@@ -165,8 +167,8 @@ public class PluginUserSession extends UserSession {
     }
 
     /**
-     * Retrieve the JCR {@link javax.jcr.Session} that is bound to the Wicket {@link org.apache.wicket.Session}.
-     * This method will throw a RestartResponseException when no JCR session is available.
+     * Retrieve the JCR {@link javax.jcr.Session} that is bound to the Wicket {@link org.apache.wicket.Session}. This
+     * method will throw a RestartResponseException when no JCR session is available.
      */
     public Session getJcrSession() {
         Session session = getJcrSessionInternal();
@@ -175,7 +177,7 @@ public class PluginUserSession extends UserSession {
             if (fallbackSession == null) {
                 try {
                     main.getRepository(); // side effect of reinitializing fallback session
-                } catch(RepositoryException ex) {
+                } catch (RepositoryException ex) {
                 }
             }
             session = fallbackSession;
@@ -199,9 +201,8 @@ public class PluginUserSession extends UserSession {
     }
 
     /**
-     * Release the JCR {@link javax.jcr.Session} that is bound to the Wicket session.  The session
-     * model will take care of saving any pending changes.  Event listeners will remain registered and
-     * will reregister with a new session.
+     * Release the JCR {@link javax.jcr.Session} that is bound to the Wicket session.  The session model will take care
+     * of saving any pending changes.  Event listeners will remain registered and will reregister with a new session.
      */
     public void releaseJcrSession() {
         IModel<Session> sessionModel = getJcrSessionModel();
@@ -215,7 +216,8 @@ public class PluginUserSession extends UserSession {
 
     @Deprecated
     public boolean login(ValueMap credentials, LoadableDetachableModel<Session> jcrSessionModel) {
-        return login(new UserCredentials(credentials.getString("username"), credentials.getString("password")), jcrSessionModel);
+        return login(new UserCredentials(credentials.getString("username"), credentials.getString("password")),
+                     jcrSessionModel);
     }
 
     @Deprecated
@@ -235,12 +237,20 @@ public class PluginUserSession extends UserSession {
         }
 
         try {
-            getJcrSession().getNode(String.format(FRONTEND_APPLICATION_ABSOLUTE_PATH, getApplicationName("cms")));
+            final Node applicationNode = getJcrSession().getNode(
+                    FRONTEND_APPLICATION_ABSOLUTE_PATH + getApplicationName("cms"));
+            if (applicationNode.hasProperty(FrontendNodeType.FRONTEND_SAVEONEXIT) && !applicationNode.getProperty(
+                    FrontendNodeType.FRONTEND_SAVEONEXIT).getBoolean()) {
+                IModel<Session> sessionModel = getJcrSessionModel();
+                if (sessionModel instanceof JcrSessionModel) {
+                    ((JcrSessionModel) sessionModel).setSaveOnExit(false);
+                }
+            }
         } catch (PathNotFoundException pne) {
             login();
             throw new LoginException(LoginException.CAUSE.ACCESS_DENIED, pne);
         } catch (RepositoryException re) {
-            if(log.isDebugEnabled()) {
+            if (log.isDebugEnabled()) {
                 log.warn("Error while accessing repository", re);
             } else {
                 log.warn(String.format("Error while accessing repository {}"), re.toString());
@@ -346,8 +356,8 @@ public class PluginUserSession extends UserSession {
     }
 
     /**
-     * Retrieve the JCR root node.  Null is returned when no session is available or the root
-     * node cannot be obtained from it.
+     * Retrieve the JCR root node.  Null is returned when no session is available or the root node cannot be obtained
+     * from it.
      */
     public HippoNode getRootNode() {
         HippoNode result = null;
@@ -372,7 +382,7 @@ public class PluginUserSession extends UserSession {
         JcrObservationManager.getInstance().cleanupListeners(this);
         ((UnbindingHttpSessionStore) getSessionStore()).setClearPageMaps(sessionId);
     }
-    
+
     @SuppressWarnings("unused")
     private boolean bound = false;
     private String sessionId;
@@ -390,7 +400,7 @@ public class PluginUserSession extends UserSession {
 
         bound = false;
     }
-    
+
     /**
      * THIS METHOD IS NOT PART OF THE PUBLIC API AND SHOULD NOT BE INVOKED BY PLUGINS
      */
@@ -406,8 +416,7 @@ public class PluginUserSession extends UserSession {
     // Do not add the @Override annotation on this
     public Object getMarkupId(Component component) {
         String markupId = null;
-        for (Component ancestor = component.getParent(); ancestor != null && markupId == null; ancestor = ancestor
-                .getParent()) {
+        for (Component ancestor = component.getParent(); ancestor != null; ancestor = ancestor.getParent()) {
             if (ancestor instanceof IPlugin || ancestor instanceof Home) {
                 markupId = ancestor.getMarkupId(true);
                 break;
@@ -439,7 +448,7 @@ public class PluginUserSession extends UserSession {
             applicationName = "login";
         } else {
             applicationName = WebApplicationHelper.getConfigurationParameter((WebApplication) Application.get(), PLUGIN_APPLICATION_NAME_PARAMETER, null);
-        }
+       }
 
         return applicationName;
     }

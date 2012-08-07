@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright 2007-2009 Hippo
+  Copyright 2007-2012 Hippo
 
   Licensed under the Apache License, Version 2.0 (the  "License");
   you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 -->
-<sv:node xmlns:sv="http://www.jcp.org/jcr/sv/1.0"
-         sv:name="console">
+<sv:node xmlns:sv="http://www.jcp.org/jcr/sv/1.0" sv:name="console">
   <sv:property sv:name="jcr:primaryType" sv:type="Name">
     <sv:value>frontend:application</sv:value>
+  </sv:property>
+  <sv:property sv:name="frontend:saveonexit" sv:type="Boolean">
+    <sv:value>false</sv:value>
   </sv:property>
   <sv:node sv:name="console">
     <sv:property sv:name="jcr:primaryType" sv:type="Name">
