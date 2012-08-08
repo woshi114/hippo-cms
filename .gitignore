@@ -1,4 +1,5 @@
 /.classpath
+/.idea
 /.project
 /.settings
 api/*.tmp
@@ -236,6 +237,7 @@ search/.project
 search/.settings
 search/hippo-cms-search.iml
 search/target
+skin/*.iml
 skin/.classpath
 skin/.project
 skin/.settings
@@ -419,6 +421,7 @@ xinha-integration/repository
 xinha-integration/target
 xinha-integration/version
 xinha-integration/workspaces
+xinha-resources/*.iml
 xinha-resources/*.tmp
 xinha-resources/.classpath
 xinha-resources/.project
