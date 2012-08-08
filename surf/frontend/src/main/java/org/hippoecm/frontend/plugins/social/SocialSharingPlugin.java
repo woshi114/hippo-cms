@@ -82,9 +82,10 @@ public class SocialSharingPlugin extends CompatibilityWorkflowPlugin<Workflow> {
     protected void onModelChanged() {
         super.onModelChanged();
         WorkflowDescriptorModel model = (WorkflowDescriptorModel)SocialSharingPlugin.this.getDefaultModel();
+        Node node = null;
         if (model != null) {
             try {
-                Node node = model.getNode();
+                node = model.getNode();
                 if (isPublished(node)) {
                     documentUrl = documentUrlService.getUrl(node);
                 } else {
@@ -92,6 +93,13 @@ public class SocialSharingPlugin extends CompatibilityWorkflowPlugin<Workflow> {
                 }
             } catch (RepositoryException e) {
                 log.error("Error getting document node from WorkflowDescriptorModel", e);
+            } catch (RuntimeException rte) {
+                try {
+                    log.error("Error while retrieving URL of document '" + node.getPath() + "'", rte);
+                } catch (RepositoryException re) {
+                    log.debug("Error while handling model changed event for the SocialSharingPlugin", re);
+                }
+                documentUrl = null;
             }
         }
     }
