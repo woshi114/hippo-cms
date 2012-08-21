@@ -234,8 +234,10 @@ public class ContextMenuTree extends DefaultAbstractTree {
         }
 
         public void collapse(AjaxRequestTarget target) {
-            content.setVisible(false);
-            target.addComponent(parent);
+            if (content.isVisible()) {
+                content.setVisible(false);
+                target.addComponent(parent);
+            }
         }
 
         @Override
