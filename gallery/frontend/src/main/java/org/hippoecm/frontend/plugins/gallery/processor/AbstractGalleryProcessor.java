@@ -102,8 +102,9 @@ public abstract class AbstractGalleryProcessor implements GalleryProcessor {
         }
 
         log.debug("Setting JCR data of primary resource");
-        resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, metadata.getMimeType());
-        resourceNode.setProperty(JcrConstants.JCR_DATA, binary);
+        ResourceHelper.setDefaultResourceProperties(resourceNode, mimeType, binary);
+
+        //TODO: here for backwards compatibility
         validateResource(resourceNode, fileName);
 
         //TODO: do we need the InputStream here?

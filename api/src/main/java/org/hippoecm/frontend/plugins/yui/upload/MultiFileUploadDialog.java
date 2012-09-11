@@ -20,13 +20,17 @@ import java.util.List;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.value.IValueMap;
 import org.hippoecm.frontend.dialog.AbstractDialog;
+import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
+import org.hippoecm.frontend.plugins.yui.upload.validation.FileUploadValidationService;
 
 /**
  * A multi file upload dialog that can be configured by means of the {@link FileUploadWidgetSettings}.
@@ -43,7 +47,7 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
 
     private List<String> errors = new LinkedList<String>();
 
-    protected MultiFileUploadDialog(IPluginConfig pluginConfig) {
+    protected MultiFileUploadDialog(IPluginContext pluginContext, IPluginConfig pluginConfig) {
         setOutputMarkupId(true);
 
         setNonAjaxSubmit();
@@ -75,8 +79,11 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
         closeButton.setVisible(false);
         addButton(closeButton);
 
+        String serviceId = pluginConfig.getString(FileUploadValidationService.VALIDATE_ID);
+        FileUploadValidationService validator = pluginContext.getService(serviceId, FileUploadValidationService.class);
+
         FileUploadWidgetSettings settings = new FileUploadWidgetSettings(pluginConfig);
-        widget = new FileUploadWidget("uploadWidget", settings) {
+        widget = new FileUploadWidget("uploadWidget", settings, validator) {
 
             @Override
             protected void onFileUpload(FileUpload file) {
@@ -87,20 +94,24 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
                     String message = t.getLocalizedMessage();
                     if(t.getCause() != null) {
                         message +=  "<br/>" + t.getCause();
+                        log.error("FileUploadException caught", t);
                     }
                     errors.add(message);
                 }
             }
 
             @Override
+            public void onFinishHtmlUpload() {
+                super.onFinishHtmlUpload();
+                handleErrors();
+            }
+
+            @Override
             protected void onFinishAjaxUpload(AjaxRequestTarget target) {
-                if(errors.size() > 0) {
+                super.onFinishAjaxUpload(target);
+                handleErrors();
 
-                    for (String error : errors) {
-                        MultiFileUploadDialog.this.error(error);
-                    }
-                    errors.clear();
-
+                if (hasFeedbackMessage() || MultiFileUploadDialog.this.hasFeedbackMessage()) {
                     setCancelVisible(false);
                     ajaxButton.setVisible(false);
                     removeButton(ajaxButton);
@@ -108,12 +119,10 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
                     closeButton.setEnabled(true);
                     setVisible(false);
 
-                    target.addComponent(closeButton);
                     target.addComponent(MultiFileUploadDialog.this);
                     target.appendJavascript(getAjaxIndicatorStopScript());
-                } else {
-                    MultiFileUploadDialog.super.handleSubmit();
                 }
+                MultiFileUploadDialog.super.handleSubmit();
             }
 
             @Override
@@ -144,21 +153,38 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
         };
         add(widget);
 
-        FeedbackPanel fp = new FeedbackPanel("feedbackPanel");
+        //The feedbackPanel of the AbstractDialog does not render messages when using the flashUpload. To work around
+        //this use a local feedbackPanel in the case of a flash upload.
+        Panel fp = new FeedbackPanel("feedbackPanel") {
+            @Override
+            public boolean isEnabled() {
+                return widget.isFlashUpload();
+            }
+
+            @Override
+            public boolean isVisible() {
+                return widget.isFlashUpload();
+            }
+        };
         fp.setEscapeModelStrings(false);
+        fp.add(new AttributeAppender("class", true, new Model<String>("hippo-modal-feedback"), " "));
+        fp.add(new AttributeAppender("class", true, new Model<String>("upload-feedback-panel"), " "));
         add(fp);
+    }
+
+    private void handleErrors() {
+        if (errors.size() > 0) {
+            for (String error : errors) {
+                MultiFileUploadDialog.this.error(error);
+            }
+            errors.clear();
+        }
     }
 
     @Override
     protected void onOk() {
-        if (widget.isFlashUpload()) {
-            AjaxRequestTarget target = AjaxRequestTarget.get();
-            if (target != null) {
-                ajaxButton.setEnabled(false);
-                target.addComponent(ajaxButton);
-            }
-        } else {
-            widget.handleNonFlashSubmit();
+        if (!widget.isFlashUpload()) {
+            widget.onFinishHtmlUpload();
         }
     }
 

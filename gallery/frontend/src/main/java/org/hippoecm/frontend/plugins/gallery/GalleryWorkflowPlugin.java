@@ -78,8 +78,8 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
     public class UploadDialog extends MultiFileUploadDialog {
         private static final long serialVersionUID = 1L;
 
-        public UploadDialog(IPluginConfig pluginConfig) {
-            super(pluginConfig);
+        public UploadDialog(IPluginContext context, IPluginConfig config) {
+            super(context, config);
         }
 
         public IModel getTitle() {
@@ -160,8 +160,7 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
                     node.getSession().save();
                     newItems.add(node.getPath());
                 } catch (GalleryException ex) {
-                    remove(manager, node);
-                    throw ex;
+                    throw new GalleryException(new StringResourceModel("upload-failed-named-label", GalleryWorkflowPlugin.this, null, new Object[] {filename}).getString(), ex);
                 } catch (Exception ex) {
                     remove(manager, node);
                     throw new GalleryException(new StringResourceModel("upload-failed-named-label", GalleryWorkflowPlugin.this, null, new Object[] {filename}).getString(), ex);
@@ -267,7 +266,7 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             typeComponent = new Label("type", "default").setVisible(false);
         }
 
-        UploadDialog dialog = new UploadDialog(getPluginConfig());
+        UploadDialog dialog = new UploadDialog(getPluginContext(), getPluginConfig());
         dialog.add(typeComponent);
         return dialog;
     }
