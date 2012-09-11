@@ -1,12 +1,12 @@
 /*
  *  Copyright 2010-2011 Hippo.
- * 
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -15,6 +15,7 @@
  */
 package org.hippoecm.frontend.plugins.gallery.processor;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
 
@@ -24,13 +25,18 @@ import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
-import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.jackrabbit.JcrConstants;
 import org.hippoecm.editor.type.PlainJcrTypeStore;
 import org.hippoecm.frontend.editor.plugins.resource.ResourceException;
 import org.hippoecm.frontend.editor.plugins.resource.ResourceHelper;
 import org.hippoecm.frontend.model.JcrHelper;
 import org.hippoecm.frontend.model.ocm.IStore;
 import org.hippoecm.frontend.model.ocm.StoreException;
+import org.hippoecm.frontend.plugins.gallery.imageutil.ImageMetaData;
+import org.hippoecm.frontend.plugins.gallery.imageutil.ImageMetadataException;
+import org.hippoecm.frontend.plugins.gallery.imageutil.ImageUtils;
+import org.hippoecm.frontend.plugins.gallery.imageutil.UnsupportedImageException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
 import org.hippoecm.frontend.types.IFieldDescriptor;
@@ -48,10 +54,11 @@ public abstract class AbstractGalleryProcessor implements GalleryProcessor {
     @SuppressWarnings("unused")
     private final static String SVN_ID = "$Id$";
 
-    protected static final String MIMETYPE_IMAGE_PREFIX = "image";
-
-    private static final Logger log = LoggerFactory.getLogger(AbstractGalleryProcessor.class);
     private static final long serialVersionUID = 1L;
+    private static final Logger log = LoggerFactory.getLogger(AbstractGalleryProcessor.class);
+    private static final Object conversionLock = new Object();
+
+    protected static final String MIMETYPE_IMAGE_PREFIX = "image";
 
     public AbstractGalleryProcessor() {
         // do nothing
@@ -61,45 +68,79 @@ public abstract class AbstractGalleryProcessor implements GalleryProcessor {
             RepositoryException {
         long time = System.currentTimeMillis();
 
-        Node primaryChild = getPrimaryChild(node);
-        if (primaryChild.isNodeType(HippoNodeType.NT_RESOURCE)) {
-            log.debug("Setting JCR data of primary resource");
-            primaryChild.setProperty("jcr:mimeType", mimeType);
-            primaryChild.setProperty("jcr:data", stream);
+        Node resourceNode = getPrimaryChild(node);
+        if (!resourceNode.isNodeType(HippoNodeType.NT_RESOURCE)) {
+            throw new GalleryException("Resource node not of primaryType " + HippoNodeType.NT_RESOURCE);
         }
-        validateResource(primaryChild, fileName);
 
-        String primaryMimeType = primaryChild.getProperty("jcr:mimeType").getString();
-        initGalleryNode(node, stream, primaryMimeType, fileName);
+        Binary binary = ResourceHelper.getValueFactory(resourceNode).createBinary(stream);
+        ImageMetaData metadata = new ImageMetaData(mimeType, fileName);
+        try {
+            metadata.parse(binary.getStream());
+        } catch (ImageMetadataException e) {
+            throw new GalleryException(e.getMessage());
+        }
+
+        if (metadata.getColorModel().equals(ImageMetaData.ColorModel.UNKNOWN)) {
+            throw new GalleryException("Unknown color profile for " + metadata.toString());
+        }
+
+        if (!metadata.getColorModel().equals(ImageMetaData.ColorModel.RGB)) {
+            try {
+                synchronized(conversionLock) {
+                    InputStream converted = ImageUtils.convertToRGB(binary.getStream(), metadata.getColorModel());
+                    binary.dispose();
+                    binary = ResourceHelper.getValueFactory(resourceNode).createBinary(converted);
+                }
+            } catch (IOException e) {
+                log.error("Error during conversion to RGB", e);
+                throw new GalleryException("Error during conversion to RGB for " + metadata.toString(), e);
+            } catch (UnsupportedImageException e) {
+                log.error("Image can't be converted to RGB", e);
+                throw new GalleryException("Image can't be converted to RGB for " + metadata.toString(), e);
+            }
+        }
+
+        log.debug("Setting JCR data of primary resource");
+        resourceNode.setProperty(JcrConstants.JCR_MIMETYPE, metadata.getMimeType());
+        resourceNode.setProperty(JcrConstants.JCR_DATA, binary);
+        validateResource(resourceNode, fileName);
+
+        //TODO: do we need the InputStream here?
+        InputStream isTemp = binary.getStream();
+        try {
+            initGalleryNode(node, isTemp, metadata.getMimeType(), fileName);
+        } finally {
+            IOUtils.closeQuietly(isTemp);
+        }
 
         IStore<ITypeDescriptor> store = new PlainJcrTypeStore(node.getSession());
         ITypeDescriptor type;
         try {
             type = store.load(node.getPrimaryNodeType().getName());
         } catch (StoreException e) {
-            log.error("Could not load primary node type of " + node.getName() + ", cannot create imageset variants", e);
-            return;
+            throw new GalleryException("Could not load primary node type of " + node.getName() + ", cannot create imageset variants", e);
         }
 
-        // create all child resource nodes, reusing the stream of the primary child
-        Calendar lastModified = primaryChild.getProperty("jcr:lastModified").getDate();
+        //create the primary resource node
+        log.debug("Creating primary resource {}", resourceNode.getPath());
+        Calendar lastModified = resourceNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
+        initGalleryResource(resourceNode, binary.getStream(), metadata.getMimeType(), fileName, lastModified);
+
+        // create all resource variant nodes
         for (IFieldDescriptor field : type.getFields().values()) {
             if (field.getTypeDescriptor().isType(HippoGalleryNodeType.IMAGE)) {
-                String childName = field.getPath();
-                if (!node.hasNode(childName)) {
-                    log.debug("Adding resource {}", childName);
-                    Node child = node.addNode(childName, field.getTypeDescriptor().getType());
-                    InputStream primaryData = primaryChild.getProperty("jcr:data").getBinary().getStream();
-                    initGalleryResource(child, primaryData, primaryMimeType, fileName, lastModified);
+                String variantPath = field.getPath();
+                if (!node.hasNode(variantPath)) {
+                    log.debug("creating variant resource {}", variantPath);
+                    Node variantNode = node.addNode(variantPath, field.getTypeDescriptor().getType());
+                    initGalleryResource(variantNode, binary.getStream(), metadata.getMimeType(), fileName, lastModified);
                 }
             }
         }
 
-        // finally, create the primary resource node
-        log.debug("Initializing primary resource");
-        InputStream primaryData = primaryChild.getProperty("jcr:data").getBinary().getStream();
-        initGalleryResource(primaryChild, primaryData, primaryMimeType, fileName, lastModified);
-        
+        binary.dispose();
+
         time = System.currentTimeMillis() - time;
         log.debug("Processing image '{}' took {} ms.", fileName, time);
     }
