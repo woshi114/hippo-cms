@@ -2763,6 +2763,7 @@ xinha-resources/webResources/xinha/iconsets/Hippo/fr/underline.gif -text
 xinha-resources/webResources/xinha/iconsets/Hippo/iconset.xml -text svneol=unset#text/plain
 xinha-resources/webResources/xinha/images/ed_buttons_main.gif -text
 xinha-resources/webResources/xinha/modules/FullScreen/full-screen.js -text
+xinha-resources/webResources/xinha/modules/InternetExplorer/InternetExplorer.js -text
 xinha-resources/webResources/xinha/plugins/AutoResize/AutoResize.js svneol=native#text/plain
 xinha-resources/webResources/xinha/plugins/CreateExternalLink/CreateExternalLink.js svneol=native#text/plain
 xinha-resources/webResources/xinha/plugins/CreateExternalLink/lang/de.js -text
