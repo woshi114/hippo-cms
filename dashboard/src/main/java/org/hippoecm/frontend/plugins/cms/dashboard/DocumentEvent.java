@@ -1,12 +1,12 @@
 /*
  *  Copyright 2009 Hippo.
- * 
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,10 +23,13 @@ import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.version.Version;
+import javax.jcr.version.VersionHistory;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.util.string.Strings;
 import org.hippoecm.frontend.i18n.model.NodeTranslator;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.model.event.IEvent;
@@ -57,7 +60,7 @@ public class DocumentEvent extends JcrObject {
             Node node = getNode();
             Session session = node.getSession();
 
-            // Best effort algoritm to create a 'browse' link to a document.
+            // Best effort algorithm to create a 'browse' link to a document.
 
             sourceVariant = null;
             sourceVariantExists = false;
@@ -79,7 +82,7 @@ public class DocumentEvent extends JcrObject {
                         if (patternElement.startsWith("/")) {
                             targetVariant = patternElement;
                         } else {
-                            String path = uuid2Path(patternElement);
+                            String path = getPathById(patternElement);
                             if (path != null && !path.equals("")) {
                                 targetVariantExists = session.itemExists(path);
                                 if (targetVariantExists) {
@@ -98,6 +101,24 @@ public class DocumentEvent extends JcrObject {
                 } else {
                     targetVariant = null;
                     targetVariantExists = false;
+                }
+
+                if (targetVariantExists) {
+                    Node target = session.getNode(targetVariant);
+                    if (target instanceof Version) {
+                        Version version = (Version) target;
+                        VersionHistory containingHistory = version.getContainingHistory();
+                        String path = getPathById(containingHistory.getVersionableUUID());
+                        if (path != null && !path.equals("")) {
+                            targetVariantExists = session.itemExists(path);
+                            if (targetVariantExists) {
+                                targetVariant = path;
+                            }
+                        } else {
+                            targetVariantExists = false;
+                            targetVariant = null;
+                        }
+                    }
                 }
             } else if (sourceVariantExists && node.getProperty("hippolog:eventMethod").getString().equals("delete")
                     && node.hasProperty("hippolog:eventArguments")
@@ -203,20 +224,20 @@ public class DocumentEvent extends JcrObject {
         return null;
     }
 
-    String uuid2Path(String uuid) {
-        if (uuid == null || uuid.equals("")) {
-            return null;
+    String getPathById(String id) {
+        String path = null;
+        if (!Strings.isEmpty(id)) {
+            try {
+                Session session = ((UserSession)UserSession.get()).getJcrSession();
+                Node node = session.getNodeByUUID(id);
+                path = node.getPath();
+            } catch (ItemNotFoundException e) {
+                //ignore
+            } catch (RepositoryException e) {
+                log.error(e.getMessage(), e);
+            }
         }
-        try {
-            Session session = ((UserSession) org.apache.wicket.Session.get()).getJcrSession();
-            Node node = session.getNodeByUUID(uuid);
-            return node.getPath();
-        } catch (ItemNotFoundException e) {
-            return null;
-        } catch (RepositoryException e) {
-            log.error(e.getMessage(), e);
-            return null;
-        }
+        return path;
     }
 
     @Override
