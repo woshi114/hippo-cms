@@ -77,7 +77,7 @@
 
   <properties>
     <hippo.commons.version>1.01.00</hippo.commons.version>
-    <hippo.repository.version>2.22.10-SNAPSHOT</hippo.repository.version>
+    <hippo.repository.version>2.22.09</hippo.repository.version>
 
     <!-- Test dependencies  -->
     <easymock.version>2.4</easymock.version>
