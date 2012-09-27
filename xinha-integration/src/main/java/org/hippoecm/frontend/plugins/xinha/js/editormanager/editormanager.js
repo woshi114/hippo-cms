@@ -71,9 +71,9 @@ if (!YAHOO.hippo.EditorManager) {
                 }
 
                 // set Xinha globals
-                _editor_url = editorUrl;
-                _editor_lang = editorLang;
-                _editor_skin = editorSkin;
+                window._editor_url = editorUrl;
+                window._editor_lang = editorLang;
+                window._editor_skin = editorSkin;
 
                 //and load XinhaLoader.js
                 // Internal method that is used to load Xinha plugins et al
@@ -82,10 +82,10 @@ if (!YAHOO.hippo.EditorManager) {
                 }, this);
 
                 //Save open editors when a WicketAjax callback is executed
-                var me = this;
-                Wicket.Ajax.registerPreCallHandler(function() {
-                    me.saveEditors();
-                });
+                var preCall = function() {
+                    this.saveEditors();
+                }.bind(this);
+                Wicket.Ajax.registerPreCallHandler(preCall);
             },
 
             /**
@@ -271,7 +271,6 @@ if (!YAHOO.hippo.EditorManager) {
             },
 
             render: function() {
-                var cleanupEditors = [];
                 this.newEditors.forEach(this, function(name, editor) {
                     if (document.getElementById(editor.name)) {
                         this.editors.put(editor.name, editor);
@@ -312,7 +311,6 @@ if (!YAHOO.hippo.EditorManager) {
             },
 
             forEachActiveEditor : function(callback) {
-                var cleanupEditors = [];
                 this.activeEditors.forEach(this, function(name, editor) {
                     if (document.getElementById(name)) {
                         callback(name, editor);
@@ -395,13 +393,9 @@ if (!YAHOO.hippo.EditorManager) {
             },
 
             info : function(msg) {
-                YAHOO.log('Xinha[' + this.name + '] ' + msg, "info", "EditorManager");
-                //console.log('Xinha[' + this.name + '] ' + msg);
             },
 
             error : function(msg) {
-                YAHOO.log('Xinha[' + this.name + '] ' + msg, "error", "EditorManager");
-                //console.error('Xinha[' + this.name + '] ' + msg);
             }
 
         };
@@ -859,16 +853,20 @@ if (!YAHOO.hippo.EditorManager) {
                     try {
                         var data = this.xinha.getInnerHTML();
                         if (data != this.lastData) {
-                            this.xinha.plugins['AutoSave'].instance.save(throttled);
-                            this.lastData = data;
+                            var success = function() {
+                                this.lastData = data;
+                            }.bind(this);
 
-                            info('Content saved.');
+                            var failure = function() {
+                                error('failed to save');
+                            }.bind(this);
+
+                            this.xinha.plugins['AutoSave'].instance.save(throttled, success, failure);
                         }
                     } catch(e) {
                         error('Error retrieving innerHTML from xinha, skipping save');
                     }
                 }
-                return null;
             },
 
             destroy : function() {
