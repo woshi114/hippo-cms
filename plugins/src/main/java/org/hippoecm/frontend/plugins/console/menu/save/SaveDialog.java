@@ -19,46 +19,34 @@ import javax.jcr.AccessDeniedException;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.Session;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.basic.MultiLineLabel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.value.IValueMap;
+import org.hippoecm.frontend.AuditLogger;
 import org.hippoecm.frontend.dialog.AbstractDialog;
-import org.hippoecm.frontend.plugins.console.menu.MenuPlugin;
 import org.hippoecm.frontend.plugins.console.menu.content.ContentImportDialog;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.repository.api.HippoNode;
+import org.onehippo.cms7.event.HippoEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SaveDialog extends AbstractDialog<Node> {
-    @SuppressWarnings("unused")
-    private final static String SVN_ID = "$Id$";
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(ContentImportDialog.class);
-
-    protected boolean hasPendingChanges;
 
     public SaveDialog() {
         Component message;
         try {
-            HippoNode rootNode = (HippoNode) ((UserSession) Session.get()).getJcrSession().getRootNode();
+            HippoNode rootNode = (HippoNode) UserSession.get().getJcrSession().getRootNode();
             if (rootNode.getSession().hasPendingChanges()) {
-                hasPendingChanges = true;
-                StringBuffer buf;
-                buf = new StringBuffer("Pending changes:\n");
-
-                NodeIterator it = rootNode.pendingChanges();
-                if (it.hasNext()) {
-                    while (it.hasNext()) {
-                        Node node = it.nextNode();
-                        buf.append(node.getPath()).append("\n");
-                    }
-                }
+                StringBuilder buf = new StringBuilder("Pending changes:\n");
+                appendPendingChangesFromNodeToBuffer(rootNode, buf, "\n");
                 message = new MultiLineLabel("message", buf.toString());
             } else {
                 message = new Label("message", "There are no pending changes");
@@ -78,14 +66,45 @@ public class SaveDialog extends AbstractDialog<Node> {
     @Override
     public void onOk() {
         try {
-            ((UserSession) Session.get()).getJcrSession().save();
-            ((UserSession) Session.get()).getJcrSession().refresh(false);
+            Session jcrSession = UserSession.get().getJcrSession();
+
+            HippoNode rootNode = (HippoNode) jcrSession.getRootNode();
+            StringBuilder buffer = new StringBuilder("User made changes at: ");
+            appendPendingChangesFromNodeToBuffer(rootNode, buffer, ",");
+
+            jcrSession.save();
+            //only log when the save is successful
+            logEvent("write-changes", jcrSession.getUserID(), buffer.toString());
+            jcrSession.refresh(false);
         } catch (AccessDeniedException e) {
             error(e.getClass().getName() + ": " + e.getMessage());
         } catch (RepositoryException e) {
             log.error("Error while saving content from the console", e);
             error(e.getClass().getName() + ": " + e.getMessage());
         }
+    }
+
+    private void appendPendingChangesFromNodeToBuffer(final HippoNode rootNode, final StringBuilder buf,
+                                                      final String delimiter) throws RepositoryException {
+        NodeIterator it = rootNode.pendingChanges();
+        if (it.hasNext()) {
+            while (it.hasNext()) {
+                Node node = it.nextNode();
+                buf.append(node.getPath());
+                if (it.hasNext()) {
+                    buf.append(delimiter);
+                }
+            }
+        }
+    }
+
+    private void logEvent(String action, String user, String message) {
+        final HippoEvent event = new HippoEvent("console")
+                .category("console")
+                .user(user)
+                .action(action)
+                .message(message);
+        AuditLogger.logHippoEvent(event);
     }
 
     public IModel getTitle() {
