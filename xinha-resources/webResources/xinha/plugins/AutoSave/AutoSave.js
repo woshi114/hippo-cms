@@ -63,7 +63,7 @@ AutoSave.prototype.getContents = function() {
 };
 
 // Save the contents of the xinha field.  Only one throttled request is executed concurrently.
-AutoSave.prototype.save = function(throttled) {
+AutoSave.prototype.save = function(throttled, success, failure) {
 	// nothing to do if editor is not dirty
 	if (this.timeoutID == null) {
 		return;
@@ -81,19 +81,43 @@ AutoSave.prototype.save = function(throttled) {
 	}
 
 	this.timeoutID = null;
+
     if(this.editor._editMode == 'wysiwyg') { //save Iframe html into textarea
         this.editor._textArea.value = this.editor.outwardHtml(this.editor.getHTML());
     }
 
-    var callbackUrl = this.editor.config.callbackUrl;
     var body = wicketSerialize(Wicket.$(this.getId()));
-    var success = function() {
+    var url = this.editor.config.callbackUrl;
+
+    var xmlHttpReq = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+    var afterCallbackHandler = function() {
         if (throttled) {
             this.saving = false;
         }
+        if(xmlHttpReq.status == 200) {
+            if (success) {
+                success();
+            }
+        } else if(failure) {
+            failure();
+        }
     }.bind(this);
 
-    wicketAjaxPost(callbackUrl, body, success);
+    xmlHttpReq.open('POST', url, throttled);
+    xmlHttpReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xmlHttpReq.setRequestHeader('Wicket-Ajax', "true");
+    if (throttled) {
+        xmlHttpReq.onreadystatechange = function() {
+            if (xmlHttpReq.readyState == 4) {
+                afterCallbackHandler();
+            }
+        };
+    }
+    xmlHttpReq.send(body);
+
+    if (!throttled) {
+        afterCallbackHandler();
+    }
 };
 
 AutoSave.prototype.onUpdateToolbar = function() {
