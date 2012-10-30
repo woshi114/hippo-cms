@@ -1,12 +1,12 @@
 /*
  *  Copyright 2009 Hippo.
- * 
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -81,7 +81,7 @@ public class JcrFieldValidator implements ITypeValidator, IFieldValidator {
             }
         }
     }
-    
+
     public Set<Violation> validate(IModel model) throws ValidationException {
         if (!(model instanceof JcrNodeModel)) {
             throw new ValidationException("Invalid model type; only JcrNodeModel is supported");
@@ -117,7 +117,8 @@ public class JcrFieldValidator implements ITypeValidator, IFieldValidator {
                             addTypeViolations(violations, childModel, typeViolations);
                         }
                     }
-                } else if (validatorService != null) {
+                }
+                if (validatorService != null) {
                     for (String fieldValidatorType : validators) {
                         if (validatorService.containsValidator(fieldValidatorType)) {
                             violations.addAll(validatorService.getValidator(fieldValidatorType).validate(this, nodeModel, childModel));
@@ -149,7 +150,7 @@ public class JcrFieldValidator implements ITypeValidator, IFieldValidator {
             index = childNodeModel.getNode().getIndex() - 1;
         } catch (RepositoryException e) {
             throw new ValidationException("Could not resolve path for invalid value", e);
-        }		
+        }
         for (Violation violation : typeViolations) {
             Set<ModelPath> childPaths = violation.getDependentPaths();
             Set<ModelPath> paths = new HashSet<ModelPath>();
