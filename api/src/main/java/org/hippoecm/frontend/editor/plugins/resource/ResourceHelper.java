@@ -30,8 +30,10 @@ import javax.jcr.ValueFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
 import org.apache.tika.utils.ParseUtils;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.slf4j.Logger;
@@ -193,7 +195,10 @@ public class ResourceHelper {
         String nodePath = null;
         try {
             nodePath = node.getPath();
-            String content = ParseUtils.getStringContent(inputStream, getTikaConfig(), MIME_TYPE_PDF);
+            Tika tika = new Tika();
+            tika.setMaxStringLength(-1);
+            Metadata metadata = new Metadata();
+            String content = tika.parseToString(inputStream, metadata);
             byteInputStream = new ByteArrayInputStream(content.getBytes());
             node.setProperty(HippoNodeType.HIPPO_TEXT, getValueFactory(node).createBinary(byteInputStream));
         } catch (IOException e) {
@@ -224,15 +229,6 @@ public class ResourceHelper {
         } catch (RepositoryException e) {
             log.error("Unable to store empty hippo:text binary for node '"+nodePath+"'", e);
         }
-    }
-
-    /**
-     * Gets the default Tika Configuration
-     *
-     * @return the {@link org.apache.tika.config.TikaConfig}
-     */
-    private static TikaConfig getTikaConfig(){
-        return TikaConfig.getDefaultConfig();
     }
 
     /**

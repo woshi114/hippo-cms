@@ -764,6 +764,7 @@ api/src/test/java/org/hippoecm/frontend/plugins/gallery/imageutil/ImageMetaDataT
 api/src/test/java/org/hippoecm/frontend/plugins/gallery/imageutil/ImageUtilTest.java -text
 api/src/test/java/org/hippoecm/frontend/plugins/gallery/imageutil/ReusableInputStreamTest.java -text
 api/src/test/java/org/hippoecm/frontend/plugins/gallery/imageutil/ScaleImageOperationTest.java -text
+api/src/test/resources/corrupt_pdf_file_testen.pdf -text svneol=unset#application/pdf
 api/src/test/resources/test-1x5000.png -text
 api/src/test/resources/test-380x428.gif -text
 api/src/test/resources/test-380x428.jpg -text
@@ -773,6 +774,7 @@ api/src/test/resources/test-CMYK.jpg -text
 api/src/test/resources/test-RGB.jpg -text
 api/src/test/resources/test-YCCK.jpg -text
 api/src/test/resources/test-broken-thumbnails.jpg -text
+api/src/test/resources/test-tika.pdf -text svneol=unset#application/pdf
 builtin/pom.xml svneol=native#text/plain
 builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/ExtendedFolderWorkflowPlugin$ConfirmDialog_de.properties -text
 builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/ExtendedFolderWorkflowPlugin$ConfirmDialog_fr.properties -text
