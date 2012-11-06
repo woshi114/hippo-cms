@@ -130,6 +130,12 @@ public class JcrFieldValidator implements ITypeValidator, IFieldValidator {
         return violations;
     }
 
+    @Override
+    public IFieldDescriptor getFieldDescriptor() {
+        return field;
+    }
+
+    @Override
     public ITypeDescriptor getFieldType() {
         return fieldType;
     }
