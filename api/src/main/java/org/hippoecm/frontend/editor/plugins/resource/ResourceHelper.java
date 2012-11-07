@@ -30,11 +30,6 @@ import javax.jcr.ValueFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.JcrConstants;
-import org.apache.tika.Tika;
-import org.apache.tika.config.TikaConfig;
-import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.utils.ParseUtils;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,22 +190,13 @@ public class ResourceHelper {
         String nodePath = null;
         try {
             nodePath = node.getPath();
-            Tika tika = new Tika();
-            tika.setMaxStringLength(-1);
-            Metadata metadata = new Metadata();
-            String content = tika.parseToString(inputStream, metadata);
+
+            String content = PdfParser.synchronizedParse(inputStream);
             byteInputStream = new ByteArrayInputStream(content.getBytes());
             node.setProperty(HippoNodeType.HIPPO_TEXT, getValueFactory(node).createBinary(byteInputStream));
-        } catch (IOException e) {
-            setEmptyHippoTextBinary(node);
-            log.warn("An exception has occurred while trying to create inputstream based on " +
-                        "extracted text for node '"+nodePath+"' ",e);
         } catch (RepositoryException e) {
             setEmptyHippoTextBinary(node);
             log.warn("An exception occurred while trying to set property with extracted text for node '"+nodePath+"' ",e);
-        } catch (TikaException e) {
-            setEmptyHippoTextBinary(node);
-            log.warn("An exception occurred while trying to set Tika configuration for node '"+nodePath+"' ",e);
         } catch (Throwable e) {
             setEmptyHippoTextBinary(node);
             log.warn("An exception occurred while trying to set property with extracted text for node '"+nodePath+"' ",e);

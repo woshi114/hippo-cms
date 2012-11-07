@@ -20,11 +20,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
+import org.apache.tika.config.TikaConfig;
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
+import org.apache.tika.utils.ParseUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -35,90 +39,33 @@ import org.junit.Test;
  */
 public class ResourceHelperTest {
 
-    public ResourceHelperTest() {
-    }
-
-    @BeforeClass
-    public static void setUpClass() {
-    }
-
-    @AfterClass
-    public static void tearDownClass() {
-    }
-
-    @Before
-    public void setUp() {
-    }
-
-    @After
-    public void tearDown() {
-    }
-
-    /**
-     * Test of handlePdfAndSetHippoTextProperty method, of class ResourceHelper.
-     * CMS7-6516: Exceptions logged in terminal[...]
-     */
     @Test
     public void testHandlePdf() {
-        InputStream inputStream = null; 
-        ByteArrayInputStream byteInputStream = null;
-        String content = null;
-
-        //Should not throw SaxParseException
-        inputStream = getClass().getResourceAsStream("/test-tika.pdf");
-        byteInputStream = null;
         try {
-            content = extractContent(inputStream, byteInputStream, 10);
-        } catch (TikaException ex) {
+            InputStream inputStream = getClass().getResourceAsStream("/correct_pdf_file.pdf");
+            String content = PdfParser.synchronizedParse(inputStream);
+            assertNotNull(content);
+            System.out.println(content);
+            assertTrue(content.startsWith("Simple pdf for testing the word : foobarlux"));
+        } catch (IllegalStateException ex) {
             fail();
         }
-        assertEquals(10, content.length());
-
-
-        inputStream = getClass().getResourceAsStream("/test-tika.pdf");
-        byteInputStream = null;
-        try {
-            content = extractContent(inputStream, byteInputStream, -1);
-        } catch (TikaException ex) {
-            fail();
-        }
-        assertNotNull(content);
     }
 
     @Test
-    public void testCorruptedPdf() {
-        InputStream inputStream = null; 
-        ByteArrayInputStream byteInputStream = null;
-        String content = null;
-
+    public void testCorruptedPdfDoesNotThrowException() {
         //This PDF doesn't open in Adobe Reader
-        inputStream = getClass().getResourceAsStream("/corrupt_pdf_file_testen.pdf");
-        byteInputStream = null;
         try {
-            content = extractContent(inputStream, byteInputStream, -1);
-        } catch (TikaException ex) {
+            InputStream inputStream = getClass().getResourceAsStream("/broken_pdf_file.pdf");
+            String content = PdfParser.synchronizedParse(inputStream);
+            assertNotNull(content);
+            System.out.println(content);
+            assertTrue(content.startsWith("A-PDF"));
+        } catch (IllegalStateException ex) {
             ex.printStackTrace();
             fail();
         }
-        assertNotNull(content);
     }
-    
-    private String extractContent(InputStream inputStream, ByteArrayInputStream byteInputStream, int length) throws TikaException {
-        String content = null;
-        try {
-            Tika tika = new Tika();
-            tika.setMaxStringLength(length);
-            Metadata metadata = new Metadata();
-            content = tika.parseToString(inputStream, metadata);
-            byteInputStream = new ByteArrayInputStream(content.getBytes());  
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail();
-        } finally {
-            IOUtils.closeQuietly(byteInputStream);
-            IOUtils.closeQuietly(inputStream);
-            return content;
-        }
 
-    }
+
 }
