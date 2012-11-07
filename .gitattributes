@@ -777,7 +777,6 @@ api/src/test/resources/test-CMYK.jpg -text
 api/src/test/resources/test-RGB.jpg -text
 api/src/test/resources/test-YCCK.jpg -text
 api/src/test/resources/test-broken-thumbnails.jpg -text
-api/src/test/resources/test-tika.pdf -text svneol=unset#application/pdf
 builtin/pom.xml svneol=native#text/plain
 builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/ExtendedFolderWorkflowPlugin$ConfirmDialog_de.properties -text
 builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/ExtendedFolderWorkflowPlugin$ConfirmDialog_fr.properties -text
