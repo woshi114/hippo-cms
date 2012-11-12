@@ -15,22 +15,13 @@
  */
 package org.hippoecm.frontend.editor.plugins.resource;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import org.apache.commons.io.IOUtils;
-import org.apache.tika.Tika;
 import org.apache.tika.config.TikaConfig;
 import org.apache.tika.exception.TikaException;
-import org.apache.tika.metadata.Metadata;
 import org.apache.tika.utils.ParseUtils;
-import org.junit.After;
-import org.junit.AfterClass;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -52,6 +43,13 @@ public class ResourceHelperTest {
         }
     }
 
+    @Test(expected = TikaException.class)
+    @Ignore
+    public void testWithParseException() throws TikaException, IOException {
+        InputStream inputStream = getClass().getResourceAsStream("/long_pdf_file.pdf");
+        ParseUtils.getStringContent(inputStream, TikaConfig.getDefaultConfig(), ResourceHelper.MIME_TYPE_PDF);
+    }
+    
     @Test
     public void testCorruptedPdfDoesNotThrowException() {
         //This PDF doesn't open in Adobe Reader
@@ -59,7 +57,6 @@ public class ResourceHelperTest {
             InputStream inputStream = getClass().getResourceAsStream("/broken_pdf_file.pdf");
             String content = PdfParser.synchronizedParse(inputStream);
             assertNotNull(content);
-            System.out.println(content);
             assertTrue(content.startsWith("A-PDF"));
         } catch (IllegalStateException ex) {
             ex.printStackTrace();
