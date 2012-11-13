@@ -30,9 +30,9 @@ import org.apache.tika.parser.pdf.PDFParser;
 
 public class PdfParser {
     
-    private final static PdfParser pdfParser = new PdfParser();
+    final static PdfParser pdfParser = new PdfParser();
     
-    private final Tika tika;
+    final Tika tika;
     
     private PdfParser() {
         Map<Pattern, MediaType> patterns = new HashMap<Pattern, MediaType>();
