@@ -159,28 +159,28 @@ public abstract class StdWorkflow<T extends Workflow> extends ActionDescription 
     }
 
     protected void execute() throws Exception {
-        execute((WorkflowDescriptorModel<T>)enclosingPlugin.getDefaultModel());
+        execute((WorkflowDescriptorModel<T>) enclosingPlugin.getDefaultModel());
     }
 
     protected void execute(WorkflowDescriptorModel<T> model) throws Exception {
-        WorkflowDescriptor descriptor = (WorkflowDescriptor)model.getObject();
+        WorkflowDescriptor descriptor = (WorkflowDescriptor) model.getObject();
         if (descriptor == null) {
             throw new MappingException("action no longer valid");
         }
-        WorkflowManager manager = ((UserSession)org.apache.wicket.Session.get()).getWorkflowManager();
-        javax.jcr.Session session = ((UserSession)org.apache.wicket.Session.get()).getJcrSession();
+        WorkflowManager manager = ((UserSession) org.apache.wicket.Session.get()).getWorkflowManager();
+        javax.jcr.Session session = ((UserSession) org.apache.wicket.Session.get()).getJcrSession();
         session.refresh(true);
         session.save();
         session.refresh(true);
         Workflow workflow = manager.getWorkflow(descriptor);
-        String message = execute((T)workflow);
+        String message = execute((T) workflow);
         if (message != null) {
             throw new WorkflowException(message);
         }
 
         // workflow may have closed existing session
         // FIXME should be removed
-        UserSession us = (UserSession)org.apache.wicket.Session.get();
+        UserSession us = (UserSession) org.apache.wicket.Session.get();
         session = us.getJcrSession();
         session.refresh(false);
         us.getFacetRootsObserver().broadcastEvents();
@@ -188,5 +188,9 @@ public abstract class StdWorkflow<T extends Workflow> extends ActionDescription 
 
     protected String execute(T workflow) throws Exception {
         throw new WorkflowException("unsupported operation");
+    }
+
+    public void invokeWorkflow() throws Exception{
+        execute();
     }
 }

@@ -434,7 +434,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
     protected boolean cancelled = false;
 
     public AbstractDialog() {
-        this(null);
+        this((IModel<T>) null);
     }
 
     public AbstractDialog(IModel<T> model) {

@@ -792,13 +792,6 @@ builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderShort
 builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderShortcutPlugin_de.properties -text
 builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderShortcutPlugin_fr.properties -text
 builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderShortcutPlugin_it.properties -text
-builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderWorkflowPlugin$AddDocumentDialog.html -text
-builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderWorkflowPlugin$AddDocumentDialog_de.properties -text
-builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderWorkflowPlugin$AddDocumentDialog_fr.properties -text
-builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderWorkflowPlugin$AddDocumentDialog_it.properties -text
-builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderWorkflowPlugin$RenameDocumentDialog_de.properties -text
-builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderWorkflowPlugin$RenameDocumentDialog_fr.properties -text
-builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderWorkflowPlugin$RenameDocumentDialog_it.properties -text
 builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderWorkflowPlugin.html -text
 builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderWorkflowPlugin.java svneol=native#text/plain
 builtin/src/main/java/org/hippoecm/frontend/plugins/standardworkflow/FolderWorkflowPlugin.properties -text
