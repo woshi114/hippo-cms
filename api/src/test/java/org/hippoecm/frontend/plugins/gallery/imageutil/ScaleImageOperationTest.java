@@ -195,7 +195,7 @@ public class ScaleImageOperationTest {
     }
 
     @Test
-    public void upscalingUnBoundedHeight() throws GalleryException, IOException {
+    public void upscalingUnboundedHeight() throws GalleryException, IOException {
         InputStream data = getClass().getResourceAsStream("/test-380x428.gif");
         ScaleImageOperation scaleOp = new ScaleImageOperation(760, 0, true, ImageUtils.ScalingStrategy.SPEED);
         scaleOp.execute(data, "image/gif");
@@ -203,7 +203,7 @@ public class ScaleImageOperationTest {
     }
     
     @Test
-    public void upscalingUnBoundedWidth() throws GalleryException, IOException {
+    public void upscalingUnboundedWidth() throws GalleryException, IOException {
         InputStream data = getClass().getResourceAsStream("/test-380x428.gif");
         ScaleImageOperation scaleOp = new ScaleImageOperation(0, 856 , true, ImageUtils.ScalingStrategy.SPEED);
         scaleOp.execute(data, "image/gif");
