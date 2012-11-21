@@ -47,11 +47,6 @@
     Wicket.Window.prototype.bindInit = function() {
         oldWindowBindInit.apply(this, arguments);
 
-        //HippoAjax cleanup hook.
-        if(YAHOO.hippo.HippoAjax) {
-            YAHOO.hippo.HippoAjax.cleanupModal(this);
-        }
-
         //register window resize listener
         if(YAHOO.util.Event) {
             YAHOO.util.Event.on(window, 'resize', this.onWindowResize, this, true);
@@ -60,6 +55,11 @@
 
     var oldWindowBindClean = Wicket.Window.prototype.bindClean;
     Wicket.Window.prototype.bindClean = function() {
+        //HippoAjax cleanup hook.
+        if(YAHOO.hippo.HippoAjax) {
+            YAHOO.hippo.HippoAjax.cleanupModal(this);
+        }
+
         oldWindowBindClean.apply(this, arguments);
         //unregister window resize listener
         if(YAHOO.util.Event) {

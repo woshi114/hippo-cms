@@ -26,7 +26,6 @@ import org.apache.wicket.markup.html.CSSPackageResource;
 import org.apache.wicket.markup.html.JavascriptPackageResource;
 import org.apache.wicket.markup.html.internal.HtmlHeaderContainer;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
-import org.apache.wicket.markup.html.resources.JavaScriptReference;
 import org.apache.wicket.markup.html.resources.JavascriptResourceReference;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.value.IValueMap;
@@ -176,5 +175,34 @@ public class DialogWindow extends ModalWindow implements IDialogService {
     @Override
     protected boolean makeContentVisible() {
         return shown != null;
+    }
+
+    @Override
+    protected String getCloseJavacript() {
+        return "(function() {\n" +
+                "    var win;\n" +
+                "    try {\n" +
+                "        win = window.parent.Wicket.Window;\n" +
+                "    } catch (ignore) {\n" +
+                "    }\n" +
+                "    if (typeof(win) === 'undefined' || typeof(win.current) === 'undefined') {\n" +
+                "        try {\n" +
+                "            win = window.Wicket.Window;\n" +
+                "        } catch (ignore) {\n" +
+                "        }\n" +
+                "    }\n" +
+                "    if (typeof(win) !==  'undefined' && win != null && typeof(win.current) !== 'undefined' && win.current != null) {\n" +
+                "        var close = function(w) { \n" +
+                "            w.setTimeout(function() {\n" +
+                "                win.current.close();\n" +
+                "            }, 0);\n" +
+                "        }\n" +
+                "        try { \n" +
+                "            close(window.parent); \n" +
+                "        } catch (ignore) { \n" +
+                "            close(window); \n" +
+                "        }\n" +
+                "    }\n" +
+                "})();\n";
     }
 }
