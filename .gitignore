@@ -20,6 +20,7 @@ api/tmlog.lck
 api/version
 api/wdbp-error-log.txt
 api/workspaces
+/atlassian-ide-plugin.xml
 builtin/.classpath
 builtin/.project
 builtin/.settings

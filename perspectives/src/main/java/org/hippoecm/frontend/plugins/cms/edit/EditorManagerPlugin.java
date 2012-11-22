@@ -15,14 +15,6 @@
  */
 package org.hippoecm.frontend.plugins.cms.edit;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
 import org.hippoecm.frontend.editor.IEditorContext;
@@ -34,12 +26,20 @@ import org.hippoecm.frontend.plugin.Plugin;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.service.EditorException;
 import org.hippoecm.frontend.service.IEditor;
+import org.hippoecm.frontend.service.IEditor.Mode;
 import org.hippoecm.frontend.service.IEditorManager;
 import org.hippoecm.frontend.service.ServiceException;
-import org.hippoecm.frontend.service.IEditor.Mode;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.jcr.InvalidItemStateException;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
 
 public class EditorManagerPlugin extends Plugin implements IEditorManager, IRefreshable, IDetachable {
     @SuppressWarnings("unused")
@@ -71,7 +71,7 @@ public class EditorManagerPlugin extends Plugin implements IEditorManager, IRefr
     /**
      * create an editor factory that delegates to registered factories.
      * The returned editor factory behaves different from the interface: it will throw
-     * an exception when no editor can be created. 
+     * an exception when no editor can be created.
      */
     private IEditorFactory createEditorFactory(final IPluginContext context, final IPluginConfig config) {
         return new IEditorFactory() {
@@ -82,7 +82,7 @@ public class EditorManagerPlugin extends Plugin implements IEditorManager, IRefr
                     throws EditorException {
                 List<IEditorFactory> upstream = context.getServices(config.getString(IEditorFactory.SERVICE_ID,
                         IEditorFactory.class.getName()), IEditorFactory.class);
-                for (ListIterator<IEditorFactory> iter = upstream.listIterator(upstream.size()); iter.hasPrevious();) {
+                for (ListIterator<IEditorFactory> iter = upstream.listIterator(upstream.size()); iter.hasPrevious(); ) {
                     IEditorFactory factory = iter.previous();
                     IEditor<Node> editor = factory.newEditor(manager, nodeModel, mode, parameters);
                     if (editor != null) {
@@ -234,8 +234,19 @@ public class EditorManagerPlugin extends Plugin implements IEditorManager, IRefr
                 if (node.getDepth() > 0 && node.getParent().isNodeType(HippoNodeType.NT_HANDLE)) {
                     return new JcrNodeModel(node.getParent());
                 }
+            } catch (InvalidItemStateException iex) {
+                try {
+                    log.info("Item '{}' appears not to be existing anymore", node.getIdentifier());
+
+                    // I am checking for debug level to avoid string concatenation if debug is not enabled
+                    if (log.isDebugEnabled()) {
+                        log.debug("Error happened when referencing item '" + node.getIdentifier() + "'", iex);
+                    }
+                } catch (RepositoryException rex) {
+                    log.debug("Error resolving editor model", rex);
+                }
             } catch (RepositoryException ex) {
-                log.error("error resolving editor model", ex);
+                log.error("Error resolving editor model", ex);
             }
         }
         return nodeModel;
