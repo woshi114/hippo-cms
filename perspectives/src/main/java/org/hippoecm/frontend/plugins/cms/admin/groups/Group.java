@@ -237,7 +237,6 @@ public class Group implements Comparable<Group>, IClusterable {
         } catch (RepositoryException e) {
             throw new IllegalStateException("Cannot get the Query Manager", e);
         }
-        NodeIterator iterator;
         try {
             QueryResult queryResult = query.execute();
             return queryResult.getNodes();
@@ -296,9 +295,6 @@ public class Group implements Comparable<Group>, IClusterable {
     /**
      * Wrapper needed for spi layer which doesn't know if a property exists or not
      *
-     * @param node
-     * @param name
-     * @param value
      * @throws RepositoryException
      */
     private void setOrRemoveStringProperty(Node node, String name, String value) throws RepositoryException {
