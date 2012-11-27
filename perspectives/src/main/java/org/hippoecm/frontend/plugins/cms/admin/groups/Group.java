@@ -20,12 +20,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
-import javax.jcr.query.InvalidQueryException;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
@@ -70,7 +68,7 @@ public class Group implements Comparable<Group>, IClusterable {
     private transient Node node;
 
     public static QueryManager getQueryManager() throws RepositoryException {
-        return ((UserSession) Session.get()).getQueryManager();
+        return UserSession.get().getQueryManager();
     }
 
 
@@ -225,7 +223,12 @@ public class Group implements Comparable<Group>, IClusterable {
         }
     }
 
-    public static Group forName(final String groupName) {
+    public static boolean groupExists(String groupName) {
+        NodeIterator iterator = createIteratorForGroupName(groupName);
+        return iterator.hasNext();
+    }
+
+    private static NodeIterator createIteratorForGroupName(String groupName) {
         String queryString = QUERY_GROUP_EXISTS.replace("{}", ISO9075.encode(groupName));
         Query query;
         try {
@@ -234,18 +237,24 @@ public class Group implements Comparable<Group>, IClusterable {
         } catch (RepositoryException e) {
             throw new IllegalStateException("Cannot get the Query Manager", e);
         }
-
+        NodeIterator iterator;
         try {
             QueryResult queryResult = query.execute();
-            NodeIterator iterator = queryResult.getNodes();
-            if (!iterator.hasNext()) {
-                throw new IllegalArgumentException("Group with name {} doesn't exist".replace("{}", groupName));
-            }
-            return new Group(iterator.nextNode());
-        } catch (InvalidQueryException e) {
-            throw new IllegalArgumentException("Illegal query, probably the group name has invalid characters.", e);
+            return queryResult.getNodes();
         } catch (RepositoryException e) {
             throw new IllegalStateException("Cannot execute query due to a repository error", e);
+        }
+    }
+
+    public static Group forName(final String groupName) {
+        NodeIterator iterator = createIteratorForGroupName(groupName);
+        if (!iterator.hasNext()) {
+            throw new IllegalArgumentException("Group with name {} doesn't exist".replace("{}", groupName));
+        }
+        try {
+            return new Group(iterator.nextNode());
+        } catch (RepositoryException e) {
+            throw new IllegalStateException("Cannot create group for group name = " + groupName, e);
         }
     }
 
