@@ -48,6 +48,7 @@ import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.IServiceReference;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugin.config.impl.JavaPluginConfig;
+import org.hippoecm.frontend.plugins.standards.perspective.Perspective;
 import org.hippoecm.frontend.service.EditorException;
 import org.hippoecm.frontend.service.IEditor;
 import org.hippoecm.frontend.service.IRenderService;
@@ -216,6 +217,42 @@ public class TabsPlugin extends RenderPlugin {
     void onSelect(Tab tabbie, AjaxRequestTarget target) {
         tabbie.renderer.focus(null);
         onSelectTab(tabs.indexOf(tabbie));
+
+        if (tabbie.getDecoratorId() != null) {
+            final StringBuilder fireEventJS = new StringBuilder();
+            fireEventJS.append("(function(window, document) {\n" +
+                    "  try {"+
+                    "  var fireEvent = function(element, eventName, active) {" +
+                    "      var event;\n" +
+                    "      if (document.createEvent) {\n" +
+                    "          event = document.createEvent('HTMLEvents');\n" +
+                    "          event.initEvent(eventName, true, true);\n" +
+                    "      } else {\n" +
+                    "          event = document.createEventObject();\n" +
+                    "          event.eventType = eventName\n" +
+                    "      }\n" +
+                    "      event.eventName = eventName;\n" +
+                    "      event.tabId = element.id ? element.id : element.name;"+
+                    "      event.active = active;"+
+                    "      if (document.createEvent) {"+
+                    "           element.dispatchEvent(event);\n" +
+                    "      } else if (element.fireEvent) {\n" +
+                    "          element.fireEvent('on' + event.eventType, event); \n" +
+                    "      }\n" +
+                    "   };"+
+                    "   if (window.Hippo && window.Hippo.activePerspective) {"+
+                    "       fireEvent(window.Hippo.activePerspective, 'readystatechange', false);"+
+                    "   }"+
+                    "   var decorator = document.getElementById('"+tabbie.getDecoratorId()+"');"+
+                    "   fireEvent(decorator, 'readystatechange', true);"+
+                    "   window.Hippo = window.Hippo || {};"+
+                    "   window.Hippo.activePerspective = decorator"+
+                    "   } catch (e) {" +
+                    "       console.log('Error firing tab selection event: '+e);"+
+                    "   }"+
+                    "})(window, document);");
+            target.appendJavascript(fireEventJS.toString());
+        }
     }
 
     /**
@@ -488,6 +525,13 @@ public class TabsPlugin extends RenderPlugin {
                 }
             }
             return titleModel;
+        }
+
+        public String getDecoratorId() {
+            if (decorator instanceof Perspective) {
+                return ((Perspective)decorator).getMarkupId(true);
+            }
+            return null;
         }
 
         public ResourceReference getIcon(IconSize type) {
