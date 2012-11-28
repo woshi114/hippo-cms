@@ -65,7 +65,7 @@ public class DocumentEvent extends JcrObject {
             sourceVariantExists = false;
             if (node.hasProperty("hippolog:eventDocument")) {
                 sourceVariant = node.getProperty("hippolog:eventDocument").getValue().getString();
-                sourceVariantExists = session.itemExists(sourceVariant);
+                sourceVariantExists = !StringUtils.isEmpty(sourceVariant) && session.itemExists(sourceVariant);
             }
 
             targetVariant = null;
@@ -82,12 +82,10 @@ public class DocumentEvent extends JcrObject {
                             targetVariant = patternElement;
                         } else {
                             String path = uuid2Path(patternElement);
-                            if (path != null && !path.equals("")) {
-                                targetVariantExists = session.itemExists(path);
-                                if (targetVariantExists) {
-                                    targetVariant = path;
-                                    break;
-                                }
+                            if (!StringUtils.isEmpty(path) && session.itemExists(path)) {
+                                targetVariantExists = true;
+                                targetVariant = path;
+                                break;
                             }
                         }
                     }
@@ -109,11 +107,9 @@ public class DocumentEvent extends JcrObject {
                         VersionHistory containingHistory = version.getContainingHistory();
                         String versionableUUID = containingHistory.getVersionableUUID();
                         String path = uuid2Path(versionableUUID);
-                        if (path != null && !path.equals("")) {
-                            targetVariantExists = session.itemExists(path);
-                            if (targetVariantExists) {
-                                targetVariant = path;
-                            }
+                        if (!StringUtils.isEmpty(path) && session.itemExists(path)) {
+                            targetVariantExists = true;
+                            targetVariant = path;
                         } else {
                             targetVariantExists = false;
                             targetVariant = null;
