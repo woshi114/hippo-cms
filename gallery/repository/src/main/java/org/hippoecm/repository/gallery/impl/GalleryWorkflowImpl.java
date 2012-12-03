@@ -100,7 +100,7 @@ public class GalleryWorkflowImpl implements InternalWorkflow, GalleryWorkflow
                 node = node.getNode(primaryItemName);
             }
             node.setProperty("jcr:data", "");
-            node.setProperty("jcr:mimeType", "text/plain");
+            node.setProperty("jcr:mimeType", "application/octet-stream");
             node.setProperty("jcr:lastModified", timestamp);
         } else {
             throw new ItemNotFoundException("No primary item definition found");
