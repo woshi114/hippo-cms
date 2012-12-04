@@ -23,8 +23,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.value.IValueMap;
 
@@ -37,9 +39,10 @@ public class DeleteDialog extends AbstractDialog<Node> {
     private final static String SVN_ID = "$Id$";
 
     private static final long serialVersionUID = 1L;
+    private static final Logger log = LoggerFactory.getLogger(DeleteDialog.class);
 
-    static final Logger log = LoggerFactory.getLogger(DeleteDialog.class);
     private final IModelReference modelReference;
+    private boolean immediateSave;
 
     public DeleteDialog(IModelReference modelReference) {
         this.modelReference = modelReference;
@@ -53,7 +56,9 @@ public class DeleteDialog extends AbstractDialog<Node> {
             path = e.getMessage();
         }
         add(new Label("message", new StringResourceModel("delete.message", this, null, new Object[] {path})));
-        
+
+        add(new CheckBox("immediateSave", new PropertyModel<Boolean>(this, "immediateSave")));
+
         setFocusOnOk();
     }
 
@@ -62,11 +67,13 @@ public class DeleteDialog extends AbstractDialog<Node> {
         try {
             JcrNodeModel nodeModel = (JcrNodeModel) getModel();
             JcrNodeModel parentModel = nodeModel.getParentModel();
-            
-            //The actual JCR remove
+
             nodeModel.getNode().remove();
 
-            //set the parent model as current model
+            if (immediateSave) {
+                nodeModel.getNode().getSession().save();
+            }
+
             modelReference.setModel(parentModel);
         } catch (RepositoryException ex) {
             log.error("Error while deleting document", ex);
@@ -75,7 +82,7 @@ public class DeleteDialog extends AbstractDialog<Node> {
     }
 
     public IModel getTitle() {
-        return new Model(getString("dialog.title"));
+        return new Model<String>(getString("dialog.title"));
     }
     
     @Override
