@@ -72,7 +72,7 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
                 return new IAjaxCallDecorator() {
                     @Override
                     public CharSequence decorateScript(final CharSequence script) {
-                        return "this.disabled = true;" + script;
+                        return "if (" + widget.hasFileSelectedScript() + ") { this.disabled = true;" + script + "} return false;";
                     }
 
                     @Override
