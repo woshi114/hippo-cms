@@ -307,6 +307,9 @@
           <sv:property sv:name="plugin.class" sv:type="String">
             <sv:value>org.hippoecm.frontend.editor.plugins.resource.ResourceUploadPlugin</sv:value>
           </sv:property>
+          <sv:property sv:name="validator.id" sv:type="String">
+              <sv:value>service.gallery.asset.validation</sv:value>
+          </sv:property>
           <sv:property sv:name="wicket.id" sv:type="String">
             <sv:value>${cluster.id}.field</sv:value>
           </sv:property>

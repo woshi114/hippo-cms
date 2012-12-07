@@ -1,12 +1,12 @@
 /*
  *  Copyright 2009 Hippo.
- * 
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,7 +48,6 @@ import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
 import org.hippoecm.frontend.plugins.yui.upload.MultiFileUploadDialog;
 import org.hippoecm.frontend.service.IBrowseService;
-import org.hippoecm.frontend.service.IEditorManager;
 import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.frontend.translation.ILocaleProvider;
@@ -78,8 +77,8 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
     public class UploadDialog extends MultiFileUploadDialog {
         private static final long serialVersionUID = 1L;
 
-        public UploadDialog(IPluginConfig pluginConfig) {
-            super(pluginConfig);
+        public UploadDialog(IPluginContext context, IPluginConfig config) {
+            super(context, config);
         }
 
         public IModel getTitle() {
@@ -265,7 +264,7 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             typeComponent = new Label("type", "default").setVisible(false);
         }
 
-        UploadDialog dialog = new UploadDialog(getPluginConfig());
+        UploadDialog dialog = new UploadDialog(getPluginContext(), getPluginConfig());
         dialog.add(typeComponent);
         return dialog;
     }

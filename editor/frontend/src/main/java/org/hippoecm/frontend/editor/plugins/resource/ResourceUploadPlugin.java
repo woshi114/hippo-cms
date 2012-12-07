@@ -1,12 +1,12 @@
 /*
  *  Copyright 2008 Hippo.
- * 
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,6 +35,7 @@ import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.yui.upload.FileUploadWidget;
 import org.hippoecm.frontend.plugins.yui.upload.FileUploadWidgetSettings;
+import org.hippoecm.frontend.plugins.yui.upload.validation.FileUploadValidationService;
 import org.hippoecm.frontend.service.render.RenderPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +56,7 @@ public class ResourceUploadPlugin extends RenderPlugin {
     private IValueMap types;
 
     public ResourceUploadPlugin(IPluginContext context, IPluginConfig config) {
-        super(context, config);        
+        super(context, config);
 
         // if the types config is not set, all extensions are allowed
         String typesConfig = config.getString("types");
@@ -86,7 +87,11 @@ public class ResourceUploadPlugin extends RenderPlugin {
             settings.setClearTimeout(1000);
             settings.setHideBrowseDuringUpload(true);
 
-            add(widget = new FileUploadWidget("multifile", settings) {
+
+            String serviceId = getPluginConfig().getString(FileUploadValidationService.VALIDATE_ID);
+            FileUploadValidationService validator = getPluginContext().getService(serviceId, FileUploadValidationService.class);
+
+            add(widget = new FileUploadWidget("multifile", settings, validator) {
 
                 @Override
                 protected void onFileUpload(FileUpload fileUpload) {
@@ -98,7 +103,7 @@ public class ResourceUploadPlugin extends RenderPlugin {
 
         @Override
         protected void onSubmit() {
-            widget.handleNonFlashSubmit();
+            widget.onFinishHtmlUpload();
         }
     }
 

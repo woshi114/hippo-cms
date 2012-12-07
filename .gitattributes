@@ -1313,6 +1313,7 @@ gallery/repository/src/main/java/org/hippoecm/repository/gallery/impl/GalleryWor
 gallery/repository/src/main/java/org/hippoecm/repository/gallery/upgrade/GalleryUpgrader18a.java svneol=native#text/plain
 gallery/repository/src/main/java/org/hippoecm/repository/gallery/upgrade/GalleryUpgrader18b.java -text
 gallery/repository/src/main/java/org/hippoecm/repository/gallery/upgrade/GalleryUpgrader19a.java -text
+gallery/repository/src/main/resources/asset-validator.xml -text
 gallery/repository/src/main/resources/gallery-namespace.xml -text
 gallery/repository/src/main/resources/gallery-namespace_it.xml -text
 gallery/repository/src/main/resources/gallery-processor.xml svneol=native#text/plain
@@ -1325,6 +1326,7 @@ gallery/repository/src/main/resources/gallerytemplate-images.xml -text svneol=un
 gallery/repository/src/main/resources/gallerytemplate-images_it.xml -text
 gallery/repository/src/main/resources/hippoecm-extension.xml svneol=native#text/plain
 gallery/repository/src/main/resources/hippogallery.cnd svneol=native#text/plain
+gallery/repository/src/main/resources/image-validator.xml -text
 gotolink/pom.xml svneol=native#text/plain
 gotolink/src/main/java/org/hippoecm/frontend/plugins/gotolink/GotolinkDocumentsShortcutPlugin_it.properties -text
 gotolink/src/main/java/org/hippoecm/frontend/plugins/gotolink/images/dashboard-goto-button.png -text svneol=unset#image/png
@@ -2431,6 +2433,7 @@ yui/src/main/java/org/hippoecm/frontend/plugins/yui/tree/inc/treemanager/treeman
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/tree/inc/treemanager/treemanager.js svneol=native#text/plain
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/tree/init_tree.js svneol=native#text/plain
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/tree/mytree.css svneol=native#text/plain
+yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/FileUploadWidget.css -text
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/FileUploadWidgetSettings.java -text
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/MultiFileUploadDialog.properties -text
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/MultiFileUploadDialog_fr.properties -text
@@ -2453,6 +2456,12 @@ yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/multifile/MultiFileUp
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/multifile/MultiFileUploadComponent_it.properties -text
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/multifile/delete-small-16.png -text svneol=unset#image/png
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/multifile/image-16.png -text svneol=unset#image/png
+yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/validation/DefaultUploadValidationService.java -text
+yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/validation/FileUploadValidationService.java -text
+yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/validation/ImageInfo.java -text
+yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/validation/ImageUploadValidationPlugin.java -text
+yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/validation/ImageUploadValidationService.java -text
+yui/src/main/java/org/hippoecm/frontend/plugins/yui/upload/validation/UploadValidationPlugin.java -text
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/util/JavascriptUtil.java svneol=native#text/plain
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/util/OptionsUtil.java svneol=native#text/plain
 yui/src/main/java/org/hippoecm/frontend/plugins/yui/webapp/WebAppSettings.java -text

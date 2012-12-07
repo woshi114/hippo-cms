@@ -1,12 +1,12 @@
 /*
  *  Copyright 2010 Hippo.
- * 
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,16 +19,22 @@ import org.apache.wicket.IClusterable;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 
 /**
- * Settings for file uploads. Currently allowed configurable settings are:
- * <ul>
- *     <li>fileupload.flashEnabled = <code>true</code> for flash or <code>false</code> for javascript upload</li>
- *     <li>fileupload.maxItems = maximum allowed file uploads at the same time</li>
+ * Settings for file uploads. Currently allowed configurable settings are: <ul> <li>fileupload.flashEnabled =
+ * <code>true</code> for flash or <code>false</code> for javascript upload</li> <li>fileupload.maxItems = maximum
+ * allowed file uploads at the same time</li> <li>fileupload.allowedExtensions = allowed upload file extensions</li>
+ * <li>fileupload.autoUpload = if <code>true</code> the plugin will automatically upload the files</li>
+ * <li>fileupload.buttonWidth = defines the width of the upload button</li> <li>fileupload.buttonHeight = defines the
+ * height of the upload button</li> <li>fileupload.clearAfterUpload = if <code>true</code> the dialog is cleared after
+ * all files are uploaded</li> <li>fileupload.clearTimeout = defines the timeout before clearing the dialog after the
+ * upload</li> <li>fileupload.hideBrowseDuringUpload = if <code>true</code> the browse button will be hidden during the
+ * upload</li> <li>fileupload.maxFileSize = maximum allowed filesize in bytes</li> </ul> Backwards compatibility: <ul>
+ * <li>file.extensions = allowed upload file extensions</li> </ul>
  *     <li>file.extensions = allowed upload file extensions (backwards compatibility)</li>
  *     <li>fileupload.allowedExtensions = allowed upload file extensions</li>
  *     <li>fileupload.autoUpload = if <code>true</code> the plugin will automatically upload the files</li>
  * </ul>
  */
-public class FileUploadWidgetSettings implements IClusterable{
+public class FileUploadWidgetSettings implements IClusterable {
     @SuppressWarnings("unused")
     final static String SVN_ID = "$Id$";
 
@@ -51,7 +57,7 @@ public class FileUploadWidgetSettings implements IClusterable{
     private boolean flashUploadEnabled = true;
 
     public FileUploadWidgetSettings() {
-    } 
+    }
 
     public FileUploadWidgetSettings(IPluginConfig pluginConfig) {
         parsePluginConfig(pluginConfig);
@@ -123,6 +129,7 @@ public class FileUploadWidgetSettings implements IClusterable{
 
     /**
      * Indicates if the upload widget should use Flash.
+     *
      * @return <code>true</code> if flash should be used, <code>false</code> otherwise
      */
     public boolean isFlashUploadEnabled() {
@@ -130,8 +137,9 @@ public class FileUploadWidgetSettings implements IClusterable{
     }
 
     /**
-     * If set to <code>true</code> (default) the upload plugin will use flash for file uploads, otherwise it will use a plain
-     * Javascript upload.
+     * If set to <code>true</code> (default) the upload plugin will use flash for file uploads, otherwise it will use a
+     * plain Javascript upload.
+     *
      * @param flashUploadEnabled boolean indicating if flash should be used for file uploads.
      */
     public void setFlashUploadEnabled(boolean flashUploadEnabled) {
@@ -139,10 +147,10 @@ public class FileUploadWidgetSettings implements IClusterable{
     }
 
     private void parsePluginConfig(final IPluginConfig pluginConfig) {
-        if(pluginConfig.containsKey(FILEUPLOAD_FLASH_ENABLED_SETTING)) {
+        if (pluginConfig.containsKey(FILEUPLOAD_FLASH_ENABLED_SETTING)) {
             this.flashUploadEnabled = pluginConfig.getAsBoolean(FILEUPLOAD_FLASH_ENABLED_SETTING);
         }
-        if(pluginConfig.containsKey(FILEUPLOAD_MAX_ITEMS_SETTING)) {
+        if (pluginConfig.containsKey(FILEUPLOAD_MAX_ITEMS_SETTING)) {
             this.maxNumberOfFiles = pluginConfig.getAsInteger(FILEUPLOAD_MAX_ITEMS_SETTING);
         }
         // for backwards compatibility
