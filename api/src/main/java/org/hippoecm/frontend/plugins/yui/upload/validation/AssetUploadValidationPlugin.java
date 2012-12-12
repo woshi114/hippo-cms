@@ -17,20 +17,12 @@
 package org.hippoecm.frontend.plugins.yui.upload.validation;
 
 import org.hippoecm.frontend.plugin.IPluginContext;
-import org.hippoecm.frontend.plugin.Plugin;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 
-public class UploadValidationPlugin extends Plugin {
+public class AssetUploadValidationPlugin extends UploadValidationPlugin {
 
-    public UploadValidationPlugin(IPluginContext context, IPluginConfig config) {
+    public AssetUploadValidationPlugin(IPluginContext context, IPluginConfig config) {
         super(context, config);
-
-        final String id = config.getString(FileUploadValidationService.VALIDATE_ID, "service.upload.validation");
-        context.registerService(createValidator(), id);
-    }
-
-    protected FileUploadValidationService createValidator() {
-        return new DefaultUploadValidationService(getPluginConfig());
     }
 
 }

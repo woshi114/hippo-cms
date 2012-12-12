@@ -442,6 +442,7 @@ api/src/main/java/org/hippoecm/frontend/plugins/yui/upload/multifile/MultiFileUp
 api/src/main/java/org/hippoecm/frontend/plugins/yui/upload/multifile/MultiFileUploadComponent_it.properties -text
 api/src/main/java/org/hippoecm/frontend/plugins/yui/upload/multifile/delete-small-16.png -text svneol=unset#image/png
 api/src/main/java/org/hippoecm/frontend/plugins/yui/upload/multifile/image-16.png -text svneol=unset#image/png
+api/src/main/java/org/hippoecm/frontend/plugins/yui/upload/validation/AssetUploadValidationPlugin.java -text
 api/src/main/java/org/hippoecm/frontend/plugins/yui/upload/validation/DefaultUploadValidationService.java -text
 api/src/main/java/org/hippoecm/frontend/plugins/yui/upload/validation/DefaultUploadValidationService.properties -text
 api/src/main/java/org/hippoecm/frontend/plugins/yui/upload/validation/DefaultUploadValidationService_de.properties -text
@@ -1460,6 +1461,7 @@ gallery/repository/src/main/java/org/hippoecm/repository/gallery/upgrade/Gallery
 gallery/repository/src/main/java/org/hippoecm/repository/gallery/upgrade/GalleryUpgrader18b.java -text
 gallery/repository/src/main/java/org/hippoecm/repository/gallery/upgrade/GalleryUpgrader19a.java -text
 gallery/repository/src/main/resources/asset-processor.xml svneol=native#text/plain
+gallery/repository/src/main/resources/asset-validator.xml -text
 gallery/repository/src/main/resources/gallery-namespace.xml -text
 gallery/repository/src/main/resources/gallery-namespace_de.xml -text
 gallery/repository/src/main/resources/gallery-namespace_it.xml -text
