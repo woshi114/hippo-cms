@@ -34,7 +34,7 @@ public class DefaultUploadValidationService implements FileUploadValidationServi
 
     private static final Logger log = LoggerFactory.getLogger(DefaultUploadValidationService.class);
 
-    public static final String DEFAULT_MAX_SIZE = "2mb";
+    public static final String DEFAULT_MAX_SIZE = "10mb";
     public static final String[] DEFAULT_EXTENSIONS_ALLOWED = new String[0];
 
     public static final String EXTENSIONS_ALLOWED = "extensions.allowed";
