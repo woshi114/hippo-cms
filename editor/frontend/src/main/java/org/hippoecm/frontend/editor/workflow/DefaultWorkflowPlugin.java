@@ -94,7 +94,6 @@ public class DefaultWorkflowPlugin extends CompatibilityWorkflowPlugin {
     private static final List<String> KNOWN_IMAGE_EXTENSIONS = Arrays.asList(
             "jpg", "jpeg", "gif", "png"
     );
-    private static final String NUMBER_EXPRESSION = "[0-9]*";
 
     public DefaultWorkflowPlugin(IPluginContext context, IPluginConfig config) {
         super(context, config);
@@ -197,15 +196,17 @@ public class DefaultWorkflowPlugin extends CompatibilityWorkflowPlugin {
                 destination = new NodeModelWrapper(getFolder()) {
                 };
                 try {
-                    HippoNode node = (HippoNode) ((WorkflowDescriptorModel) getDefaultModel()).getNode();
-                    String nodeName = node.getLocalizedName().toLowerCase();
+                    final HippoNode node = (HippoNode) ((WorkflowDescriptorModel) getDefaultModel()).getNode();
+                    final String localizedName = node.getLocalizedName().toLowerCase();
+                    final String copyof = new StringResourceModel("copyof", DefaultWorkflowPlugin.this, null).getString();
+                    final CopyNameHelper copyNameHelper = new CopyNameHelper(getNodeNameCodec(), copyof);
 
-                    if (isExtension(nodeName, KNOWN_IMAGE_EXTENSIONS)) {
-                        createNewNodeNameForImage(nodeName);
+                    // CMS7-6505: preserve file extension for images
+                    if (isExtension(localizedName, KNOWN_IMAGE_EXTENSIONS)) {
+                        name = copyNameHelper.getCopyName(getBaseName(localizedName), destination.getNodeModel().getNode());
+                        name = name + EXTENSION_SEPARATOR_STR + getExtension(localizedName);
                     } else {
-                        String copyof = new StringResourceModel("copyof", DefaultWorkflowPlugin.this, null).getString();
-                        CopyNameHelper copyNameHelper = new CopyNameHelper(getNodeNameCodec(), copyof);
-                        name = copyNameHelper.getCopyName(nodeName, destination.getNodeModel().getNode());
+                        name = copyNameHelper.getCopyName(localizedName, destination.getNodeModel().getNode());
                     }
                 } catch (RepositoryException ex) {
                     return new ExceptionDialog(ex);
@@ -218,53 +219,6 @@ public class DefaultWorkflowPlugin extends CompatibilityWorkflowPlugin {
                         setOkEnabled(true);
                     }
                 };
-            }
-
-            /**
-             * Creates a new node name, based on the given nodeName. It will add a suffix (-1) at the end of the base
-             * name (node name without the extension) of the node name. If this new name already exists, it will
-             * increment the suffix (-2, -3,...) until a unique name has been found.
-             *
-             * @param nodeName The node name
-             * @throws RepositoryException Thrown when it cannot retrieve the node from the repository
-             */
-            private void createNewNodeNameForImage(final String nodeName) throws RepositoryException {
-                name = nodeName;
-                Node gallery = destination.getNodeModel().getNode();
-                if (gallery.hasNode(name)) {
-                    name = addOrIncrementNodeNameSuffixForImage(name);
-                    createNewNodeNameForImage(name);
-                }
-            }
-
-            /**
-             * Adds a suffix (-1) at the end of the base name. If it is has an existing suffix (-n) it will increment
-             * this suffix to n+1.
-             *
-             * <p>Returns test-1.jpg when the input is test.jpg. <br/>
-             * Returns test-2.jpg when the input is test-1.jpg. <br/>
-             * Returns test-c-1.jpg when the input is test-c.jpg.
-             * </p>
-             *
-             * @param nodeName The node name.
-             * @return A node name with a '-1' as suffix attached to the base name or a node name which already has
-             * such a suffix (-n) with an incremented (n+1) number of this suffix.
-             */
-            private String addOrIncrementNodeNameSuffixForImage(final String nodeName) {
-                final String baseName = getBaseName(nodeName);
-                final String extension = getExtension(nodeName);
-
-                int separatorIndex = baseName.lastIndexOf("-");
-                if (separatorIndex != -1 && separatorIndex != baseName.length() - 1) {
-                    String copyNumberAsString = baseName.substring(separatorIndex + 1);
-                    if (copyNumberAsString.matches(NUMBER_EXPRESSION)) {
-                        int copyNumber = Integer.parseInt(copyNumberAsString);
-                        copyNumber++;
-                        return baseName.substring(0, separatorIndex + 1) + copyNumber + EXTENSION_SEPARATOR_STR +
-                                extension;
-                    }
-                }
-                return baseName + "-1" + EXTENSION_SEPARATOR_STR + extension;
             }
 
             @Override
