@@ -46,16 +46,34 @@ public class SearchDocumentsProviderTest extends PluginTest {
             "/test", "nt:unstructured",
                 "/test/content", "hippostd:folder",
                     "/test/content/folder", "hippostd:folder",
-                    "/test/content/document", "hippo:handle",
+                    "/test/content/document1", "hippo:handle",
                         "jcr:mixinTypes", "hippo:hardhandle",
-                        "/test/content/document/document", "frontendtest:document",
+                        "/test/content/document1/document1", "frontendtest:document",
+                            "jcr:mixinTypes", "hippo:harddocument",
+                            "a", "xxx",
+                         "/test/content/document1/document1", "frontendtest:document",
+                            "jcr:mixinTypes", "hippo:harddocument",
+                            "b", "xxx",
+                      "/test/content/document2", "hippo:handle",
+                         "jcr:mixinTypes", "hippo:hardhandle",
+                        "/test/content/document2/document2", "frontendtest:document",
+                            "jcr:mixinTypes", "hippo:harddocument",
+                            "a", "xxx",
+                      "/test/content/document3", "hippo:handle",
+                        "jcr:mixinTypes", "hippo:hardhandle",
+                        "/test/content/document3/document3", "frontendtest:document",
+                            "jcr:mixinTypes", "hippo:harddocument",
+                            "a", "xxx",
+                      "/test/content/document4", "hippo:handle",
+                         "jcr:mixinTypes", "hippo:hardhandle",
+                        "/test/content/document4/document4", "frontendtest:document",
                             "jcr:mixinTypes", "hippo:harddocument",
                             "a", "xxx",
                     "/test/content/otherfolder", "hippostd:folder",
     };
 
     @Test
-    public void foldersBeforeDocuments() throws Exception {
+    public void foldersBeforeDocumentsAndOrderKeptAndDuplicateDocsMerged() throws Exception {
         build(session, content);
         session.save();
 
@@ -69,13 +87,19 @@ public class SearchDocumentsProviderTest extends PluginTest {
                         final List<Node> nodes = new LinkedList<Node>();
                         try {
                             nodes.add(root.getNode("test/content/folder"));
-                            nodes.add(root.getNode("test/content/document/document"));
+                            nodes.add(root.getNode("test/content/document4/document4"));
+                            nodes.add(root.getNode("test/content/document3/document3"));
+                            nodes.add(root.getNode("test/content/document2/document2"));
+                            nodes.add(root.getNode("test/content/document1/document1"));
+                            nodes.add(root.getNode("test/content/document1/document1[1]"));
                             nodes.add(root.getNode("test/content/otherfolder"));
                         } catch (RepositoryException e) {
                             throw new RuntimeException("Could not find node", e);
                         }
                         return new QueryResult() {
 
+                            int position = 0;
+                            
                             public String[] getColumnNames() throws RepositoryException {
                                 return new String[] { "jcr:path" };
                             }
@@ -85,22 +109,20 @@ public class SearchDocumentsProviderTest extends PluginTest {
                                 return new NodeIterator() {
 
                                     public Node nextNode() {
+                                        position++;
                                         return upstream.next();
                                     }
 
                                     public long getPosition() {
-                                        // TODO Auto-generated method stub
-                                        return 0;
+                                        return position;
                                     }
 
                                     public long getSize() {
-                                        // TODO Auto-generated method stub
-                                        return 0;
+                                        return nodes.size();
                                     }
 
                                     public void skip(long skipNum) {
-                                        // TODO Auto-generated method stub
-                                        
+                                        position+=skipNum;
                                     }
 
                                     public boolean hasNext() {
@@ -123,6 +145,7 @@ public class SearchDocumentsProviderTest extends PluginTest {
 
                                     public Row nextRow() {
                                         final Node upstreamNode = upstream.next();
+                                        position++;
                                         return new Row() {
 
                                             public Value getValue(String propertyName) throws ItemNotFoundException,
@@ -131,12 +154,11 @@ public class SearchDocumentsProviderTest extends PluginTest {
                                             }
 
                                             public Value[] getValues() throws RepositoryException {
-                                                // TODO Auto-generated method stub
                                                 return null;
                                             }
 
                                             public Node getNode() throws RepositoryException {
-                                                throw new UnsupportedOperationException("Not supported yet.");
+                                                return upstreamNode;
                                             }
 
                                             public Node getNode(String selectorName) throws RepositoryException {
@@ -163,18 +185,15 @@ public class SearchDocumentsProviderTest extends PluginTest {
                                     }
 
                                     public long getPosition() {
-                                        // TODO Auto-generated method stub
-                                        return 0;
+                                        return position;
                                     }
 
                                     public long getSize() {
-                                        // TODO Auto-generated method stub
-                                        return 0;
+                                        return nodes.size();
                                     }
 
                                     public void skip(long skipNum) {
-                                        // TODO Auto-generated method stub
-                                        
+                                        position+=skipNum;
                                     }
 
                                     public boolean hasNext() {
@@ -186,8 +205,7 @@ public class SearchDocumentsProviderTest extends PluginTest {
                                     }
 
                                     public void remove() {
-                                        // TODO Auto-generated method stub
-                                        
+                                        throw new UnsupportedOperationException("move not supported");
                                     }
                                     
                                 };
@@ -200,11 +218,14 @@ public class SearchDocumentsProviderTest extends PluginTest {
                     }
                 }));
         SearchDocumentsProvider provider = new SearchDocumentsProvider(bsrm, new HashMap());
-        assertEquals(3, provider.size());
+        assertEquals(6, provider.size());
 
         Iterator<Node> iter = provider.iterator(0, provider.size());
         assertEquals("/test/content/folder", iter.next().getPath());
         assertEquals("/test/content/otherfolder", iter.next().getPath());
-        assertEquals("/test/content/document", iter.next().getPath());
+        assertEquals("/test/content/document4", iter.next().getPath());
+        assertEquals("/test/content/document3", iter.next().getPath());
+        assertEquals("/test/content/document2", iter.next().getPath());
+        assertEquals("/test/content/document1", iter.next().getPath());
     }
 }
