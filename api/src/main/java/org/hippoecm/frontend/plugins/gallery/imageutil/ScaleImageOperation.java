@@ -222,12 +222,7 @@ public class ScaleImageOperation extends AbstractImageOperation {
 
         // If the image has to be scaled down we should return the largest negative ratio.
         // If the image has to be scaled up, and we should take the smallest positive ratio.
-        // If it is unbounded upscaling, return the largest positive ratio.
-        if (!(targetWidth == 0 && targetHeight == 0) && (targetWidth == 0 || targetHeight == 0)) {
-            return Math.max(widthRatio, heightRatio);
-        } else {
-            return Math.min(widthRatio, heightRatio);
-        }
+        return Math.min(widthRatio, heightRatio);
     }
     
     /**
