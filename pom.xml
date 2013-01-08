@@ -97,7 +97,7 @@
   </modules>
 
   <properties>
-    <hippo.repository.version>2.22.13-SNAPSHOT</hippo.repository.version>
+    <hippo.repository.version>2.22.13</hippo.repository.version>
 
     <!-- Test dependencies  -->
     <easymock.version>2.4</easymock.version>
