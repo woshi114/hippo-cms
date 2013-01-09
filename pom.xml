@@ -24,7 +24,7 @@
   </parent>
 
   <artifactId>hippo-cms</artifactId>
-  <version>2.22.13-CMS7-6796</version>
+  <version>2.22.13</version>
 
   <name>CMS</name>
   <description>Hippo CMS</description>
@@ -43,15 +43,6 @@
       </releases>
     </repository>
   </repositories>
-
-  <distributionManagement>
-    <repository>
-      <name>Hippo Maven 2 Enterprise Repository</name>
-      <id>hippo-maven2-enterprise</id>
-      <url>https://maven.onehippo.com/content/repositories/enterprise-releases/</url>
-      <uniqueVersion>false</uniqueVersion>
-    </repository>
-  </distributionManagement>
 
   <modules>
     <module>engine</module>
