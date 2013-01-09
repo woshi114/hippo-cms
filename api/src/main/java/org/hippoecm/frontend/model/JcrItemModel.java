@@ -66,6 +66,9 @@ public class JcrItemModel<T extends Item> extends LoadableDetachableModel<T> {
         super(item);
         relPath = null;
         uuid = null;
+        if (item != null) {
+            save();
+        }
     }
 
     public JcrItemModel(String path) {
