@@ -29,8 +29,8 @@ import org.hippoecm.frontend.plugin.config.IClusterConfig;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 
 /**
- * Wrapper class for IPluginContext that keeps a record of what services and trackers are
- * registered and what clusters are started.  These can later be cleaned up by invoking stop().
+ * Wrapper class for IPluginContext that keeps a record of what services and trackers are registered and what clusters
+ * are started.  These can later be cleaned up by invoking stop().
  */
 public class ServiceContext implements IPluginContext {
     @SuppressWarnings("unused")
@@ -69,7 +69,7 @@ public class ServiceContext implements IPluginContext {
                 control.stop();
                 children.remove(control);
             }
-            
+
         };
     }
 
@@ -128,6 +128,7 @@ public class ServiceContext implements IPluginContext {
         for (IClusterControl control : controls) {
             control.stop();
         }
+        children.clear();
 
         for (Map.Entry<String, List<IServiceTracker<? extends IClusterable>>> entry : listeners.entrySet()) {
             for (IServiceTracker<? extends IClusterable> service : entry.getValue()) {
@@ -142,6 +143,22 @@ public class ServiceContext implements IPluginContext {
             }
         }
         services.clear();
+
+        upstream = null;
+    }
+
+    /**
+     * reattach a service context to a plugin context.
+     * This operation is only valid if the service context was stopped before.
+     *
+     * @param pluginContext the plugin context to attach to.
+     */
+    public void attachTo(final IPluginContext pluginContext) {
+        if (upstream == null) {
+            upstream = pluginContext;
+        } else if (pluginContext != upstream) {
+            throw new IllegalStateException("Service context is still connected");
+        }
     }
 
 }

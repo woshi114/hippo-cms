@@ -28,6 +28,7 @@ import org.apache.wicket.Page;
 import org.apache.wicket.RequestCycle;
 import org.apache.wicket.ResourceReference;
 import org.apache.wicket.WicketRuntimeException;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.IAjaxIndicatorAware;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
@@ -46,7 +47,6 @@ import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IFormSubmittingComponent;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -89,6 +89,8 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
 
     static private IMarkupCacheKeyProvider cacheKeyProvider = new DefaultMarkupCacheKeyProvider();
     static private IMarkupResourceStreamProvider streamProvider = new DefaultMarkupResourceStreamProvider();
+
+    private transient boolean formSubmittedInRequest = false;
 
     private boolean fullscreen = false;
 
@@ -577,6 +579,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
         if (fmm != null) {
             fmm.detach();
         }
+        formSubmittedInRequest = false;
         super.onDetach();
     }
 
@@ -685,9 +688,12 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
     }
 
     protected void handleSubmit() {
-        onOk();
-        if (!hasError()) {
-            closeDialog();
+        if (!formSubmittedInRequest) {
+            formSubmittedInRequest = true;
+            onOk();
+            if (!hasError()) {
+                closeDialog();
+            }
         }
     }
 
@@ -698,10 +704,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
             if (fmm != null) {
                 fmm.reset();
             }
-            IFormSubmittingComponent submitButton = findSubmittingButton();
-            if (submitButton == null) {
-                handleSubmit();
-            }
+            handleSubmit();
         }
     }
 

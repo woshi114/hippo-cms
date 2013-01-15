@@ -28,6 +28,7 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.value.IValueMap;
+import org.hippoecm.frontend.behaviors.EventStoppingDecorator;
 import org.hippoecm.frontend.dialog.AbstractDialog;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
@@ -69,22 +70,24 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
 
             @Override
             protected IAjaxCallDecorator getAjaxCallDecorator() {
-                return new IAjaxCallDecorator() {
-                    @Override
-                    public CharSequence decorateScript(final CharSequence script) {
-                        return "if (" + widget.hasFileSelectedScript() + ") { this.disabled = true;" + script + "} return false;";
-                    }
+                return new EventStoppingDecorator(
+                        new IAjaxCallDecorator() {
 
-                    @Override
-                    public CharSequence decorateOnSuccessScript(final CharSequence script) {
-                        return "if (Wicket.$('\" + getMarkupId() + \"') != null) { Wicket.$('" + getMarkupId() + "').disabled = true; }" + script;
-                    }
+                            @Override
+                            public CharSequence decorateScript(final CharSequence script) {
+                                return "if (" + widget.hasFileSelectedScript() + ") { this.disabled = true;" + script + "} return false;";
+                            }
 
-                    @Override
-                    public CharSequence decorateOnFailureScript(final CharSequence script) {
-                        return "if (Wicket.$('\" + getMarkupId() + \"') != null) { Wicket.$('\" + getMarkupId() + \"').disabled = false; }" + script;
-                    }
-                };
+                            @Override
+                            public CharSequence decorateOnSuccessScript(final CharSequence script) {
+                                return "if (Wicket.$('\" + getMarkupId() + \"') != null) { Wicket.$('" + getMarkupId() + "').disabled = true; }" + script;
+                            }
+
+                            @Override
+                            public CharSequence decorateOnFailureScript(final CharSequence script) {
+                                return "if (Wicket.$('\" + getMarkupId() + \"') != null) { Wicket.$('\" + getMarkupId() + \"').disabled = false; }" + script;
+                            }
+                        });
             }
 
         };
@@ -113,11 +116,11 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
             protected void onFileUpload(FileUpload file) {
                 try {
                     MultiFileUploadDialog.this.handleUploadItem(file);
-                } catch(FileUploadException e) {
+                } catch (FileUploadException e) {
                     Throwable t = e.getCause();
                     String message = t.getLocalizedMessage();
-                    if(t.getCause() != null) {
-                        message +=  "<br/>" + t.getCause();
+                    if (t.getCause() != null) {
+                        message += "<br/>" + t.getCause();
                         log.error("FileUploadException caught", t);
                     }
                     errors.add(message);
