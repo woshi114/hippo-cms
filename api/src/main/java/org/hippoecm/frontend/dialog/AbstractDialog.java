@@ -47,6 +47,7 @@ import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IFormSubmittingComponent;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -89,8 +90,6 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
 
     static private IMarkupCacheKeyProvider cacheKeyProvider = new DefaultMarkupCacheKeyProvider();
     static private IMarkupResourceStreamProvider streamProvider = new DefaultMarkupResourceStreamProvider();
-
-    private transient boolean formSubmittedInRequest = false;
 
     private boolean fullscreen = false;
 
@@ -579,7 +578,6 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
         if (fmm != null) {
             fmm.detach();
         }
-        formSubmittedInRequest = false;
         super.onDetach();
     }
 
@@ -688,12 +686,18 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
     }
 
     protected void handleSubmit() {
-        if (!formSubmittedInRequest) {
-            formSubmittedInRequest = true;
-            onOk();
-            if (!hasError()) {
-                closeDialog();
-            }
+        onOk();
+        if (!hasError()) {
+            closeDialog();
+        }
+    }
+
+    @Override
+    protected void delegateSubmit(final IFormSubmittingComponent submittingComponent) {
+        super.delegateSubmit(submittingComponent);
+
+        if (submittingComponent == null) {
+            handleSubmit();
         }
     }
 
@@ -704,7 +708,6 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
             if (fmm != null) {
                 fmm.reset();
             }
-            handleSubmit();
         }
     }
 

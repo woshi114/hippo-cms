@@ -80,12 +80,12 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
 
                             @Override
                             public CharSequence decorateOnSuccessScript(final CharSequence script) {
-                                return "if (Wicket.$('\" + getMarkupId() + \"') != null) { Wicket.$('" + getMarkupId() + "').disabled = true; }" + script;
+                                return "if (Wicket.$('" + getMarkupId() + "') != null) { Wicket.$('" + getMarkupId() + "').disabled = true; }" + script;
                             }
 
                             @Override
                             public CharSequence decorateOnFailureScript(final CharSequence script) {
-                                return "if (Wicket.$('\" + getMarkupId() + \"') != null) { Wicket.$('\" + getMarkupId() + \"').disabled = false; }" + script;
+                                return "if (Wicket.$('" + getMarkupId() + "') != null) { Wicket.$('" + getMarkupId() + "').disabled = false; }" + script;
                             }
                         });
             }
