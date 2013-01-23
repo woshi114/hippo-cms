@@ -26,13 +26,13 @@ import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.extensions.breadcrumb.IBreadCrumbModel;
 import org.apache.wicket.extensions.breadcrumb.IBreadCrumbParticipant;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.form.validation.EqualPasswordInputValidator;
 import org.apache.wicket.model.CompoundPropertyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.validation.validator.EmailAddressValidator;
@@ -50,20 +50,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class CreateUserPanel extends AdminBreadCrumbPanel {
-    @SuppressWarnings("unused")
+    private static final String UNUSED = "unused";
+
+    @SuppressWarnings(UNUSED)
     private static final String SVN_ID = "$Id$";
+
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(CreateUserPanel.class);
-
-    private final Form form;
 
     private String password;
     private String passwordCheck;
 
     private final IPasswordValidationService passwordValidationService;
-
-
-    private DetachableUser userModel = new DetachableUser();
 
     public CreateUserPanel(final String id, final IBreadCrumbModel breadCrumbModel, final IPluginContext context) {
         super(id, breadCrumbModel);
@@ -72,27 +70,27 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
         this.passwordValidationService = context.getService(IPasswordValidationService.class.getName(), IPasswordValidationService.class);
 
         // add form with markup id setter so it can be updated via ajax
-        form = new Form("form", new CompoundPropertyModel(userModel));
+        final User user = new User();
+        final Form<User> form = new Form<User>("form", new CompoundPropertyModel<User>(user));
         form.setOutputMarkupId(true);
         add(form);
 
-        FormComponent fc;
+        RequiredTextField<String> usernameField = new RequiredTextField<String>("username");
+        usernameField.add(StringValidator.minimumLength(2));
+        usernameField.add(new UsernameValidator());
+        usernameField.setPersistent(true);
+        form.add(usernameField);
 
-        fc = new RequiredTextField("username");
-        fc.add(StringValidator.minimumLength(2));
-        fc.add(new UsernameValidator());
-        form.add(fc);
+        TextField<String> firstNameField = new TextField<String>("firstName");
+        form.add(firstNameField);
 
-        fc = new TextField("firstName");
-        form.add(fc);
+        TextField<String> lastNameField = new TextField<String>("lastName");
+        form.add(lastNameField);
 
-        fc = new TextField("lastName");
-        form.add(fc);
-
-        fc = new TextField("email");
-        fc.add(EmailAddressValidator.getInstance());
-        fc.setRequired(false);
-        form.add(fc);
+        TextField<String> emailField = new TextField<String>("email");
+        emailField.add(EmailAddressValidator.getInstance());
+        emailField.setRequired(false);
+        form.add(emailField);
 
         final PasswordTextField passwordField = new PasswordTextField("password", new PropertyModel<String>(this, "password"));
         passwordField.setResetPassword(false);
@@ -111,7 +109,6 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form form) {
 
-                User user = userModel.getUser();
                 String username = user.getUsername();
 
                 boolean passwordValidated = true;
@@ -140,15 +137,18 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
                                 .category(HippoAdminConstants.CATEGORY_USER_MANAGEMENT)
                                 .message("created user " + username);
                         AuditLogger.logHippoEvent(event);
-                        Session.get().info(getString("user-created", userModel));
+                        Session.get().info(getString("user-created", new Model<User>(user)));
                         // one up
                         List<IBreadCrumbParticipant> l = breadCrumbModel.allBreadCrumbParticipants();
                         breadCrumbModel.setActive(l.get(l.size() - 2));
                     } catch (RepositoryException e) {
-                        Session.get().warn(getString("user-create-failed", userModel));
+                        Session.get().warn(getString("user-create-failed", new Model<User>(user)));
                         log.error("Unable to create user '" + username + "' : ", e);
                     }
 
+                } else {
+                    password = null;
+                    passwordCheck = null;
                 }
             }
 
@@ -177,18 +177,22 @@ public class CreateUserPanel extends AdminBreadCrumbPanel {
         return new StringResourceModel("user-create", component, null);
     }
 
+    @SuppressWarnings({UNUSED})
     public String getPassword() {
         return password;
     }
 
+    @SuppressWarnings({UNUSED})
     public void setPassword(String password) {
         this.password = password;
     }
 
+    @SuppressWarnings({UNUSED})
     public String getPasswordCheck() {
         return passwordCheck;
     }
 
+    @SuppressWarnings({UNUSED})
     public void setPasswordCheck(String passwordCheck) {
         this.passwordCheck = passwordCheck;
     }
