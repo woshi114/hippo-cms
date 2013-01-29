@@ -14,18 +14,24 @@
  *  limitations under the License.
  */
 
+/**
+ * Customisations for Wicket.Window
+ *
+ * - Added fullscreen support
+ * - Register for a HippoAjax cleanup callback
+ * - Custom getMarkup impl that does not contain a form element
+ */
+
 (function () {
 
     var oldWindowInitialize = Wicket.Window.prototype.initialize;
     Wicket.Window.prototype.initialize = function() {
-//        console.log('wicket.window initialize');
         oldWindowInitialize.apply(this, arguments);
         this.settings.isFullscreen = false;
     };
 
     Wicket.Window.prototype.onWindowResize = function(e) {
         if(this.isFullscreen) {
-//            console.log('onWindowResize');
             var w = this.window;
             var f = this.content;
 
@@ -123,7 +129,7 @@
     };
 
     /**
-     * Returns the modal window markup with specified element identifiers.
+     * Returns the modal window markup with specified element identifiers and without a form element.
      */
     Wicket.Window.getMarkup = function(idWindow, idClassElement, idCaption, idContent, idTop, idTopLeft, idTopRight, idLeft, idRight, idBottomLeft, idBottomRight, idBottom, idCaptionText, isFrame) {
         var s =

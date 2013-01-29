@@ -27,7 +27,6 @@ import org.apache.wicket.markup.html.JavascriptPackageResource;
 import org.apache.wicket.markup.html.internal.HtmlHeaderContainer;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.resources.JavascriptResourceReference;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.util.value.IValueMap;
 import org.hippoecm.frontend.PluginRequestTarget;
 import org.hippoecm.frontend.behaviors.EventStoppingBehavior;
@@ -85,19 +84,26 @@ public class DialogWindow extends ModalWindow implements IDialogService {
      * @param dialog
      */
     public void hide(Dialog dialog) {
-        if (dialog == shown) {
-            close();
-            cleanup();
-        }
         if (pending.contains(dialog)) {
             pending.remove(dialog);
         }
+
+        if (dialog == shown) {
+            close();
+        }
+    }
+
+    public void showPending() {
         if (pending.size() > 0) {
             show(pending.remove(0));
         }
     }
 
     public void close() {
+        if (!isShown()) {
+            return;
+        }
+
         AjaxRequestTarget target = AjaxRequestTarget.get();
         if (target != null) {
             close(target);
@@ -114,14 +120,14 @@ public class DialogWindow extends ModalWindow implements IDialogService {
 
     @Override
     public boolean isShown() {
-        return (shown != null);
+        return shown != null && super.isShown();
     }
 
     private void cleanup() {
         shown = null;
+        setTitle("title");
         setContent(new EmptyPanel(getContentId()));
         setWindowClosedCallback(null);
-        setTitle(new Model("title"));
     }
 
     private void internalShow(Dialog dialog) {
@@ -177,32 +183,4 @@ public class DialogWindow extends ModalWindow implements IDialogService {
         return shown != null;
     }
 
-    @Override
-    protected String getCloseJavacript() {
-        return "(function() {\n" +
-                "    var win;\n" +
-                "    try {\n" +
-                "        win = window.parent.Wicket.Window;\n" +
-                "    } catch (ignore) {\n" +
-                "    }\n" +
-                "    if (typeof(win) === 'undefined' || typeof(win.current) === 'undefined') {\n" +
-                "        try {\n" +
-                "            win = window.Wicket.Window;\n" +
-                "        } catch (ignore) {\n" +
-                "        }\n" +
-                "    }\n" +
-                "    if (typeof(win) !==  'undefined' && win != null && typeof(win.current) !== 'undefined' && win.current != null) {\n" +
-                "        var close = function(w) { \n" +
-                "            w.setTimeout(function() {\n" +
-                "                win.current.close();\n" +
-                "            }, 0);\n" +
-                "        }\n" +
-                "        try { \n" +
-                "            close(window.parent); \n" +
-                "        } catch (ignore) { \n" +
-                "            close(window); \n" +
-                "        }\n" +
-                "    }\n" +
-                "})();\n";
-    }
 }

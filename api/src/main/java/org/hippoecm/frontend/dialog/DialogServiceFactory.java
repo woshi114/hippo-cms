@@ -106,6 +106,8 @@ public class DialogServiceFactory implements IServiceFactory<IDialogService> {
                 rootService.hide(wrapper);
             }
             dialogs.clear();
+
+            rootService.showPending();
         }
 
     }
