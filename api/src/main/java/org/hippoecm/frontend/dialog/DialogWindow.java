@@ -100,15 +100,13 @@ public class DialogWindow extends ModalWindow implements IDialogService {
     }
 
     public void close() {
-        if (!isShown()) {
-            return;
-        }
-
-        AjaxRequestTarget target = AjaxRequestTarget.get();
-        if (target != null) {
-            close(target);
-        } else {
-            respondOnWindowClosed(null);
+        if (isShown()) {
+            AjaxRequestTarget target = AjaxRequestTarget.get();
+            if (target != null) {
+                close(target);
+            } else {
+                respondOnWindowClosed(null);
+            }
         }
     }
 
@@ -133,8 +131,8 @@ public class DialogWindow extends ModalWindow implements IDialogService {
     private void internalShow(Dialog dialog) {
         shown = dialog;
         dialog.setDialogService(this);
-        setContent(dialog.getComponent());
         setTitle(dialog.getTitle());
+        setContent(dialog.getComponent());
         setWindowClosedCallback(new Callback(dialog));
 
         IValueMap properties = dialog.getProperties();
