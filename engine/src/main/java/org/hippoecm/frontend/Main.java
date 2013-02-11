@@ -55,7 +55,6 @@ import org.apache.wicket.settings.IExceptionSettings;
 import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.string.StringValueConversionException;
-import org.apache.wicket.util.time.Duration;
 import org.hippoecm.frontend.model.JcrHelper;
 import org.hippoecm.frontend.model.UserCredentials;
 import org.hippoecm.frontend.observation.JcrObservationManager;
@@ -265,7 +264,6 @@ public class Main extends WebApplication {
             // disable cache
             resourceSettings.getLocalizer().setEnableCache(false);
 
-            getRequestCycleSettings().setTimeout(Duration.minutes(30));
             getDebugSettings().setOutputMarkupContainerClassName(true);
         } else {
             // don't throw on missing resource
