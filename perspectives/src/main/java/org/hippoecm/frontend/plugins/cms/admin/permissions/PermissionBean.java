@@ -28,6 +28,7 @@ import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
 
+import org.apache.jackrabbit.util.Text;
 import org.apache.wicket.Session;
 import org.hippoecm.frontend.plugins.cms.admin.domains.DetachableDomain;
 import org.hippoecm.frontend.plugins.cms.admin.domains.Domain;
@@ -79,7 +80,7 @@ public class PermissionBean implements Serializable {
      * @return a {@link List} of {@link PermissionBean}s containing all permissions for this group
      */
     public static List<PermissionBean> forGroup(Group group) {
-        String queryString = ALL_AUTHROLES_FOR_GROUP_QUERY.replace("{}", group.getGroupname());
+        final String queryString = ALL_AUTHROLES_FOR_GROUP_QUERY.replace("{}", Text.escapeIllegalXpathSearchChars(group.getGroupname()).replaceAll("'", "''"));
         NodeIterator nodeIterator = obtainNodeIteratorForQueryString(queryString);
 
         DetachableGroup detachableGroup = new DetachableGroup(group);
