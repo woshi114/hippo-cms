@@ -92,4 +92,12 @@ public interface IDialogService extends IClusterable {
      */
     void close();
 
+    /**
+     * If a dialog is opened and still open, isShowingDialog() returns true until
+     * the previous opened dialog is closed.
+     *
+     * @return true if dialog is pending, otherwise false
+     */
+    boolean isShowingDialog();
+
 }

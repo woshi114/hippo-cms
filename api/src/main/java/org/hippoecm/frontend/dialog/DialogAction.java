@@ -32,7 +32,9 @@ public class DialogAction implements IClusterable {
     }
 
     public void execute() {
-        dialogService.show(factory.createDialog());
+        if (!dialogService.isShowingDialog()) {
+            dialogService.show(factory.createDialog());
+        }
     }
 
     public void setEnabled(boolean enabled) {

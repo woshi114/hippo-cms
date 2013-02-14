@@ -80,6 +80,7 @@ public class DialogServiceFactory implements IServiceFactory<IDialogService> {
      */
     private class DialogServiceWrapper implements IDialogService {
         private static final long serialVersionUID = 1L;
+        private int showingDialogs = 0;
 
         private Set<DialogWrapper> dialogs = new HashSet<DialogWrapper>();
         
@@ -87,22 +88,24 @@ public class DialogServiceFactory implements IServiceFactory<IDialogService> {
             rootService.close();
         }
 
-        void onClose(DialogWrapper wrapper) {
+        void onClose(final DialogWrapper wrapper) {
             dialogs.remove(wrapper);
+            this.showingDialogs--;
         }
 
-        public void render(PluginRequestTarget target) {
+        public void render(final PluginRequestTarget target) {
             throw new UnsupportedOperationException();
         }
 
-        public void show(Dialog dialog) {
-            DialogWrapper wrapper = new DialogWrapper(this, dialog);
+        public void show(final Dialog dialog) {
+            final DialogWrapper wrapper = new DialogWrapper(this, dialog);
             dialogs.add(wrapper);
             rootService.show(wrapper);
+            this.showingDialogs++;
         }
 
         public void dispose() {
-            for (DialogWrapper wrapper : dialogs) {
+            for (final DialogWrapper wrapper : dialogs) {
                 rootService.hide(wrapper);
             }
             dialogs.clear();
@@ -110,6 +113,9 @@ public class DialogServiceFactory implements IServiceFactory<IDialogService> {
             rootService.showPending();
         }
 
+        public boolean isShowingDialog() {
+            return showingDialogs > 0;
+        }
     }
 
     /**

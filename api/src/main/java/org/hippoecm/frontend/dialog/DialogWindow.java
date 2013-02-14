@@ -110,6 +110,11 @@ public class DialogWindow extends ModalWindow implements IDialogService {
         }
     }
 
+    @Override
+    public boolean isShowingDialog() {
+        return pending.size() > 0;
+    }
+
     public void render(PluginRequestTarget target) {
         if (shown != null) {
             shown.render(target);
