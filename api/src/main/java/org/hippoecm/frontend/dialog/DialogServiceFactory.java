@@ -80,7 +80,7 @@ public class DialogServiceFactory implements IServiceFactory<IDialogService> {
      */
     private class DialogServiceWrapper implements IDialogService {
         private static final long serialVersionUID = 1L;
-        private int showingDialogs = 0;
+        private int openDialogs = 0;
 
         private Set<DialogWrapper> dialogs = new HashSet<DialogWrapper>();
         
@@ -90,7 +90,7 @@ public class DialogServiceFactory implements IServiceFactory<IDialogService> {
 
         void onClose(final DialogWrapper wrapper) {
             dialogs.remove(wrapper);
-            this.showingDialogs--;
+            this.openDialogs--;
         }
 
         public void render(final PluginRequestTarget target) {
@@ -101,7 +101,7 @@ public class DialogServiceFactory implements IServiceFactory<IDialogService> {
             final DialogWrapper wrapper = new DialogWrapper(this, dialog);
             dialogs.add(wrapper);
             rootService.show(wrapper);
-            this.showingDialogs++;
+            this.openDialogs++;
         }
 
         public void dispose() {
@@ -114,7 +114,7 @@ public class DialogServiceFactory implements IServiceFactory<IDialogService> {
         }
 
         public boolean isShowingDialog() {
-            return showingDialogs > 0;
+            return openDialogs > 0;
         }
     }
 
