@@ -16,6 +16,8 @@
 package org.hippoecm.frontend.plugins.cms.admin.plugins;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -111,18 +113,27 @@ public class ChangePasswordShortcutPlugin extends RenderPlugin {
 
             private static final long serialVersionUID = 1L;
 
+            final Pattern pattern = Pattern.compile(".*((day|hour|minute|second|millisecond)s?)$");
+
             @Override
             public String getObject() {
                 if (user.isPasswordExpired()) {
                     return new StringResourceModel("password-is-expired", ChangePasswordShortcutPlugin.this, null).getObject();
                 } else if (isPasswordAboutToExpire(user)) {
-                    long expirationTime = user.getPasswordExpirationTime();
-                    Duration expirationDuration = Duration.valueOf(expirationTime - System.currentTimeMillis());
-                    StringResourceModel model = new StringResourceModel(
+                    final long expirationTime = user.getPasswordExpirationTime();
+                    final Duration expirationDuration = Duration.valueOf(expirationTime - System.currentTimeMillis());
+                    String expiration = expirationDuration.toString(getLocale());
+
+                    final Matcher matcher = pattern.matcher(expiration);
+                    if (matcher.matches()) {
+                        expiration = expiration.replace(matcher.group(1), new StringResourceModel(matcher.group(1), ChangePasswordShortcutPlugin.this, null).getObject());
+                    }
+
+                    final StringResourceModel model = new StringResourceModel(
                             "password-about-to-expire",
                             ChangePasswordShortcutPlugin.this,
                             null,
-                            new Object[]{expirationDuration.toString(getLocale())});
+                            new Object[]{ expiration });
                     return model.getObject();
                 }
                 return "";
