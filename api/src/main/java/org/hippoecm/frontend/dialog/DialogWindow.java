@@ -27,13 +27,13 @@ import org.apache.wicket.markup.html.JavascriptPackageResource;
 import org.apache.wicket.markup.html.internal.HtmlHeaderContainer;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.resources.JavascriptResourceReference;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.util.value.IValueMap;
 import org.hippoecm.frontend.PluginRequestTarget;
 import org.hippoecm.frontend.behaviors.EventStoppingBehavior;
 
 public class DialogWindow extends ModalWindow implements IDialogService {
-    @SuppressWarnings("unused")
-    private final static String SVN_ID = "$Id$";
+
     private static final long serialVersionUID = 1L;
 
     private class Callback implements ModalWindow.WindowClosedCallback {
@@ -128,7 +128,7 @@ public class DialogWindow extends ModalWindow implements IDialogService {
 
     private void cleanup() {
         shown = null;
-        setTitle("title");
+        setTitle(new Model<String>("title"));
         setContent(new EmptyPanel(getContentId()));
         setWindowClosedCallback(null);
     }
@@ -136,7 +136,7 @@ public class DialogWindow extends ModalWindow implements IDialogService {
     private void internalShow(Dialog dialog) {
         shown = dialog;
         dialog.setDialogService(this);
-        setTitle(dialog.getTitle());
+        setTitle(new StringWithoutLineBreaksModel(dialog.getTitle()));
         setContent(dialog.getComponent());
         setWindowClosedCallback(new Callback(dialog));
 
@@ -185,5 +185,4 @@ public class DialogWindow extends ModalWindow implements IDialogService {
     protected boolean makeContentVisible() {
         return shown != null;
     }
-
 }
