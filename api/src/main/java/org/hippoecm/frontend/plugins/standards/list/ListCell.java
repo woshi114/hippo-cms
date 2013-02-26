@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2013 Hippo B.V. (www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,18 +20,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.string.AppendingStringBuffer;
 import org.hippoecm.frontend.model.event.IEvent;
 import org.hippoecm.frontend.model.event.IObservable;
 import org.hippoecm.frontend.model.event.IObserver;
 import org.hippoecm.frontend.model.event.Observer;
 import org.hippoecm.frontend.plugin.IPluginContext;
-import org.hippoecm.frontend.plugins.standards.list.datatable.ListDataTable;
 import org.hippoecm.frontend.plugins.standards.list.resolvers.AbstractListAttributeModifier;
 import org.hippoecm.frontend.plugins.standards.list.resolvers.IListAttributeModifier;
 import org.hippoecm.frontend.plugins.standards.list.resolvers.IListCellRenderer;
@@ -61,20 +58,6 @@ class ListCell extends Panel {
         this.observers = new LinkedList<IObserver>();
 
         setOutputMarkupId(true);
-
-        add(new AjaxEventBehavior("onclick") {
-            private static final long serialVersionUID = 1L;
-
-            protected CharSequence getEventHandler() {
-                return new AppendingStringBuffer(super.getEventHandler()).append("; return false;");
-            }
-
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                ListDataTable dataTable = (ListDataTable) findParent(ListDataTable.class);
-                dataTable.getSelectionListener().selectionChanged(model);
-            }
-        });
 
         if (renderer == null) {
             renderer = new NameRenderer();

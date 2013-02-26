@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2013 Hippo B.V. (www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,13 +18,11 @@ package org.hippoecm.frontend.plugins.standards.list.datatable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.wicket.IClusterable;
 import org.apache.wicket.MarkupContainer;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.ajax.markup.html.repeater.data.table.AjaxFallbackHeadersToolbar;
@@ -238,15 +236,6 @@ public class ListDataTable<T> extends DataTable<T> {
                 }
             }
         }, " "));
-
-        item.add(new AjaxEventBehavior("onclick") {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void onEvent(AjaxRequestTarget target) {
-                selectionListener.selectionChanged(model);
-            }
-        });
 
         if (context != null && model instanceof IObservable) {
             IObserver observer = newObserver(item, model);
