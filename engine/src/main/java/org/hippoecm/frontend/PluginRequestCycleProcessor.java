@@ -16,6 +16,7 @@
 package org.hippoecm.frontend;
 
 import org.apache.wicket.Application;
+import org.apache.wicket.Component;
 import org.apache.wicket.IRequestTarget;
 import org.apache.wicket.Page;
 import org.apache.wicket.Request;
@@ -28,10 +29,13 @@ import org.apache.wicket.request.RequestParameters;
 import org.apache.wicket.request.target.coding.IRequestTargetUrlCodingStrategy;
 import org.apache.wicket.request.target.component.BookmarkablePageRequestTarget;
 import org.apache.wicket.request.target.component.IPageRequestTarget;
+import org.apache.wicket.request.target.component.listener.BehaviorRequestTarget;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PluginRequestCycleProcessor extends WebRequestCycleProcessor {
-    @SuppressWarnings("unused")
-    private final static String SVN_ID = "$Id$";
+
+    static final Logger log = LoggerFactory.getLogger(PluginRequestCycleProcessor.class);
 
     public static class ResourcePrefixingRequestCodingStrategy implements IRequestCodingStrategy {
 
@@ -106,7 +110,15 @@ public class PluginRequestCycleProcessor extends WebRequestCycleProcessor {
     @Override
     public void respond(RequestCycle requestCycle) {
         IRequestTarget target = requestCycle.getRequestTarget();
-        if (target instanceof IPageRequestTarget) {
+        if (target instanceof BehaviorRequestTarget) {
+            BehaviorRequestTarget brt = (BehaviorRequestTarget) target;
+            Component component = brt.getTarget();
+            WebRequest request = (WebRequest) requestCycle.getRequest();
+            if (!request.isAjax() && !component.isVisibleInHierarchy() || !component.isEnabledInHierarchy()) {
+                log.warn("Ignoring non-ajax request to invisible component");
+                return;
+            }
+        } else if (target instanceof IPageRequestTarget) {
             Page page = ((IPageRequestTarget) target).getPage();
             if (page instanceof Home) {
                 if (target instanceof PluginRequestTarget) {
@@ -123,7 +135,6 @@ public class PluginRequestCycleProcessor extends WebRequestCycleProcessor {
             if (page == null) {
                 bprt.processEvents(requestCycle);
                 page = bprt.getPage();
-                
             }
 
             if (page instanceof Home) {
@@ -139,7 +150,7 @@ public class PluginRequestCycleProcessor extends WebRequestCycleProcessor {
         Main main = (Main) Application.get();
         String encrypt = main.getInitParameter(Main.ENCRYPT_URLS);
         IRequestCodingStrategy filteredCS = new ResourcePrefixingRequestCodingStrategy(super.newRequestCodingStrategy());
-        if (encrypt != null && "true".equals(encrypt)) {
+        if ("true".equals(encrypt)) {
             return new CryptedUrlWebRequestCodingStrategy(filteredCS);
         } else {
             return filteredCS;
