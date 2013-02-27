@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009 Hippo.
+ *  Copyright 2009-2013 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,15 +16,11 @@
 package org.hippoecm.addon.workflow;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.html.panel.Panel;
 
 class MenuItem extends Panel {
-    @SuppressWarnings("unused")
-    private final static String SVN_ID = "$Id$";
 
     private static final long serialVersionUID = 1L;
 
@@ -33,6 +29,11 @@ class MenuItem extends Panel {
 
         MenuLink link = new MenuLink("link") {
             private static final long serialVersionUID = 1L;
+
+            @Override
+            public boolean isEnabled() {
+                return wf.isEnabled();
+            }
 
             @Override
             public void onClick() {

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009 Hippo.
+ *  Copyright 2009-2013 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -36,8 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class StdWorkflow<T extends Workflow> extends ActionDescription {
-    @SuppressWarnings("unused")
-    private final static String SVN_ID = "$Id$";
 
     private static final long serialVersionUID = 1L;
 
@@ -57,7 +55,7 @@ public abstract class StdWorkflow<T extends Workflow> extends ActionDescription 
             protected void initialize() {
                 IModel<String> title = getTitle();
                 Label titleLabel = new Label("text", title);
-                titleLabel.add(new AttributeModifier("title", true, title));
+                titleLabel.add(new AttributeModifier("title", true, getTooltip()));
                 add(titleLabel);
             }
         });
@@ -109,6 +107,10 @@ public abstract class StdWorkflow<T extends Workflow> extends ActionDescription 
 
     protected IModel getTitle() {
         return new StringResourceModel(getName(), this, null, getName());
+    }
+
+    protected IModel getTooltip() {
+        return getTitle();
     }
 
     protected ResourceReference getIcon() {
