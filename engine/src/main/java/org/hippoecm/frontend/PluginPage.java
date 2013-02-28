@@ -225,4 +225,8 @@ public class PluginPage extends Home implements IServiceTracker<IRenderService> 
         menuBehavior.activate(active);
     }
 
+    @Override
+    public void collapseAllContextMenus() {
+        menuBehavior.collapseAll();
+    }
 }
