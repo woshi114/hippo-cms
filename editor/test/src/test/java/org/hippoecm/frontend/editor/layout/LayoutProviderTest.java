@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009 Hippo.
+ *  Copyright 2009-2013 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -23,29 +23,43 @@ import org.apache.wicket.model.IModel;
 import org.junit.Test;
 
 public class LayoutProviderTest {
-    @SuppressWarnings("unused")
-    private final static String SVN_ID = "$Id$";
 
     @Test
     public void testExtensionLoader() {
         final ClassLoader loader = getClass().getClassLoader();
-        LayoutProvider provider = new LayoutProvider(new IModel() {
-
-            public Object getObject() {
-                return loader;
-            }
-
-            public void setObject(Object object) {
-                // TODO Auto-generated method stub
-                
-            }
-
-            public void detach() {
-                // TODO Auto-generated method stub
-                
-            }});
+        LayoutProvider provider = new LayoutProvider(new ClassLoaderModel(loader));
         List<String> layouts = provider.getLayouts();
         assertTrue("Test layout not found", layouts.contains("org.hippoecm.frontend.editor.layout.Test"));
+    }
+
+    @Test
+    public void testNullClassLoaderDoesNotThrowException() {
+        new LayoutProvider(new ClassLoaderModel(null));
+    }
+
+    private class ClassLoaderModel implements IModel<ClassLoader> {
+
+        private transient ClassLoader loader;
+
+        private ClassLoaderModel(ClassLoader loader) {
+            this.loader = loader;
+        }
+
+        @Override
+        public ClassLoader getObject() {
+            return loader;
+        }
+
+        @Override
+        public void setObject(final ClassLoader loader) {
+            this.loader = loader;
+        }
+
+        @Override
+        public void detach() {
+            this.loader = null;
+        }
+
     }
 
 }

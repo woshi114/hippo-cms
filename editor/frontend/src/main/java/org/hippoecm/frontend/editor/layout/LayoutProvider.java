@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009 Hippo.
+ *  Copyright 2009-2013 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -40,8 +40,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class LayoutProvider implements ILayoutProvider {
-    @SuppressWarnings("unused")
-    private final static String SVN_ID = "$Id$";
 
     private static final long serialVersionUID = 1L;
 
@@ -79,8 +77,17 @@ public class LayoutProvider implements ILayoutProvider {
     public LayoutProvider(IModel<ClassLoader> loaderModel) {
         this.classLoaderModel = loaderModel;
 
-        ClassLoader loader = classLoaderModel.getObject();
         layouts = new TreeMap<String, LayoutEntry>();
+
+        ClassLoader loader = classLoaderModel.getObject();
+        if (loader == null) {
+            log.error("Cannot retrieve layouts: no class loader available");
+        } else {
+            addLayouts(loader);
+        }
+    }
+
+    private void addLayouts(final ClassLoader loader) {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             dbf.setNamespaceAware(true);
