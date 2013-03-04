@@ -116,7 +116,7 @@
     <joda-time.version>1.6</joda-time.version>
     <json-lib.version>2.2.2</json-lib.version>
     <jackrabbit.version>2.2.12-h1</jackrabbit.version>
-    <htmlcleaner.version>1.02.08-SNAPSHOT</htmlcleaner.version>
+    <htmlcleaner.version>1.02.08</htmlcleaner.version>
     <xerces.xercesImpl.version>2.8.1</xerces.xercesImpl.version>
     <guava.version>10.0.1</guava.version>
     <sanselan.version>0.97-incubator</sanselan.version>
