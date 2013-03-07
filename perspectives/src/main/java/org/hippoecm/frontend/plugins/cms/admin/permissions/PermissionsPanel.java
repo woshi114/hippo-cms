@@ -100,10 +100,10 @@ public class PermissionsPanel extends AdminBreadCrumbPanel {
                         }
 
                         for (String groupName : authRole.getGroupnames()) {
-                            if (!Group.groupExists(groupName)) {
+                            final Group group = Group.getGroup(groupName);
+                            if (group == null) {
                                 continue;
                             }
-                            Group group = Group.forName(groupName);
                             groupList.add(group);
                         }
                     }

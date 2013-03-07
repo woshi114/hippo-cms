@@ -100,16 +100,6 @@ public class PermissionBean implements Serializable {
         return permissionBeans;
     }
 
-    /**
-     * Returns all permissions for a group. If you already have a {@link Group} object, call forGroup(Group) instead, it
-     * will be faster.
-     *
-     * @param groupName the name of the {@link Group} to return all permissions for
-     * @return a {@link List} of {@link PermissionBean}s containing all permissions for this group
-     */
-    public static List<PermissionBean> forGroup(String groupName) {
-        return forGroup(Group.forName(groupName));
-    }
 
     private static NodeIterator obtainNodeIteratorForQueryString(final String queryString) {
         QueryManager queryManager = ((UserSession) Session.get()).getQueryManager();
