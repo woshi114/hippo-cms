@@ -225,23 +225,6 @@ public class Group implements Comparable<Group>, IClusterable {
         }
     }
 
-    private static NodeIterator createIteratorForGroupName(String groupName) {
-        final String queryString = QUERY_GROUP.replace("{}", Text.escapeIllegalXpathSearchChars(groupName).replaceAll("'", "''"));
-        Query query;
-        try {
-            //noinspection deprecation
-            query = getQueryManager().createQuery(queryString, Query.SQL);
-        } catch (RepositoryException e) {
-            throw new IllegalStateException("Cannot get the Query Manager", e);
-        }
-        try {
-            QueryResult queryResult = query.execute();
-            return queryResult.getNodes();
-        } catch (RepositoryException e) {
-            throw new IllegalStateException("Cannot execute query due to a repository error", e);
-        }
-    }
-
     public List<String> getMembers() throws RepositoryException {
         List<String> members = new ArrayList<String>();
         if (node.hasProperty(HippoNodeType.HIPPO_MEMBERS)) {
