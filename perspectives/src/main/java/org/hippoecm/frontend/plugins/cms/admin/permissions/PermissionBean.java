@@ -80,7 +80,8 @@ public class PermissionBean implements Serializable {
      * @return a {@link List} of {@link PermissionBean}s containing all permissions for this group
      */
     public static List<PermissionBean> forGroup(Group group) {
-        final String queryString = ALL_AUTHROLES_FOR_GROUP_QUERY.replace("{}", Text.escapeIllegalXpathSearchChars(group.getGroupname()).replaceAll("'", "''"));
+        final String escapedGroupName = Text.escapeIllegalJcr10Chars(group.getGroupname());
+        final String queryString = ALL_AUTHROLES_FOR_GROUP_QUERY.replace("{}", escapedGroupName);
         NodeIterator nodeIterator = obtainNodeIteratorForQueryString(queryString);
 
         DetachableGroup detachableGroup = new DetachableGroup(group);

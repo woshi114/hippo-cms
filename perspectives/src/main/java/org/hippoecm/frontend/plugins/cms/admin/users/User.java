@@ -34,6 +34,8 @@ import javax.jcr.Value;
 import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 
+import org.apache.jackrabbit.util.ISO9075;
+import org.apache.jackrabbit.util.Text;
 import org.apache.wicket.IClusterable;
 import org.apache.wicket.Session;
 import org.hippoecm.frontend.plugins.cms.admin.groups.DetachableGroup;
@@ -66,7 +68,7 @@ public class User implements Comparable<User>, IClusterable {
     public static final String PROP_PREVIOUSPASSWORDS = HippoNodeType.HIPPO_PREVIOUSPASSWORDS;
     public static final String PROP_PASSWORDLASTMODIFIED = HippoNodeType.HIPPO_PASSWORDLASTMODIFIED;
 
-    private static final String QUERY_USER_EXISTS = "SELECT * FROM hipposys:user WHERE fn:name()='{}'";
+    private static final String QUERY_USER = "SELECT * FROM hipposys:user WHERE fn:name()='{}'";
 
     private static final String QUERY_LOCAL_MEMBERSHIPS = "SELECT * FROM hipposys:group WHERE jcr:primaryType="
             + "'hipposys:group' AND hipposys:members='{}'";
@@ -110,9 +112,9 @@ public class User implements Comparable<User>, IClusterable {
      * @return true if the user exists, false otherwise
      */
     public static boolean userExists(final String username) {
-        String queryString = QUERY_USER_EXISTS.replace("{}", username);
+        final String queryString = QUERY_USER.replace("{}", Text.escapeIllegalJcr10Chars(ISO9075.encode(NodeNameCodec.encode(username))));
         try {
-            Query query = getQueryManager().createQuery(queryString, Query.SQL);
+            final Query query = getQueryManager().createQuery(queryString, Query.SQL);
             if (query.execute().getNodes().hasNext()) {
                 return true;
             }
@@ -249,10 +251,10 @@ public class User implements Comparable<User>, IClusterable {
      * @param username the name of the user to fetch
      */
     public User(final String username) {
-        String queryString = QUERY_USER_EXISTS.replace("{}", username);
+        final String queryString = QUERY_USER.replace("{}", Text.escapeIllegalJcr10Chars(ISO9075.encode(NodeNameCodec.encode(username))));
         try {
-            Query query = getQueryManager().createQuery(queryString, Query.SQL);
-            NodeIterator iter = query.execute().getNodes();
+            final Query query = getQueryManager().createQuery(queryString, Query.SQL);
+            final NodeIterator iter = query.execute().getNodes();
             if (iter.hasNext()) {
                 init(iter.nextNode());
             } else {
@@ -327,20 +329,21 @@ public class User implements Comparable<User>, IClusterable {
      * @return the User's local memberships
      */
     public List<DetachableGroup> getLocalMemberships() {
-        String queryString = QUERY_LOCAL_MEMBERSHIPS.replace("{}", username);
-        List<DetachableGroup> localMemberships = new ArrayList<DetachableGroup>();
-        NodeIterator iter;
+        final String escapedUsername = Text.escapeIllegalJcr10Chars(username);
+        final String queryString = QUERY_LOCAL_MEMBERSHIPS.replace("{}", escapedUsername);
+        final List<DetachableGroup> localMemberships = new ArrayList<DetachableGroup>();
         try {
-            Query query = getQueryManager().createQuery(queryString, Query.SQL);
-            iter = query.execute().getNodes();
+            final Query query = getQueryManager().createQuery(queryString, Query.SQL);
+            final NodeIterator iter = query.execute().getNodes();
             while (iter.hasNext()) {
-                Node node = iter.nextNode();
-                if (node != null) {
-                    try {
-                        localMemberships.add(new DetachableGroup(node.getPath()));
-                    } catch (RepositoryException e) {
-                        log.warn("Unable to add group to local memberships for user '{}'", username, e);
-                    }
+                final Node node = iter.nextNode();
+                if (node == null) {
+                    continue;
+                }
+                try {
+                    localMemberships.add(new DetachableGroup(node.getPath()));
+                } catch (RepositoryException e) {
+                    log.warn("Unable to add group to local memberships for user '{}'", username, e);
                 }
             }
         } catch (RepositoryException e) {
@@ -366,20 +369,22 @@ public class User implements Comparable<User>, IClusterable {
         if (externalMemberships != null) {
             return externalMemberships;
         }
+
         externalMemberships = new ArrayList<DetachableGroup>();
-        String queryString = QUERY_EXTERNAL_MEMBERSHIPS.replace("{}", username);
-        NodeIterator iter;
+        final String escapedUserName = Text.escapeIllegalJcr10Chars(username);
+        final String queryString = QUERY_EXTERNAL_MEMBERSHIPS.replace("{}", escapedUserName);
         try {
-            Query query = getQueryManager().createQuery(queryString, Query.SQL);
-            iter = query.execute().getNodes();
+            final Query query = getQueryManager().createQuery(queryString, Query.SQL);
+            final NodeIterator iter = query.execute().getNodes();
             while (iter.hasNext()) {
-                Node node = iter.nextNode();
-                if (node != null) {
-                    try {
-                        externalMemberships.add(new DetachableGroup(node.getPath()));
-                    } catch (RepositoryException e) {
-                        log.warn("Unable to add group to external memberships for user '{}'", username, e);
-                    }
+                final Node node = iter.nextNode();
+                if (node == null) {
+                    continue;
+                }
+                try {
+                    externalMemberships.add(new DetachableGroup(node.getPath()));
+                } catch (RepositoryException e) {
+                    log.warn("Unable to add group to external memberships for user '{}'", username, e);
                 }
             }
         } catch (RepositoryException e) {
