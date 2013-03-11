@@ -1,12 +1,12 @@
 /*
  *  Copyright 2009-2011 Hippo.
- * 
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -74,6 +74,8 @@ public class ChangePasswordShortcutPlugin extends RenderPlugin {
 
     private Label label;
 
+    private static final Pattern EXPIRATION_PATTERN = Pattern.compile(".*((day|hour|minute|second|millisecond)s?)$");
+
     public ChangePasswordShortcutPlugin(final IPluginContext context, final IPluginConfig config) {
         super(context, config);
 
@@ -113,8 +115,6 @@ public class ChangePasswordShortcutPlugin extends RenderPlugin {
 
             private static final long serialVersionUID = 1L;
 
-            final Pattern pattern = Pattern.compile(".*((day|hour|minute|second|millisecond)s?)$");
-
             @Override
             public String getObject() {
                 if (user.isPasswordExpired()) {
@@ -124,7 +124,7 @@ public class ChangePasswordShortcutPlugin extends RenderPlugin {
                     final Duration expirationDuration = Duration.valueOf(expirationTime - System.currentTimeMillis());
                     String expiration = expirationDuration.toString(getLocale());
 
-                    final Matcher matcher = pattern.matcher(expiration);
+                    final Matcher matcher = EXPIRATION_PATTERN.matcher(expiration);
                     if (matcher.matches()) {
                         expiration = expiration.replace(matcher.group(1), new StringResourceModel(matcher.group(1), ChangePasswordShortcutPlugin.this, null).getObject());
                     }
