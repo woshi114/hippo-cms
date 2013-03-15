@@ -273,7 +273,8 @@ public class Main extends WebApplication {
             getExceptionSettings().setUnexpectedExceptionDisplay(IExceptionSettings.SHOW_NO_EXCEPTION_PAGE);
         }
 
-        String outputWicketpaths = getInitParameter(OUTPUT_WICKETPATHS);
+        String outputWicketpaths = obtainOutputWicketPathsParameter();
+
         if (outputWicketpaths != null && "true".equalsIgnoreCase(outputWicketpaths)) {
             getDebugSettings().setOutputComponentPath(true);
         }
@@ -296,6 +297,23 @@ public class Main extends WebApplication {
             String applicationName = getConfigurationParameter(PLUGIN_APPLICATION_NAME, "cms");
             log.info("Hippo CMS application " + applicationName + " has started");
         }
+    }
+
+    /**
+     * Tries to get the output witcket paths parameter from:
+     * <ol>
+     *     <li>The servlet init parameter</li>
+     *     <li>The servlet context if the init parameter isn't set</li>
+     * </ol>
+     * @return the value of the output wicket paths parameter
+     */
+    private String obtainOutputWicketPathsParameter() {
+        String outputWicketpaths = getInitParameter(OUTPUT_WICKETPATHS);
+
+        if (outputWicketpaths == null) {
+            outputWicketpaths = getServletContext().getInitParameter(OUTPUT_WICKETPATHS);
+        }
+        return outputWicketpaths;
     }
 
     @Override
