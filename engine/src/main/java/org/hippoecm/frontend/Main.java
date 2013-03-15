@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2013 Hippo.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -299,7 +299,8 @@ public class Main extends WebApplication {
             getExceptionSettings().setUnexpectedExceptionDisplay(IExceptionSettings.SHOW_NO_EXCEPTION_PAGE);
         }
 
-        String outputWicketpaths = getInitParameter(OUTPUT_WICKETPATHS);
+        String outputWicketpaths = obtainOutputWicketPathsParameter();
+
         if (outputWicketpaths != null && "true".equalsIgnoreCase(outputWicketpaths)) {
             getDebugSettings().setOutputComponentPath(true);
         }
@@ -345,6 +346,23 @@ public class Main extends WebApplication {
             repository.close();
             repository = null;
         }
+    }
+
+    /**
+     * Tries to get the output witcket paths parameter from:
+     * <ol>
+     *     <li>The servlet init parameter</li>
+     *     <li>The servlet context if the init parameter isn't set</li>
+     * </ol>
+     * @return the value of the output wicket paths parameter
+     */
+    private String obtainOutputWicketPathsParameter() {
+        String outputWicketpaths = getInitParameter(OUTPUT_WICKETPATHS);
+
+        if (outputWicketpaths == null) {
+            outputWicketpaths = getServletContext().getInitParameter(OUTPUT_WICKETPATHS);
+        }
+        return outputWicketpaths;
     }
 
     @Override
