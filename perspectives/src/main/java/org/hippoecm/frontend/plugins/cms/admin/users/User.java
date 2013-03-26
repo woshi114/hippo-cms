@@ -70,10 +70,8 @@ public class User implements Comparable<User>, IClusterable {
 
     private static final String QUERY_USER = "SELECT * FROM hipposys:user WHERE fn:name()='{}'";
 
-    private static final String QUERY_LOCAL_MEMBERSHIPS = "SELECT * FROM hipposys:group WHERE jcr:primaryType="
-            + "'hipposys:group' AND hipposys:members='{}'";
-    private static final String QUERY_EXTERNAL_MEMBERSHIPS = "SELECT * FROM hipposys:externalgroup WHERE "
-            + "hipposys:members='{}'";
+    private static final String QUERY_LOCAL_MEMBERSHIPS = "//element(*, hipposys:group)[@hipposys:members='{}']";
+    private static final String QUERY_EXTERNAL_MEMBERSHIPS = "//element(*, hipposys:externalgroup)[@hipposys:members='{}']";
 
     private static final long ONEDAYMS = 1000 * 3600 * 24;
 
@@ -329,11 +327,11 @@ public class User implements Comparable<User>, IClusterable {
      * @return the User's local memberships
      */
     public List<DetachableGroup> getLocalMemberships() {
-        final String escapedUsername = Text.escapeIllegalJcr10Chars(username);
+        final String escapedUsername = Text.escapeIllegalXpathSearchChars(username).replaceAll("'", "''");
         final String queryString = QUERY_LOCAL_MEMBERSHIPS.replace("{}", escapedUsername);
         final List<DetachableGroup> localMemberships = new ArrayList<DetachableGroup>();
         try {
-            final Query query = getQueryManager().createQuery(queryString, Query.SQL);
+            final Query query = getQueryManager().createQuery(queryString, Query.XPATH);
             final NodeIterator iter = query.execute().getNodes();
             while (iter.hasNext()) {
                 final Node node = iter.nextNode();
@@ -371,10 +369,10 @@ public class User implements Comparable<User>, IClusterable {
         }
 
         externalMemberships = new ArrayList<DetachableGroup>();
-        final String escapedUserName = Text.escapeIllegalJcr10Chars(username);
+        final String escapedUserName = Text.escapeIllegalXpathSearchChars(username).replaceAll("'", "''");
         final String queryString = QUERY_EXTERNAL_MEMBERSHIPS.replace("{}", escapedUserName);
         try {
-            final Query query = getQueryManager().createQuery(queryString, Query.SQL);
+            final Query query = getQueryManager().createQuery(queryString, Query.XPATH);
             final NodeIterator iter = query.execute().getNodes();
             while (iter.hasNext()) {
                 final Node node = iter.nextNode();
