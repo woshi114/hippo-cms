@@ -30,10 +30,12 @@ import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.CSSPackageResource;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
@@ -54,6 +56,10 @@ public class YuiDateTimeField extends DateTimeField {
     private final static String SVN_ID = "$Id: AjaxDateTimeField.java 19048 2009-07-28 16:08:33Z abogaart $";
 
     private static final long serialVersionUID = 1L;
+
+    public static final String MINUTES_LABEL = "minutes-label";
+    public static final String HOURS_LABEL = "hours-label";
+    public static final String DATE_LABEL = "date-label";
 
     private boolean todayLinkVisible = true;
 
@@ -101,6 +107,14 @@ public class YuiDateTimeField extends DateTimeField {
             }
 
         }));
+
+        dateField.setLabel(new StringResourceModel(DATE_LABEL, this, null));
+
+        final TextField hoursField = (TextField) get("hours");
+        hoursField.setLabel(new StringResourceModel(HOURS_LABEL, this, null));
+
+        final TextField minutesField = (TextField) get("minutes");
+        minutesField.setLabel(new StringResourceModel(MINUTES_LABEL, this, null));
 
         //add "Now" link
         AjaxLink<Date> today;
