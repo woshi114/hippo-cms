@@ -490,9 +490,22 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
             }
 
             @Override
-            protected Button decorate(Button b) {
-                b.setDefaultFormProcessing(false);
-                return super.decorate(b);
+            protected Button decorate(final Button button) {
+                button.add(new AjaxEventBehavior("onclick") {
+
+                    @Override
+                    protected void onComponentTag(final ComponentTag tag) {
+                        super.onComponentTag(tag);
+                        tag.put("type", "button");
+                    }
+
+                    @Override
+                    protected void onEvent(final AjaxRequestTarget target) {
+                        onSubmit();
+                    }
+                });
+                button.setDefaultFormProcessing(false);
+                return super.decorate(button);
             }
 
             @Override
