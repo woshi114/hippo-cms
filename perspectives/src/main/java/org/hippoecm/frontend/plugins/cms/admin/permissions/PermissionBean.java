@@ -36,6 +36,7 @@ import org.hippoecm.frontend.plugins.cms.admin.groups.DetachableGroup;
 import org.hippoecm.frontend.plugins.cms.admin.groups.Group;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.repository.api.HippoNodeType;
+import org.hippoecm.repository.api.NodeNameCodec;
 
 /**
  * Holds a role - domain - group combination
@@ -80,7 +81,9 @@ public class PermissionBean implements Serializable {
      * @return a {@link List} of {@link PermissionBean}s containing all permissions for this group
      */
     public static List<PermissionBean> forGroup(Group group) {
-        final String escapedGroupName = Text.escapeIllegalJcr10Chars(group.getGroupname());
+
+        String escapedGroupName = Text.escapeIllegalJcr10Chars(NodeNameCodec.encode(group.getGroupname(), true));
+
         final String queryString = ALL_AUTHROLES_FOR_GROUP_QUERY.replace("{}", escapedGroupName);
         NodeIterator nodeIterator = obtainNodeIteratorForQueryString(queryString);
 
