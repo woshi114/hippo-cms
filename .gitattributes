@@ -2762,6 +2762,7 @@ xinha-resources/webResources/xinha/iconsets/Hippo/fr/underline.gif -text
 xinha-resources/webResources/xinha/iconsets/Hippo/iconset.xml -text svneol=unset#text/plain
 xinha-resources/webResources/xinha/images/ed_buttons_main.gif -text
 xinha-resources/webResources/xinha/modules/FullScreen/full-screen.js -text
+xinha-resources/webResources/xinha/modules/Gecko/paraHandlerBest.js -text
 xinha-resources/webResources/xinha/modules/GetHtml/TransformInnerHTML.js -text
 xinha-resources/webResources/xinha/modules/InternetExplorer/InternetExplorer.js -text
 xinha-resources/webResources/xinha/plugins/AutoResize/AutoResize.js svneol=native#text/plain
