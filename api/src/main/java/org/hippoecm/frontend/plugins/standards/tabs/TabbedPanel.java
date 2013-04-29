@@ -328,27 +328,22 @@ public class TabbedPanel extends WebMarkupContainer {
     }
 
     void removed(final TabsPlugin.Tab tabbie) {
-        if (hasBeenRendered()) {
-            cardView.removed(tabbie);
-            redraw();
-        }
+        cardView.removed(tabbie);
+        redraw();
     }
 
     void addLast() {
-        if (hasBeenRendered()) {
-            cardView.addLast();
-            redraw();
-        }
+        cardView.addLast();
+        redraw();
     }
 
     void addFirst() {
-        if (hasBeenRendered()) {
-            cardView.addFirst();
-            redraw();
-        }
+        cardView.addFirst();
+        redraw();
     }
 
     public void render(PluginRequestTarget target) {
+        cardView.onPopulate();
         if (redraw) {
             if (target != null) {
                 target.addComponent(tabsContainer);
@@ -418,6 +413,7 @@ public class TabbedPanel extends WebMarkupContainer {
         private Set<TabsPlugin.Tab> removed = new HashSet<TabsPlugin.Tab>();
         private TabsPlugin.Tab selected;
         private int counter = 0;
+        private boolean populated = false;
 
         public CardView(final List<TabsPlugin.Tab> tabs) {
             super("cards");
@@ -445,24 +441,27 @@ public class TabbedPanel extends WebMarkupContainer {
         void removed(final TabsPlugin.Tab tabbie) {
             if (added.contains(tabbie)) {
                 added.remove(tabbie);
+            } else {
+                removed.add(tabbie);
             }
-            removed.add(tabbie);
         }
 
         void addLast() {
             TabsPlugin.Tab tabbie = tabs.get(tabs.size() - 1);
             if (removed.contains(tabbie)) {
                 removed.remove(tabbie);
+            } else {
+                added.add(tabbie);
             }
-            added.add(tabbie);
         }
 
         void addFirst() {
             TabsPlugin.Tab tabbie = tabs.get(0);
             if (removed.contains(tabbie)) {
                 removed.remove(tabbie);
+            } else {
+                added.add(tabbie);
             }
-            added.add(tabbie);
         }
 
         protected ListItem<TabsPlugin.Tab> newItem(TabsPlugin.Tab tabbie) {
@@ -488,24 +487,13 @@ public class TabbedPanel extends WebMarkupContainer {
 
         @Override
         protected void onPopulate() {
-            if (!hasBeenRendered()) {
+            if (!populated) {
+                populated = true;
                 for (TabsPlugin.Tab tabbie : tabs) {
                     add(newItem(tabbie));
                 }
-            } else {
-                Iterator<? extends Component> iterator = iterator();
-                while (iterator.hasNext()) {
-                    Component component = iterator.next();
-                    if (removed.contains(component.getDefaultModelObject())) {
-                        iterator.remove();
-                    }
-                }
-                removed.clear();
-
-                for (TabsPlugin.Tab tabbie : added) {
-                    add(newItem(tabbie));
-                }
                 added.clear();
+                removed.clear();
             }
         }
 
@@ -546,19 +534,23 @@ public class TabbedPanel extends WebMarkupContainer {
                 ListItem<TabsPlugin.Tab> item = newItem(tabbie);
                 add(item);
 
-                target.prependJavascript(
-                        "var element = document.createElement('div');" +
-                        "element.setAttribute('id', '" + item.getMarkupId() + "');" +
-                        "Wicket.$('" + getParent().getMarkupId() + "').appendChild(element);");
-                target.addComponent(item);
+                if (hasBeenRendered()) {
+                    target.prependJavascript(
+                            "var element = document.createElement('div');" +
+                            "element.setAttribute('id', '" + item.getMarkupId() + "');" +
+                            "Wicket.$('" + getParent().getMarkupId() + "').appendChild(element);");
+                    target.addComponent(item);
+                }
             }
             Iterator<ListItem<TabsPlugin.Tab>> children = (Iterator<ListItem<TabsPlugin.Tab>>) iterator();
             while (children.hasNext()) {
                 ListItem<TabsPlugin.Tab> item = children.next();
                 if (removed.contains(item.getModelObject())) {
-                    target.appendJavascript(
-                        "var element = Wicket.$('" + item.getMarkupId() + "');" +
-                        "element.parentNode.removeChild(element);");
+                    if (hasBeenRendered()) {
+                        target.appendJavascript(
+                                "var element = Wicket.$('" + item.getMarkupId() + "');" +
+                                        "element.parentNode.removeChild(element);");
+                    }
                     children.remove();
                 }
             }
@@ -571,9 +563,11 @@ public class TabbedPanel extends WebMarkupContainer {
                     display = "block";
                 }
 
-                target.appendJavascript(
-                    "var element = Wicket.$('" + item.getMarkupId() + "');" +
-                    "element.setAttribute('style', 'display: " + display + ";');");
+                if (hasBeenRendered()) {
+                    target.appendJavascript(
+                        "var element = Wicket.$('" + item.getMarkupId() + "');" +
+                        "element.setAttribute('style', 'display: " + display + ";');");
+                }
 
                 if (item.getModelObject() == selected) {
                     renderWireframes(item, target);
