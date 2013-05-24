@@ -17,7 +17,11 @@ package org.hippoecm.frontend.plugins.cms.root;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.wicket.markup.html.internal.HtmlHeaderContainer;
+import org.apache.wicket.util.collections.MiniMap;
+import org.apache.wicket.util.template.PackagedTextTemplate;
 import org.hippoecm.frontend.PluginRequestTarget;
 import org.hippoecm.frontend.extjs.ExtHippoThemeBehavior;
 import org.hippoecm.frontend.extjs.ExtWidgetRegistry;
@@ -39,6 +43,7 @@ import org.hippoecm.frontend.plugins.yui.layout.WireframeSettings;
 import org.hippoecm.frontend.plugins.yui.webapp.WebAppBehavior;
 import org.hippoecm.frontend.plugins.yui.webapp.WebAppSettings;
 import org.hippoecm.frontend.service.IconSize;
+import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.frontend.widgets.Pinger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,4 +123,15 @@ public class RootPlugin extends TabsPlugin {
         super.render(target);
     }
 
+    @Override
+    public void renderHead(final HtmlHeaderContainer container) {
+        super.renderHead(container);
+
+        PackagedTextTemplate textTemplate = new PackagedTextTemplate(getClass(), "HstCmsSSOHandshake.js");
+        Map<String, Object> variables = new MiniMap<String, Object>(2);
+        String hstUrl = getPluginConfig().getString("hstUrl", "site/_rp");
+        variables.put("url", hstUrl + "/cafebabe-cafe-babe-cafe-babecafebabe./keepalive/");
+        variables.put("user", UserSession.get().getJcrSession().getUserID());
+        container.getHeaderResponse().renderJavascript(textTemplate.asString(variables), "hst-cms-sso-handshake");
+    }
 }
