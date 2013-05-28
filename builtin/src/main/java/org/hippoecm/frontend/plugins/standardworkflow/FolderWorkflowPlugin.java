@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -84,6 +85,8 @@ public class FolderWorkflowPlugin extends CompatibilityWorkflowPlugin<FolderWork
 
     private WorkflowAction reorderAction;
 
+    private static final String ROOT_PATH = "/content/documents/";
+
     public FolderWorkflowPlugin(IPluginContext context, final IPluginConfig config) {
         super(context, config);
 
@@ -131,8 +134,21 @@ public class FolderWorkflowPlugin extends CompatibilityWorkflowPlugin<FolderWork
                 if (!((WorkflowDescriptorModel) getDefaultModel()).getNode().getName().equals(nodeName)) {
                     folderWorkflow.rename(node.getName() + (node.getIndex() > 1 ? "[" + node.getIndex() + "]" : ""), nodeName);
                 }
-                if (!node.getLocalizedName().equals(localName)) {
-                    defaultWorkflow.localizeName(localName);
+
+                String translationNodeMessage = null;
+                NodeIterator nodeIterator = node.getNodes("hippo:translation");
+                while (nodeIterator.hasNext()) {
+                    Node translationNode = nodeIterator.nextNode();
+                    if (translationNode.hasProperty("hippo:language") && translationNode.hasProperty("hippo:message")) {
+                        Locale translationNodeLocale = new Locale(translationNode.getProperty("hippo:language").getString());
+                        if (UserSession.get().getLocale().equals(translationNodeLocale)) {
+                            translationNodeMessage = translationNode.getProperty("hippo:message").getString();
+                        }
+                    }
+                }
+
+                if (!localName.equals(translationNodeMessage)) {
+                    defaultWorkflow.localizeName(Session.get().getLocale(), localName);
                 }
             }
         });
@@ -356,18 +372,16 @@ public class FolderWorkflowPlugin extends CompatibilityWorkflowPlugin<FolderWork
 
                                     TreeMap<String, String> arguments = new TreeMap<String, String>();
                                     arguments.put("name", nodeName);
-                                    if (addDocumentModel.getLanguage() != null) {
-                                        arguments.put("hippotranslation:locale", addDocumentModel.getLanguage());
-                                    }
 
-                                    String path = workflow.add(category, addDocumentModel.getPrototype(), arguments);
+                                    final String path = workflow.add(category, addDocumentModel.getPrototype(), arguments);
+
                                     ((UserSession) Session.get()).getJcrSession().refresh(true);
                                     JcrNodeModel nodeModel = new JcrNodeModel(new JcrItemModel(path));
                                     select(nodeModel);
                                     if (!nodeName.equals(localName)) {
                                         WorkflowManager workflowMgr = ((UserSession) org.apache.wicket.Session.get()).getWorkflowManager();
                                         DefaultWorkflow defaultWorkflow = (DefaultWorkflow) workflowMgr.getWorkflow("core", nodeModel.getNode());
-                                        defaultWorkflow.localizeName(localName);
+                                        defaultWorkflow.localizeName(UserSession.get().getLocale(), localName);
                                     }
                                 } else {
                                     log.error("no workflow defined on model for selected node");
@@ -380,7 +394,6 @@ public class FolderWorkflowPlugin extends CompatibilityWorkflowPlugin<FolderWork
 
                 AbstractView add;
                 replace(add = new AbstractView("new", createListDataProvider(list)) {
-
                     @Override
                     protected void populateItem(Item item) {
                         item.add((StdWorkflow) item.getModelObject());
