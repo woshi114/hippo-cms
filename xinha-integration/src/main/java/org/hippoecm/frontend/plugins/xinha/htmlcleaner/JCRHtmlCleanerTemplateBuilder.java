@@ -38,6 +38,7 @@ public class JCRHtmlCleanerTemplateBuilder {
     public static final String CLEANUP_ELEMENT = HTMLCLEANER_PREFIX + "cleanupElement";
     public static final String ALLOWED_SINGLE_WHITESPACE_ELEMENT = HTMLCLEANER_PREFIX
             + "allowedSingleWhitespaceElement";
+    public static final String FORCE_EMPTY_FIELD = HTMLCLEANER_PREFIX + "forceEmptyField";
 
     public static final String NAME = HTMLCLEANER_PREFIX + "name";
     public static final String CLASSES = HTMLCLEANER_PREFIX + "classes";
@@ -197,6 +198,8 @@ public class JCRHtmlCleanerTemplateBuilder {
         handleAllowedElements(template, (List<? extends Map>) c.get(CLEANUP_ELEMENT));
         // Process allowed elements with a single whitespace character
         handleAllowedSingleWhitespaceElements(template, (List<? extends Map>) c.get(ALLOWED_SINGLE_WHITESPACE_ELEMENT));
+
+        template.setForceEmptyField(c.getBoolean(FORCE_EMPTY_FIELD));
     }
 
     protected void handleLineWidth(HtmlCleanerTemplate template, int lineWidth) {
