@@ -208,9 +208,8 @@ Xinha.getHTML = function(root, outputRoot, editor) {
         }
         if (Xinha.is_gecko) {
             //strip trailing <br> added by moz
-            //See https://issues.onehippo.com/browse/CMS7-6729
-            html = html.replace(/<br \/>\n$/, '').
-                    replace(/<br\s*\/>\r?\n?/, '');
+            //See https://issues.onehippo.com/browse/CMS7-4906
+            html = html.replace(/^[\s\u205E]*<br\s*\/?>[\s\u205E]*$/, '');
         }
         //Cleanup redundant whitespace before </li></dd></dt> in IE and Mozilla
         html = html.replace(/\s*(<\/(li|dd|dt)>)/g, '$1');
