@@ -401,7 +401,7 @@ Stylist.prototype.onGenerateOnce = function () {
 
     var cfg = this.editor.config['Stylist'];
     var cssFiles =  cfg !== undefined && cfg.css !== undefined &&
-            Xinha.objectProperties(cfg.css).length > 0 ? cfg.css.split(',') : [];
+        Xinha.objectProperties(cfg.css).length > 0 ? cfg.css.split(',') : [];
 
     this.pageStyleSheets = this.pageStyleSheets || {};
 
@@ -477,57 +477,57 @@ Stylist.prototype._prepareDialog = function () {
     main.style.height = this.editor._framework.ed_cell.offsetHeight - caption.offsetHeight + 'px';
 
     editor.notifyOn('modechange',
-            function (e, args) {
-                if (!dialog.attached) {
-                    return;
+        function (e, args) {
+            if (!dialog.attached) {
+                return;
+            }
+            switch (args.mode) {
+                case 'text':
+                {
+                    dialog.hide();
+                    break;
                 }
-                switch (args.mode) {
-                    case 'text':
-                    {
-                        dialog.hide();
-                        break;
-                    }
-                    case 'wysiwyg':
-                    {
-                        dialog.show();
-                        break;
-                    }
+                case 'wysiwyg':
+                {
+                    dialog.show();
+                    break;
                 }
             }
+        }
     );
     editor.notifyOn('panel_change',
-            function (e, args) {
-                if (!dialog.attached) {
-                    return;
-                }
-                switch (args.action) {
-                    case 'show':
-                        var newHeight = main.offsetHeight - args.panel.offsetHeight;
-                        main.style.height = ((newHeight > 0) ? main.offsetHeight - args.panel.offsetHeight : 0) + 'px';
-                        dialog.rootElem.style.height = caption.offsetHeight + "px";
-                        editor.sizeEditor();
-                        break;
-                    case 'hide':
-                        stylist.resize();
-                        break;
-                }
+        function (e, args) {
+            if (!dialog.attached) {
+                return;
             }
+            switch (args.action) {
+                case 'show':
+                    var newHeight = main.offsetHeight - args.panel.offsetHeight;
+                    main.style.height = ((newHeight > 0) ? main.offsetHeight - args.panel.offsetHeight : 0) + 'px';
+                    dialog.rootElem.style.height = caption.offsetHeight + "px";
+                    editor.sizeEditor();
+                    break;
+                case 'hide':
+                    stylist.resize();
+                    break;
+            }
+        }
     );
     editor.notifyOn('before_resize',
-            function () {
-                if (!dialog.attached) {
-                    return;
-                }
-                dialog.rootElem.style.height = caption.offsetHeight + "px";
+        function () {
+            if (!dialog.attached) {
+                return;
             }
+            dialog.rootElem.style.height = caption.offsetHeight + "px";
+        }
     );
     editor.notifyOn('resize',
-            function () {
-                if (!dialog.attached) {
-                    return;
-                }
-                stylist.resize();
+        function () {
+            if (!dialog.attached) {
+                return;
             }
+            stylist.resize();
+        }
     );
 };
 
@@ -673,7 +673,7 @@ Xinha.prototype._fillStylist = function () {
                     // alert (this._getFirstAncestor(this._getSelection(), tag));
                     // If we don't have an ancestor, but it's a div/span/p/hx stle, we can make one
                     if (( tag == 'div' || tag == 'span' || tag == 'p'
-                            || (tag.substr(0, 1) == 'h' && tag.length == 2 && tag != 'hr'))) {
+                        || (tag.substr(0, 1) == 'h' && tag.length == 2 && tag != 'hr'))) {
                         if (!this._selectionEmpty(this._getSelection())) {
                             applicable = true;
                             apply_to = 'new';
@@ -791,7 +791,9 @@ Xinha.prototype._stylistAddClasses = function (editor, el, tag, classes) {
                 logMessage("BODY: ", myBody);
                 logMessage("BODY: ", myBody.innerHTML);
                 logMessage("all same nodes, wrapped");
-                this.insertHTML(myBody.innerHTML);
+                // TODO test this:
+                hippoTools.replaceHtml(editor, myBody.innerHTML);
+                //this.insertHTML(myBody.innerHTML);
                 doNewWrapping = true;
             }
         }
