@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 Hippo
+ * Copyright 2008-2013 Hippo
  *
  * Licensed under the Apache License, Version 2.0 (the  "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ if (!YAHOO.hippo.EditorManager) {
     window.xinha_editors = [];
 
     (function() {
-        var Dom = YAHOO.util.Dom, Lang = YAHOO.lang, HippoAjax = YAHOO.hippo.HippoAjax;
+        var Dom = YAHOO.util.Dom, Lang = YAHOO.lang, HippoAjax = YAHOO.hippo.HippoAjax, HippoDom = YAHOO.hippo.Dom;
 
         var info = function(message) {
             YAHOO.log(message, "info", "EditorManager");
@@ -198,6 +198,13 @@ if (!YAHOO.hippo.EditorManager) {
                     }
                 });
                 return editor;
+            },
+
+            deactivateEditor : function(id) {
+                var editor = this.getEditorByWidgetId(id);
+                if (editor !== null && editor.context.activeEditors.containsKey(editor.name)) {
+                    editor.context.activeEditors.remove(editor.name);
+                }
             }
 
         };
@@ -269,7 +276,7 @@ if (!YAHOO.hippo.EditorManager) {
                 }
 
                 //Context can be removed
-                if (this.editors.length == 0) {
+                if (this.editors.size() == 0) {
                     YAHOO.hippo.EditorManager.unregisterContext(this.form.id);
                 }
             },
@@ -425,19 +432,43 @@ if (!YAHOO.hippo.EditorManager) {
                     //error('Container element not found for editor ' + this.name);
                     throw new Error('Container element not found for editor ' + this.name);
                 }
+                var editorField = Dom.get(this.name);
                 YAHOO.hippo.HippoAjax.registerDestroyFunction(container, this.destroy, this);
 
                 Dom.addClass(container, 'rte-preview-style');
 
-                var containerHeight = this.calculateHeight();
-                Dom.setStyle(container, 'height', containerHeight + 'px');
-                //FIXME: Xinha doesn't like margins on the container, remove it the ugly way
-                Dom.setStyle(container, 'margin-bottom', 0);
+                if (this.config.fullscreen && !this.config.started) {
+                    // Render preview in fullscreen. This state is currently only accessible from Xinha's fullscreen
+                    // mode, hence we assume all ancestor node are already set to static.
+                    window.scroll(0, 0);
+                    Dom.addClass(container, 'rte-fullscreen-style');
+                    container.style.position = 'absolute';
+                    container.style.height = '100%';
+                    container.style.width = '100%';
+                    container.style.zIndex = 999;
 
-                var clickable = Dom.get(this.name);
-                var clickableMargin = YAHOO.hippo.Dom.getMargin(clickable);
-                var clickableHeight = containerHeight - clickableMargin.h;
-                Dom.setStyle(clickable, 'height', clickableHeight + 'px');
+                    var cRegion = Dom.getRegion(container);
+                    Dom.setStyle(editorField, 'height', (cRegion.height - HippoDom.getMargin(editorField).h) + 'px');
+                } else {
+                    if (Dom.hasClass(container, 'rte-fullscreen-style')) {
+                        // We are starting the editor from fullscreen preview
+                        Dom.removeClass(container, 'rte-fullscreen-style');
+
+                        container.style.position = 'relative';
+                        container.style.width = '';
+
+                        this.removeStaticPosition(container);
+                    }
+
+                    var containerHeight = this.calculateHeight();
+                    Dom.setStyle(container, 'height', containerHeight + 'px');
+                    //FIXME: Xinha doesn't like margins on the container, remove it the ugly way
+                    Dom.setStyle(container, 'margin-bottom', 0);
+
+                    var clickableMargin = HippoDom.getMargin(editorField);
+                    var clickableHeight = containerHeight - clickableMargin.h;
+                    Dom.setStyle(editorField, 'height', clickableHeight + 'px');
+                }
 
                 if (this.config.started) {
                     if (this.tooltip != null) {
@@ -451,7 +482,6 @@ if (!YAHOO.hippo.EditorManager) {
                 } else {
                     this.createTooltip("Click to edit");
                 }
-
             },
 
             createEditor : function() {
@@ -622,6 +652,15 @@ if (!YAHOO.hippo.EditorManager) {
                     return _base;
                 };
 
+                /*for (var i = 0; i < this.config.pluginProperties.length; i++) {
+                    var pp = this.config.pluginProperties[i];
+                    xinhaConfig[pp.name] = add(xinhaConfig[pp.name], pp.values);
+                }
+
+                var textarea = this.config.textarea;
+                var xinha = Xinha.makeEditors([textarea], xinhaConfig, this.config.plugins)[textarea];
+                */
+
                 //concatenate default properties with configured properties
                 xinha.config = add(xinha.config, this.config.properties);
 
@@ -653,6 +692,14 @@ if (!YAHOO.hippo.EditorManager) {
                 this.xinha._onGenerate = function() {
                     this.onEditorLoaded();
                     this.context.editorLoaded(_name);
+
+                    if (this.config.fullscreen) {
+                        this.xinha._fullscreen(false);
+                        window.setTimeout(Xinha.proxy(this, function() {
+                            this.xinha.focusEditor();
+                        }), 500);
+                    }
+
                 }.bind(this);
 
                 Dom.setStyle(this.name, 'visibility', 'hidden');
@@ -758,7 +805,7 @@ if (!YAHOO.hippo.EditorManager) {
 
                 y = Math.round(y);
 
-                var containerMargin = YAHOO.hippo.Dom.getMargin(this.getContainer());
+                var containerMargin = HippoDom.getMargin(this.getContainer());
                 return y - containerMargin.h;
             },
 
@@ -773,6 +820,7 @@ if (!YAHOO.hippo.EditorManager) {
                     context: context,
                     hidedelay: 10,
                     showdelay: 500,
+                    zIndex: 2000,
                     text: this.getProperty("previewTooltipText", defaultText)
                 });
             },
@@ -834,7 +882,7 @@ if (!YAHOO.hippo.EditorManager) {
                     Dom.removeClass(c, 'rte-preview-style');
                 }
                 var pr = Dom.getRegion(c);
-                var marges = YAHOO.hippo.Dom.getMargin(c);
+                var marges = HippoDom.getMargin(c);
                 w = pr.width - marges.w;
                 h = pr.height - marges.h;
 
@@ -866,6 +914,7 @@ if (!YAHOO.hippo.EditorManager) {
                                 info('Content saved.');
                                 this.lastData = data;
                             }.bind(this);
+
                             var failure = function() {
                                 error('failed to save');
                             }.bind(this);
@@ -878,7 +927,27 @@ if (!YAHOO.hippo.EditorManager) {
                 }
             },
 
+            /**
+             * Copied form the sizeDown method of the full-screen module that ships with Xinha.
+             */
+            removeStaticPosition : function(ancestor) {
+                //remove static position
+                while ((ancestor = ancestor.parentNode) && ancestor.style) {
+                    ancestor.style.position = ancestor._xinha_fullScreenOldPosition;
+                    ancestor._xinha_fullScreenOldPosition = null;
+
+                    if (ancestor.className == 'yui-layout-doc') {
+                        for (var i = 0; i < ancestor.childNodes.length; i++) {
+                            var c = ancestor.childNodes[i];
+                            c.style.position = c._xinha_fullScreenOldPosition;
+                            c._xinha_fullScreenOldPosition = null;
+                        }
+                    }
+                }
+            },
+
             destroy : function() {
+
                 this.destroyTooltip();
                 if (this.xinha) {
                     xinha_editors.remove(this.name);

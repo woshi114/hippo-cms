@@ -2407,12 +2407,6 @@ Xinha.prototype.generate = function ()
     return false;
   }
 
-  url = _editor_url + 'modules/FullScreen/full-screen.js';
-  if ( !Xinha.loadPlugins([{plugin:"FullScreen",url:url}], callback ))
-  {
-    return false;
-  }
-
   url = _editor_url + 'modules/ColorPicker/ColorPicker.js';
   if ( !Xinha.loadPlugins([{plugin:"ColorPicker",url:url}], callback ) )
   {
@@ -2421,6 +2415,13 @@ Xinha.prototype.generate = function ()
   else if ( typeof Xinha.getPluginConstructor('ColorPicker') != 'undefined' && !this.plugins.colorPicker)
   {
     editor.registerPlugin('ColorPicker');
+  }
+
+  //Built-in plugins
+  url = _editor_url + 'modules/FullScreen/full-screen.js';
+  if ( !Xinha.loadPlugins([{plugin:"FullScreen", url:url}], callback ))
+  {
+      return false;
   }
 
   var toolbar = editor.config.toolbar;
@@ -8422,4 +8423,10 @@ Xinha.debugMsg = function(text, level)
 Xinha.notImplemented = function(methodName)
 {
   throw new Error("Method Not Implemented", "Part of Xinha has tried to call the " + methodName + " method which has not been implemented.");
+};
+
+Xinha.proxy = function(context, func) {
+    return function() {
+        func.apply(context, arguments);
+    }
 };

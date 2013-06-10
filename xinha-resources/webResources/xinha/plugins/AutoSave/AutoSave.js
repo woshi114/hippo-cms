@@ -1,12 +1,12 @@
 AutoSave._pluginInfo = {
   name          : "AutoSave",
   version       : "1.0",
-  developer     : "Arthur Bogaart",
+  developer    : "a.bogaart@1hippo.com",
   developer_url : "http://www.hippo.nl",
   c_owner       : "Arthur Bogaart",
   sponsor       : "",
   sponsor_url   : "",
-  license       : "htmlArea"
+  license       : "AL2"
 }
 
 Xinha.Config.prototype.AutoSave =
@@ -22,13 +22,16 @@ function AutoSave(editor) {
     this.timeoutID = null; // timeout ID, editor is dirty when non-null
     this.saving = false;   // whether a save is in progress
 
-    //Atach onkeyup and onchange event listeners to textarea for autosaving in htmlmode
-    var txtArea = this.editor._textArea;
-    var me = this;
-    var fn = function(ev) {
-        me.checkChanges();
+    // translation context
+    this.context = {
+        url : _editor_url + 'plugins/AutoSave/lang/',
+        context: "AutoSave"
     };
 
+    //Atach onkeyup and onchange event listeners to textarea for autosaving in htmlmode
+    var txtArea = this.editor._textArea;
+
+    var fn = Xinha.proxy(this, this.checkChanges);
     if(YAHOO.util.Event) {
         YAHOO.util.Event.addListener(txtArea, 'keyup', fn);
         YAHOO.util.Event.addListener(txtArea, 'cut', fn);
@@ -48,112 +51,140 @@ function AutoSave(editor) {
             txtArea['paste'] = fn;
         }
     }
+
+    // optional button for explicit save
+    var cfg = editor.config;
+
+    cfg.registerIcon('save', [_editor_url + cfg.imgURL + 'ed_buttons_main.png', 9, 1]);
+    cfg.registerButton('save', this._lc("Save"), cfg.iconList.save, true, Xinha.proxy(this, this.saveAndClose));
+
 }
 
-AutoSave.prototype._lc = function(string) {
-    return Xinha._lc(string, 'AutoSave');
-};
+AutoSave.prototype = {
+    _lc : function(string) {
+        return Xinha._lc(string, this.context);
+    },
 
-AutoSave.prototype.getId = function() {
-    return this.editor._textArea.getAttribute("id");
-};
+    getId : function() {
+        return this.editor._textArea.getAttribute("id");
+    },
 
-AutoSave.prototype.getContents = function() {
-    return this.editor.getInnerHTML();
-};
+    getContents : function() {
+        return this.editor.getInnerHTML();
+    },
 
-// Save the contents of the xinha field.  Only one throttled request is executed concurrently.
-AutoSave.prototype.save = function(throttled, success, failure) {
-	// nothing to do if editor is not dirty
-	if (this.timeoutID == null) {
-		return;
-	} else {
-		window.clearTimeout(this.timeoutID);
-	}
+    saveAndClose : function() {
+        var id = this.getId();
+        var close = Xinha.proxy(this, function() {
+            if (this.editor.plugins['StateChange'] && this.editor.plugins['StateChange'].instance) {
+                this.editor.plugins['StateChange'].instance.setActivated(false, function() {
+                    // Deactivate editor at context. Although this happens after the render() has been called,
+                    // it is enough to simply remove the editor from the activeEditors list.
+                    YAHOO.hippo.EditorManager.deactivateEditor(id);
+                });
+            }
+        });
 
-	if (throttled) {
-		// reschedule when a save is already in progress
-		if (this.saving) {
-			this.checkChanges();
-			return;
-		}
-		this.saving = true;
-	}
+        if (this.timeoutID == null) {
+            close();
+        } else {
+            this.save(false, close, close);
+        }
+    },
 
-    this.timeoutID = null;
+    // Save the contents of the xinha field.  Only one throttled request is executed concurrently.
+    save : function(throttled, success, failure) {
+        // nothing to do if editor is not dirty
+        if (this.timeoutID == null) {
+            return;
+        } else {
+            window.clearTimeout(this.timeoutID);
+        }
 
-    if(this.editor._editMode == 'wysiwyg') { //save Iframe html into textarea
-        this.editor._textArea.value = this.editor.outwardHtml(this.editor.getHTML());
-    }
-
-    var body = wicketSerialize(Wicket.$(this.getId()));
-    var url = this.editor.config.callbackUrl;
-
-    var xmlHttpReq = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
-    var afterCallbackHandler = function() {
         if (throttled) {
-            this.saving = false;
-        }
-        if(xmlHttpReq.status == 200) {
-            if (success) {
-                success();
+            // reschedule when a save is already in progress
+            if (this.saving) {
+                this.checkChanges();
+                return;
             }
-        } else if(failure) {
-            failure();
+            this.saving = true;
         }
-    }.bind(this);
 
-    xmlHttpReq.open('POST', url, throttled);
-    xmlHttpReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    xmlHttpReq.setRequestHeader('Wicket-Ajax', "true");
-    if (throttled) {
-        xmlHttpReq.onreadystatechange = function() {
-            if (xmlHttpReq.readyState == 4) {
-                afterCallbackHandler();
+        this.timeoutID = null;
+
+        if (this.editor._editMode == 'wysiwyg') { //save Iframe html into textarea
+            this.editor._textArea.value = this.editor.outwardHtml(this.editor.getHTML());
+        }
+
+        var body = wicketSerialize(Wicket.$(this.getId()));
+        var url = this.editor.config.callbackUrl;
+
+        var xmlHttpReq = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
+        var afterCallbackHandler = function() {
+            if (throttled) {
+                this.saving = false;
             }
-        };
+            if(xmlHttpReq.status == 200) {
+                if (success) {
+                    success();
+                }
+            } else if(failure) {
+                failure();
+            }
+        }.bind(this);
+
+        xmlHttpReq.open('POST', url, throttled);
+        xmlHttpReq.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xmlHttpReq.setRequestHeader('Wicket-Ajax', "true");
+        if (throttled) {
+            xmlHttpReq.onreadystatechange = function() {
+                if (xmlHttpReq.readyState == 4) {
+                    afterCallbackHandler();
+                }
+            };
+        }
+        xmlHttpReq.send(body);
+
+        if (!throttled) {
+            afterCallbackHandler();
+        }
+    },
+
+    onUpdateToolbar : function() {
+        this.checkChanges();
+    },
+
+    onKeyPress : function(ev) {
+        if( ev != null && ev.ctrlKey && this.editor.getKey(ev) == 's') {
+            this.save(true);
+            Xinha._stopEvent(ev);
+            return true;
+        }
+        this.checkChanges();
+    },
+
+    checkChanges : function() {
+        if(this.timeoutID != null) {
+            window.clearTimeout(this.timeoutID);
+        }
+
+        var editorId = this.getId();
+        this.timeoutID = window.setTimeout(function() {
+            YAHOO.hippo.EditorManager.saveByTextareaId(editorId);
+        }, this.lConfig.timeoutLength);
+    },
+
+    /**
+     * Explicitly replace <p> </p> with general-purpose space (U+0020) with a <p> </p> including a non-breaking space (U+00A0)
+     * to prevent the browser from not rendering these paragraphs
+     *
+     * See http://issues.onehippo.com/browse/HREPTWO-1713 for more info
+     */
+    inwardHtml : function(html) {
+        this.imgRE = new RegExp('<p> <\/p>', 'gi');
+        html = html.replace(this.imgRE, function(m) {
+            return '<p>&nbsp;</p>';
+        });
+        return html;
     }
-    xmlHttpReq.send(body);
-
-    if (!throttled) {
-        afterCallbackHandler();
-    }
-};
-
-AutoSave.prototype.onUpdateToolbar = function() {
-    this.checkChanges();
-};
-
-AutoSave.prototype.onKeyPress = function(ev) {
-    if( ev != null && ev.ctrlKey && this.editor.getKey(ev) == 's') {
-        this.save(true);
-        Xinha._stopEvent(ev);
-        return true;
-    }
-    this.checkChanges();
-};
-
-AutoSave.prototype.checkChanges = function() {
-    if(this.timeoutID != null) {
-        window.clearTimeout(this.timeoutID);
-    }
-    var self = this;
-    var editorId = this.getId();
-    this.timeoutID = window.setTimeout(function() {
-        YAHOO.hippo.EditorManager.saveByTextareaId(editorId);
-    }, this.lConfig.timeoutLength);
-};
-
-/**
- * Explicitly replace <p> </p> with general-purpose space (U+0020) with a <p> </p> including a non-breaking space (U+00A0)
- * to prevent the browser from not rendering these paragraphs
- *
- * See http://issues.onehippo.com/browse/HREPTWO-1713 for more info
- */
-AutoSave.prototype.inwardHtml = function(html) {
-    this.imgRE = new RegExp('<p> <\/p>', 'gi');
-    html = html.replace(this.imgRE, function(m) {
-        return '<p>&nbsp;</p>';
-    });
-    return html;
 };
