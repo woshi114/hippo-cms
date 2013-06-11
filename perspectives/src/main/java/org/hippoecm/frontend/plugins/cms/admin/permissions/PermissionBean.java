@@ -83,7 +83,7 @@ public class PermissionBean implements Serializable {
      */
     public static List<PermissionBean> forGroup(Group group) {
 
-        String escapedGroupName = Text.escapeIllegalJcr10Chars(ISO9075.encode(NodeNameCodec.encode(group.getGroupname(), true)));
+        String escapedGroupName = group.getGroupname().replaceAll("'", "''");
 
         final String queryString = ALL_AUTHROLES_FOR_GROUP_QUERY.replace("{}", escapedGroupName);
         NodeIterator nodeIterator = obtainNodeIteratorForQueryString(queryString);
