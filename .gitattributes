@@ -2186,6 +2186,8 @@ richtext/frontend/src/main/java/org/hippoecm/frontend/plugins/xinha/services/lin
 richtext/frontend/src/main/java/org/hippoecm/frontend/plugins/xinha/services/links/InternalXinhaLink.java svneol=native#text/plain
 richtext/frontend/src/main/java/org/hippoecm/frontend/plugins/xinha/services/links/XinhaLink.java svneol=native#text/plain
 richtext/frontend/src/main/java/org/hippoecm/frontend/plugins/xinha/services/links/XinhaLinkService.java svneol=native#text/plain
+richtext/frontend/src/main/java/org/hippoecm/frontend/plugins/xinha/xinha-tools-dev.js -text
+richtext/frontend/src/main/java/org/hippoecm/frontend/plugins/xinha/xinha-tools.js -text
 richtext/frontend/src/main/java/org/hippoecm/frontend/plugins/xinha/xinha_init.js -text svneol=unset#text/plain
 richtext/frontend/src/site/apt/index.apt -text
 richtext/frontend/src/site/site.xml svneol=native#text/plain
@@ -2240,6 +2242,8 @@ richtext/resources/src/main/resources/xinha/plugins/CreateLink/lang/nl.js svneol
 richtext/resources/src/main/resources/xinha/plugins/FullscreenCompatible/FullscreenCompatible.js svneol=native#text/plain
 richtext/resources/src/main/resources/xinha/plugins/InsertAnchor/InsertAnchor.js -text
 richtext/resources/src/main/resources/xinha/plugins/InsertImage/InsertImage.js svneol=native#text/plain
+richtext/resources/src/main/resources/xinha/plugins/Stylist/Stylist.js -text
+richtext/resources/src/main/resources/xinha/plugins/Stylist/rangy-core-min.js -text
 richtext/resources/src/main/resources/xinha/plugins/TableOperations/lang/de.js -text
 richtext/resources/src/main/resources/xinha/plugins/TableOperations/lang/fr.js -text
 richtext/resources/src/main/resources/xinha/skins/hippo-gray/back.png -text

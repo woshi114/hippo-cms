@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.wicket.Application;
 import org.apache.wicket.IClusterable;
 import org.apache.wicket.Page;
 import org.apache.wicket.RequestCycle;
@@ -80,6 +81,11 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
     private final PackagedTextTemplate XINHA_INIT_GLOBALS = new PackagedTextTemplate(AbstractXinhaPlugin.class,
             "xinha_init.js");
 
+    private static final ResourceReference XINHA_TOOLS_JS = new JavascriptResourceReference(AbstractXinhaPlugin.class,
+            "xinha-tools.js");
+    private static final ResourceReference XINHA_TOOLS_DEV_JS = new JavascriptResourceReference(AbstractXinhaPlugin.class,
+            "xinha-tools-dev.js");
+
     public static final String DISABLE_OPEN_IN_A_NEW_WINDOW_CONFIG = "open.in.new.window.disabled";
 
     private final IEditor.Mode mode;
@@ -111,6 +117,10 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
 
         // dialog functionality for plugins
         add(JavascriptPackageResource.getHeaderContribution(XINHA_MODAL_JS));
+        add(JavascriptPackageResource.getHeaderContribution(XINHA_TOOLS_JS));
+        if (getApplication().getConfigurationType().equals(Application.DEVELOPMENT)) {
+            add(JavascriptPackageResource.getHeaderContribution(XINHA_TOOLS_DEV_JS));
+        }
 
         add(CSSPackageResource.getHeaderContribution(AbstractXinhaPlugin.class, "xinha.css"));
     }
