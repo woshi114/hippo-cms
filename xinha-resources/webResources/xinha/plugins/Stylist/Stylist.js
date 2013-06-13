@@ -21,7 +21,6 @@
         range = selection.getRangeAt(0);
         nodes = range.getNodes();
         if (nodes.length === 0) {
-            console.warn('No nodes found to replace element');
             return false;
         }
 
@@ -265,6 +264,21 @@
         });
         return el;
     };
+    hippoTools.getAllElements = function (node) {
+        name = name.toUpperCase();
+        var el = [];
+        hippoTools.walk(node, function () {
+            if (this.nodeType == 1) {
+                var nodeName = this.nodeName.toUpperCase();
+                if(nodeName != 'BODY'){
+                    el.push(nodeName);
+                }
+            }
+            return true;
+        });
+        return el;
+    };
+
 
     hippoTools.containsSameNodes = function (node, name) {
         name = name.toUpperCase();
@@ -273,6 +287,19 @@
 
         });
         return true;
+    };
+
+    hippoTools.findElements = function (node, elementCollection) {
+        name = name.toUpperCase();
+        var el = [];
+        hippoTools.walk(node, function () {
+            if (this.nodeType == 1 && this.nodeName.toUpperCase() in elementCollection) {
+                el.push(this);
+                return false;
+            }
+            return true;
+        });
+        return el;
     };
 
     hippoTools.findElement = function (node, name) {
@@ -291,11 +318,13 @@
 
     hippoTools.wrapKidsOfNodes = function (node, tagCollection) {
         hippoTools.walk(node, function () {
-            return !(this.nodeType == 1 && this.nodeName.toUpperCase() in tagCollection);
+            return (this.nodeType == 1 && this.nodeName.toUpperCase() in tagCollection);
 
         });
         return true;
     };
+
+
 
 })(window.hippoTools = window.hippoTools || {});
 
@@ -352,6 +381,8 @@ var EMPTY_WRAPPERS = hippoTools.collection(["DIV", "SPAN"]);
  * @type {*}
  */
 var WRAP_TAGS = hippoTools.collection(["P", "UL", "TABLE"]);
+
+var SPAN_KIDS = hippoTools.collection(["A", "ABBR", "ACRONYM", "B", "BDO", "BIG", "BR", "BUTTON", "CITE", "CODE", "DEL", "DFN", "EM", "I", "IMG", "INPUT", "INS", "KDB", "LABEL", "MAP", "OBJECT", "Q", "SAMP", "SCRIPT", "SELECT", "SMALL", "SPAN", "STRONG", "SUB", "SUP", "TEXTAREA", "TT","VAR"]);
 // FOR CONVENIENCE: here are some tag names:
 
 /*
@@ -450,7 +481,7 @@ Stylist.loadAssets = function() {
             if (rangy !== undefined) {
                 rangy.init();
             } else {
-                console.error('Failed to load Rangy library.');
+                logMessage('Failed to load Rangy library.');
             }
         }
     }.bind(this);
@@ -763,6 +794,10 @@ Xinha.prototype._fillStylist = function () {
  * (will add a span if none selected)
  */
 Xinha.prototype._stylistAddClasses = function (editor, el, tag, classes) {
+
+
+
+
     if (el == 'new') {
         logMessage("Wrapping into new, tag is:"+ tag, el);
 
@@ -780,6 +815,38 @@ Xinha.prototype._stylistAddClasses = function (editor, el, tag, classes) {
             //TODO: detect if a listitem is selected alongside with elements outside of the ul/ol element.
             //This will cause the selectedHTML to contain a ul/ol with only the selected li in it, not the other child
             //nodes, if present. Resolution would be to treat the li separate from the other elements
+            logMessage("all same: " + allSame);
+            var elms = hippoTools.findElements(myBody, WRAP_KID_TAGS);
+            var allElements = hippoTools.getAllElements(myBody);
+            // check if tag is span with valid kids:
+            if (tag != null && tag.toUpperCase() === 'SPAN' && allElements.length > 0) {
+                logMessage("found elements:". allElements);
+                var invalidKids = [];
+                for (var i = 0; i < allElements.length; i++) {
+                    var name = allElements[i];
+                    if(name in SPAN_KIDS){
+                        logMessage("Valid SPAN kid: ", name);
+                        continue;
+                    }
+                    if(!(name in hippoTools.collection(invalidKids))){
+                        invalidKids.push(name);
+                    }
+
+                }
+
+                if (invalidKids.length > 0) {
+                    alert("Cannot wrap following child elements:\n " + invalidKids + "\n into a span tag (invalid HTML). \nPlease use a DIV");
+                    return;
+                }
+
+            }
+
+
+
+
+            if (allSame && !elms.length > 0){
+                allSame = false;
+            }
 
             if (allSame) {
                 var kidNodes = myBody.childNodes;
@@ -792,8 +859,11 @@ Xinha.prototype._stylistAddClasses = function (editor, el, tag, classes) {
                 logMessage("BODY: ", myBody.innerHTML);
                 logMessage("all same nodes, wrapped");
                 // TODO test this:
-                hippoTools.replaceHtml(editor, myBody.innerHTML);
-                //this.insertHTML(myBody.innerHTML);
+                if (hippoTools.findElement(myBody, "LI")) {
+                    hippoTools.replaceHtml(editor, myBody.innerHTML);
+                } else {
+                    this.insertHTML(myBody.innerHTML);
+                }
                 doNewWrapping = true;
             }
         }
