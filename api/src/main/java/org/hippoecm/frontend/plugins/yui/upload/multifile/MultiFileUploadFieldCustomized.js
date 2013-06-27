@@ -108,6 +108,12 @@ function MultiSelector(eprefix, list_target, max, del_label) {
                         wicketSubmitForm(form, form.getAttribute('action'));
                     }
                 } else {
+                    if (YAHOO.env.ua.ie == '8') {
+                        var filename = this.multi_selector.parseFilename(this.value);
+                        if (filename == '' || filename != '' && YAHOO.lang.trim(filename) == '') {
+                            return;
+                        }
+                    }
 
                     // New file input
                     var new_element = document.createElement('input');
