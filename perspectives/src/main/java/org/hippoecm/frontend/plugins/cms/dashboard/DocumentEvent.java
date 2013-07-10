@@ -182,6 +182,19 @@ public class DocumentEvent extends JcrObject {
             };
         } else if ("add".equals(getMethod())) {
             return new NodeTranslator(new JcrNodeModel(targetVariant)).getNodeName();
+        } else if ("rename".equals(getMethod()) && getArgument(0) != null && getArgument(1) != null) {
+            return new LoadableDetachableModel<String>() {
+                @Override
+                protected String load() {
+                    return getArgument(0);
+                }
+
+                @Override
+                public void detach() {
+                    DocumentEvent.this.detach();
+                    super.detach();
+                }
+            };
         } else {
             String path = getDocumentPath();
             if (path != null) {

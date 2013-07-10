@@ -110,6 +110,12 @@ public class CurrentActivityPlugin extends RenderPlugin {
                 path = fixPathForRequests(path);
                 EventModel label = new EventModel((JcrNodeModel) item.getModel(), nameModel);
                 BrowseLinkTarget target = new BrowseLinkTarget(path);
+                if ("rename".equals(label.getEventMethod())) {
+                    String[] arguments = label.getArguments();
+                    if (arguments != null && arguments.length > 0) {
+                        target = new BrowseLinkTarget(path+"/"+arguments[1]);
+                    }
+                }
                 BrowseLink link = new BrowseLink(getPluginContext(), getPluginConfig(), "entry", new Model(target),
                         label);
                 item.add(link);

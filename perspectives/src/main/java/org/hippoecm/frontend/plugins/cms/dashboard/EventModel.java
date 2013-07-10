@@ -21,6 +21,7 @@ import java.util.Date;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.wicket.Component;
@@ -44,6 +45,8 @@ public class EventModel implements IComponentAssignedModel<String> {
     private DateFormat df;
     private String time;
     private String method;
+    private String eventMethod;
+    private String[] arguments;
     private String user;
     private IModel<String> nameModel;
 
@@ -76,6 +79,15 @@ public class EventModel implements IComponentAssignedModel<String> {
             // add eventClass to resolve workflow resource bundle
             this.method = node.getProperty("hippolog:eventMethod").getString() + ",class="
                     + node.getProperty("hippolog:eventClass").getString();
+            this.eventMethod = node.getProperty("hippolog:eventMethod").getString();
+            if (node.hasProperty("hippolog:eventArguments")) {
+                final Value[] values = node.getProperty("hippolog:eventArguments").getValues();
+
+                this.arguments = new String[values.length];
+                for (int i=0; i<values.length; i++) {
+                    this.arguments[i] = values[i].getString();
+                }
+            }
             this.user = node.getProperty("hippolog:eventUser").getString();
             this.nameModel = nameModel;
         } catch (RepositoryException ex) {
@@ -173,6 +185,14 @@ public class EventModel implements IComponentAssignedModel<String> {
             return "yesterday";
         }
         return df.format(nodeCal);
+    }
+
+    public String getEventMethod() {
+        return this.eventMethod;
+    }
+
+    public String[] getArguments() {
+        return this.arguments;
     }
 
     private class AssignmentWrapper implements IWrapModel<String> {
