@@ -15,7 +15,9 @@
  */
 package org.hippoecm.frontend.plugins.console;
 
+import org.apache.wicket.ResourceReference;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.ResourceLink;
 import org.hippoecm.frontend.PluginRequestTarget;
 import org.hippoecm.frontend.js.GlobalJsResourceBehavior;
 import org.hippoecm.frontend.model.JcrNodeModel;
@@ -75,6 +77,9 @@ public class RootPlugin extends RenderPlugin {
         add(new PageLayoutBehavior(plSettings));
 
         add(new Label("pageTitle", getPageTitle(config)));
+
+        final String faviconPath = config.getString("favicon.path", "console-red.ico");
+        add(new ResourceLink("faviconLink", new ResourceReference(RootPlugin.class, faviconPath)));
     }
 
     @Override
