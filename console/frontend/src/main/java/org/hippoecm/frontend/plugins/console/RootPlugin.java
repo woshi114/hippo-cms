@@ -15,6 +15,7 @@
  */
 package org.hippoecm.frontend.plugins.console;
 
+import org.apache.wicket.markup.html.basic.Label;
 import org.hippoecm.frontend.PluginRequestTarget;
 import org.hippoecm.frontend.js.GlobalJsResourceBehavior;
 import org.hippoecm.frontend.model.JcrNodeModel;
@@ -72,6 +73,8 @@ public class RootPlugin extends RenderPlugin {
             throw new RuntimeException(e);
         }
         add(new PageLayoutBehavior(plSettings));
+
+        add(new Label("pageTitle", getPageTitle(config)));
     }
 
     @Override
@@ -82,6 +85,15 @@ public class RootPlugin extends RenderPlugin {
             rendered = true;
         }
         super.render(target);
+    }
+
+    private String getPageTitle(IPluginConfig config) {
+        StringBuilder pageTitle = new StringBuilder(config.getString("page.title", "Hippo CMS Console"));
+        if(config.getAsBoolean("page.title.showerservername", false)) {
+            pageTitle.append(config.getString("page.title.separator", "@"));
+            pageTitle.append(getWebRequest().getHttpServletRequest().getServerName());
+        }
+        return pageTitle.toString();
     }
 
 }
