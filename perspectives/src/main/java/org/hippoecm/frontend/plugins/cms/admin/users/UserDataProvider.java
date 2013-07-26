@@ -40,11 +40,12 @@ public class UserDataProvider extends SearchableDataProvider<User> {
     private static final String QUERY_USER_LIST_TEMPLATE = "SELECT * " +
                 "  FROM " + HippoNodeType.NT_USER
                 +" WHERE (hipposys:system <> 'true' OR hipposys:system IS NULL) AND " +
-                            "(" +
+                            " ( " +
+                                " fn:name() = '{}' OR " +
                                 " jcr:contains(hipposys:firstname, '{}') OR "+
                                 " jcr:contains(hipposys:lastname, '{}') OR "+
-                                " jcr:contains(hipposys:email, '{}')"+
-                            ")";
+                                " jcr:contains(hipposys:email, '{}') "+
+                            " ) ";
 
     public UserDataProvider() {
         super(QUERY_USER_LIST, QUERY_USER_LIST_TEMPLATE, "/hippo:configuration/hippo:users", HippoNodeType.NT_USER, HippoNodeType.NT_USERFOLDER);
