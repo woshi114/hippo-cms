@@ -38,7 +38,7 @@ public class GroupDataProvider extends SearchableDataProvider<Group> {
 
     private static final String QUERY_GROUP_LIST_TEMPLATE = "SELECT * " +
                     " FROM " + HippoNodeType.NT_GROUP +
-                    " WHERE (hipposys:system <> 'true' OR hipposys:system IS NULL) OR " +
+                    " WHERE (hipposys:system <> 'true' OR hipposys:system IS NULL) AND " +
                           " (  jcr:contains(hipposys:description, '{}') OR " +
                               "jcr:contains(hipposys:members, '{}') OR " +
                               "jcr:contains(hipposys:groups, '{}') " +
