@@ -1,3 +1,18 @@
+/*
+ *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 package org.hippoecm.frontend.plugins.console;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,20 +27,22 @@ import org.apache.wicket.protocol.http.WebRequest;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.service.render.RenderPlugin;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TopPlugin extends RenderPlugin {
+
+    static final Logger log = LoggerFactory.getLogger(RootPlugin.class);
 
     public TopPlugin(final IPluginContext context, final IPluginConfig config) {
         super(context, config);
 
-        WebMarkupContainerWithAssociatedMarkup breadcrumb =
-                    new WebMarkupContainerWithAssociatedMarkup("bar.styles");
+        WebMarkupContainerWithAssociatedMarkup breadcrumb = new WebMarkupContainerWithAssociatedMarkup("bar.styles");
 
         breadcrumb.add(new AbstractBehavior() {
-
             public void onComponentTag(Component component, ComponentTag tag) {
                 String style = obtainBreadcrumbStyle(config);
-                if (StringUtils.isNotEmpty(style)); {
+                if (style != null) {
                     tag.put("style", style);
                 }
             }
@@ -35,36 +52,42 @@ public class TopPlugin extends RenderPlugin {
     }
 
     public String obtainBreadcrumbStyle(IPluginConfig config){
-
-        String[] urlparts = config.getStringArray("bar.style.urlparts");
+        String[] urlParts = config.getStringArray("bar.style.urlparts");
         String[] barStyles = config.getStringArray("bar.styles");
 
-            if(urlparts != null){
-            for (int i = 0 ; urlparts.length > i; i++){
+        if(urlParts == null || barStyles == null) {
+            return null;
+        }
+        if(urlParts.length != barStyles.length) {
+            log.warn("Number of values on the properties \"bar.style.urlparts\" and \"bar.styles\" must be equal on "
+                    + config);
+            return null;
+        }
 
-                if (StringUtils.isNotEmpty(urlparts[i])){
-                    String urlpart = urlparts[i];
-                    String url = getRequestUrl();
-                    if(url.contains(urlpart) && barStyles != null && StringUtils.isNotBlank(barStyles[i])){
+        String requestUrl = getRequestUrl();
+        if(requestUrl != null) {
+            for (int i = 0 ; urlParts.length > i; i++) {
+                if (StringUtils.isNotEmpty(urlParts[i])) {
+                    String urlpart = urlParts[i];
+                    if(requestUrl.contains(urlpart) && StringUtils.isNotBlank(barStyles[i])) {
                         return barStyles[i];
                     }
                 }
             }
         }
 
-        return "";
+        return null;
     }
 
-    private String getRequestUrl(){
+    private String getRequestUrl() {
         // this is a wicket-specific request interface
         final Request request = getRequest();
-        if(request instanceof WebRequest){
-            final WebRequest wr = (WebRequest) request;
+        if(request instanceof WebRequest) {
+            final WebRequest webRequest = (WebRequest) request;
             // but this is the real thing
-            final HttpServletRequest hsr = wr.getHttpServletRequest();
-            return hsr.getRequestURL().toString();
+            final HttpServletRequest httpServletRequest = webRequest.getHttpServletRequest();
+            return httpServletRequest.getRequestURL().toString();
         }
         return null;
-
     }
 }
