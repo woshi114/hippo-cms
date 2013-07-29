@@ -37,9 +37,9 @@ public class TopPlugin extends RenderPlugin {
     public TopPlugin(final IPluginContext context, final IPluginConfig config) {
         super(context, config);
 
-        WebMarkupContainerWithAssociatedMarkup breadcrumb = new WebMarkupContainerWithAssociatedMarkup("bar.styles");
+        WebMarkupContainerWithAssociatedMarkup toolbar = new WebMarkupContainerWithAssociatedMarkup("bar.styles");
 
-        breadcrumb.add(new AbstractBehavior() {
+        toolbar.add(new AbstractBehavior() {
             public void onComponentTag(Component component, ComponentTag tag) {
                 String style = obtainBreadcrumbStyle(config);
                 if (style != null) {
@@ -48,7 +48,7 @@ public class TopPlugin extends RenderPlugin {
             }
         });
 
-        add(breadcrumb);
+        add(toolbar);
     }
 
     public String obtainBreadcrumbStyle(IPluginConfig config){
@@ -66,10 +66,10 @@ public class TopPlugin extends RenderPlugin {
 
         String requestUrl = getRequestUrl();
         if(requestUrl != null) {
-            for (int i = 0 ; urlParts.length > i; i++) {
+            for (int i = 0 ; i < urlParts.length; i++) {
                 if (StringUtils.isNotEmpty(urlParts[i])) {
-                    String urlpart = urlParts[i];
-                    if(requestUrl.contains(urlpart) && StringUtils.isNotBlank(barStyles[i])) {
+                    String urlPart = urlParts[i];
+                    if(requestUrl.contains(urlPart) && StringUtils.isNotBlank(barStyles[i])) {
                         return barStyles[i];
                     }
                 }

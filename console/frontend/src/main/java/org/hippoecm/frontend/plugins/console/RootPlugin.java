@@ -94,7 +94,7 @@ public class RootPlugin extends RenderPlugin {
 
     private String getPageTitle(IPluginConfig config) {
         StringBuilder pageTitle = new StringBuilder(config.getString("page.title", "Hippo CMS Console"));
-        if(config.getAsBoolean("page.title.showerservername", false)) {
+        if(config.getAsBoolean("page.title.showservername", false)) {
             pageTitle.append(config.getString("page.title.separator", "@"));
             pageTitle.append(getWebRequest().getHttpServletRequest().getServerName());
         }
