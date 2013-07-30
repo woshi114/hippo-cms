@@ -404,6 +404,11 @@ public class PluginUserSession extends UserSession {
     }
 
     void unbind() {
+        if (fallbackSession != null) {
+            fallbackSession.logout();
+            fallbackSession = null;
+        }
+
         releaseJcrSession();
 
         JcrObservationManager.getInstance().cleanupListeners(this);
