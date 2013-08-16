@@ -251,11 +251,14 @@ public class TranslateWorkflowImpl implements TranslateWorkflow, InternalWorkflo
                     }
                 }
             } finally { // http://java.sun.com/j2se/1.5.0/docs/guide/net/http-keepalive.html
-                connection.getInputStream().close();
-                if (connection.getErrorStream() != null) {
-                    connection.getErrorStream().close();
+                if (connection != null) {
+                    connection.getInputStream().close();
                     if (parametersWriter != null) {
                         parametersWriter.close();
+                    }
+
+                    if (connection.getErrorStream() != null) {
+                        connection.getErrorStream().close();
                     }
                 }
             }
