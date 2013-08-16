@@ -219,7 +219,7 @@ public class BrokenLinksListColumns implements IClusterable {
             }
 
             Locale locale = Session.get().getLocale();
-            DateTimeFormatter formatter = DateTimeFormat.forPattern("d-MMM-yyyy").withLocale(locale);
+            DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm").withLocale(locale);
 
             try {
                 final DateTime date = new DateTime(dateProperty.getDate());
@@ -342,7 +342,7 @@ public class BrokenLinksListColumns implements IClusterable {
         public String getValue(final Node node) throws RepositoryException {
             StringBuilder aggregateCell = new StringBuilder();
             Locale locale = Session.get().getLocale();
-            DateTimeFormatter formatter = DateTimeFormat.forPattern("d-MMM-yyyy").withLocale(locale);
+            DateTimeFormatter formatter = DateTimeFormat.forPattern("yyyy-MM-dd HH:mm").withLocale(locale);
 
             NodeIterator linksIterator = node.getNodes("brokenlinks:link");
             Property dateProperty = null;
