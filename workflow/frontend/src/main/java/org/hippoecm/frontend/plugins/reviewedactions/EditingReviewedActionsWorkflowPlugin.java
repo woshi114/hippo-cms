@@ -68,7 +68,7 @@ public class EditingReviewedActionsWorkflowPlugin extends RenderPlugin {
         super(context, config);
 
         add(new StdWorkflow("save", new StringResourceModel("save", this, null, "Save"),
-                new ResourceReference(EditingReviewedActionsWorkflowPlugin.class, "document-save-16.png"), getModel()) {
+                new ResourceReference(EditingReviewedActionsWorkflowPlugin.class, "document-save-16.png"), context, getModel()) {
 
             @Override
             protected String execute(Workflow wf) throws Exception {
@@ -103,7 +103,7 @@ public class EditingReviewedActionsWorkflowPlugin extends RenderPlugin {
         });
 
         add(new StdWorkflow("done", new StringResourceModel("done", this, null, "Done"),
-                new ResourceReference(EditingReviewedActionsWorkflowPlugin.class, "document-saveclose-16.png"), getModel()) {
+                new ResourceReference(EditingReviewedActionsWorkflowPlugin.class, "document-saveclose-16.png"), context, getModel()) {
 
             @Override
             public String execute(Workflow wf) throws Exception {
