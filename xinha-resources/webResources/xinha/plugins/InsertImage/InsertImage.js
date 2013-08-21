@@ -46,7 +46,7 @@ InsertImage.prototype.prepareDialog = function()
     // Connect the OK button
     var self = this;
     this.dialog.onOk = function(values) {
-        
+
         //Workaround for strange value.value approach of f_align in Xinha/modules/InsertImage/pluginMethods.js ..
         if(!YAHOO.lang.isUndefined(values.f_align)) {
             values.f_align = {value: values.f_align};
@@ -165,14 +165,15 @@ InsertImage.prototype.apply = function()
   {
     if ( Xinha.is_ie )
     {
-      var sel = editor.getSelection();
-      var range = editor.createRange(sel);
       editor._doc.execCommand("insertimage", false, param.f_url);
-      img = range.parentElement();
-      // wonder if this works...
-      if ( img.tagName.toLowerCase() != "img" )
-      {
-        img = img.previousSibling;
+
+      var images = editor._doc.getElementsByTagName("img");
+      for (var i = 0; i < images.length; i++) {
+        if (images[i].getAttribute("src") === param.f_url
+            && !images[i].getAttribute("facetselect")) {
+          img = images[i];
+          break;
+        }
       }
     }
     else
