@@ -44,7 +44,7 @@ public class DocumentTranslationView extends ExtPanel {
 
     static final Logger log = LoggerFactory.getLogger(DocumentTranslationView.class);
 
-    private ExtJsonStore<FolderTranslation> store;
+    private FolderTranslationStore store;
     private AbstractAjaxBehavior codecBehavior;
     private LocaleImageService imageService;
 
@@ -95,6 +95,10 @@ public class DocumentTranslationView extends ExtPanel {
         properties.put("emptyImg", rc.urlFor(new ResourceReference(getClass(), "empty.png")));
         properties.put("folderImg", rc.urlFor(new ResourceReference(getClass(), "folder.png")));
         properties.put("documentImg", rc.urlFor(new ResourceReference(getClass(), "doc.png")));
+    }
+
+    public FolderTranslationStore getStore() {
+        return this.store;
     }
 
 }

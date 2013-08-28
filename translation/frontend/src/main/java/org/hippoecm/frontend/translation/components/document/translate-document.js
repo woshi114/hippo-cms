@@ -15,10 +15,10 @@
  */
 
 
-if (Hippo.Translation.WicketHook === undefined) {
+if (Hippo.Translation.Dialog === undefined) {
     (function() {
 
-        Hippo.Translation.WicketHook = {
+        Hippo.Translation.Dialog = {
             listeners: [],
 
             cleanup: function() {
@@ -35,7 +35,7 @@ if (Hippo.Translation.WicketHook === undefined) {
                 }
             },
 
-            preAjaxCall: function() {
+            update: function() {
                 var i, len, listener, el;
                 for (i = 0, len = this.listeners.length; i < len; i++) {
                     listener = this.listeners[i];
@@ -53,9 +53,6 @@ if (Hippo.Translation.WicketHook === undefined) {
 
         };
     }());
-    Wicket.Ajax.registerPreCallHandler(function() {
-        Hippo.Translation.WicketHook.preAjaxCall();
-    });
 }
 
 Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
@@ -106,7 +103,7 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
             };
             xhr.open('POST', self.codecUrl + "&" + Ext.urlEncode({name: value}), async);
             xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.setRequestHeader('Wicket-Ajax', "true");
+            xhr.setRequestHeader('Wicket-Ajax', 'true');
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
                     handleResponse();
@@ -121,7 +118,7 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
             }
         };
 
-        Hippo.Translation.WicketHook.addListener(config.id, function() {
+        Hippo.Translation.Dialog.addListener(config.id, function() {
             var record = self.record;
             if (record !== null && self.dirty.indexOf(record) !== -1 && !record.checked) {
                 self.updateUrl(record, record.get('namefr'), false);
@@ -343,14 +340,6 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
                 this.dirty[i].markDirty();
             }
             this.dirty = [];
-        }, this);
-        this.on('render', function() {
-            var self = this;
-            Hippo.Translation.WicketHook.addListener(this.getEl().id, function() {
-                if (self.dirty.length > 0) {
-                    self.store.save();
-                }
-            });
         }, this);
     },
 
