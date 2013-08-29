@@ -31,6 +31,7 @@ import org.apache.wicket.RequestCycle;
 import org.apache.wicket.ResourceReference;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AbstractAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.IBehavior;
 import org.apache.wicket.markup.ComponentTag;
@@ -54,6 +55,7 @@ import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.richtext.RichTextArea;
 import org.hippoecm.frontend.plugins.richtext.RichTextModel;
 import org.hippoecm.frontend.plugins.standards.diff.HtmlDiffModel;
+import org.hippoecm.frontend.plugins.xinha.behavior.StateChangeBehavior;
 import org.hippoecm.frontend.plugins.xinha.dialog.XinhaDialogBehavior;
 import org.hippoecm.frontend.plugins.xinha.dialog.links.ExternalLinkBehavior;
 import org.hippoecm.frontend.plugins.xinha.json.JsonParser;
@@ -75,12 +77,10 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
 
     private static final String[] defaultFormatBlock = { "h1", "h2", "h3", "h4", "h5", "h6", "p", "address", "pre" };
 
-    private static final ResourceReference XINHA_MODAL_JS = new JavascriptResourceReference(XinhaDialogBehavior.class,
-            "xinha-modal.js");
-
     private final PackagedTextTemplate XINHA_INIT_GLOBALS = new PackagedTextTemplate(AbstractXinhaPlugin.class,
             "xinha_init.js");
-
+    private static final ResourceReference XINHA_MODAL_JS = new JavascriptResourceReference(XinhaDialogBehavior.class,
+            "xinha-modal.js");
     private static final ResourceReference XINHA_TOOLS_JS = new JavascriptResourceReference(AbstractXinhaPlugin.class,
             "xinha-tools.js");
     private static final ResourceReference XINHA_TOOLS_DEV_JS = new JavascriptResourceReference(AbstractXinhaPlugin.class,
@@ -98,7 +98,7 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
     private IBehavior tabIndex;
 
     //editor behaviors
-    private ExternalLinkBehavior externalLinkBehavior;
+    private Map<String, IBehavior> editorPluginBehaviors;
 
     private JcrNodeModel nodeModel;
 
@@ -106,7 +106,6 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
         super(context, config);
 
         configuration = new Configuration(config);
-
         configuration.setName(getMarkupId());
 
         mode = IEditor.Mode.fromString(config.getString("mode", "view"));
@@ -136,6 +135,8 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
     }
 
     private void load() {
+        editorPluginBehaviors = new HashMap<String, IBehavior>();
+
         addOrReplace(IEditor.Mode.EDIT == mode ? configuration.getEditorStarted() ? createEditor("fragment")
                 : createEditablePreview("fragment") : createPreview("fragment"));
     }
@@ -238,8 +239,32 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
         editor.setHeight(getPluginConfig().getString("height", "1px"));
         configuration.setTextareaName(editor.getMarkupId());
 
-        editor.add(externalLinkBehavior = new ExternalLinkBehavior(getPluginContext(), getPluginConfig()));
+        createEditorPluginBehaviors();
+
+        for (IBehavior behavior : editorPluginBehaviors.values()) {
+            editor.add(behavior);
+        }
+
         return fragment;
+    }
+
+    protected void createEditorPluginBehaviors() {
+        editorPluginBehaviors.put("CreateExternalLink",
+                new ExternalLinkBehavior(getPluginContext(), getPluginConfig()));
+
+        editorPluginBehaviors.put("StateChange", new StateChangeBehavior(configuration) {
+
+            @Override
+            protected void onStateChanged(final String param, final boolean value, final AjaxRequestTarget target) {
+                if (ACTIVATED.equals(param) && !value) {
+                    load();
+                    String script = String.format("YAHOO.hippo.EditorManager.deactivateEditor('%s');",
+                            configuration.getName());
+                    target.prependJavascript(script);
+                    target.addComponent(AbstractXinhaPlugin.this);
+                }
+            }
+        });
     }
 
     /**
@@ -250,9 +275,17 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
         if (configuration != null && configuration.getEditorStarted()) {
             configuration.addProperty("callbackUrl", editor.getCallbackUrl());
 
-            if (configuration.getPluginConfiguration("CreateExternalLink") != null) {
-                configuration.getPluginConfiguration("CreateExternalLink").addProperty("callbackUrl",
-                        externalLinkBehavior.getCallbackUrl().toString());
+            for (String plugin : editorPluginBehaviors.keySet()) {
+                IBehavior behavior = editorPluginBehaviors.get(plugin);
+                if (behavior instanceof AbstractAjaxBehavior) {
+                    PluginConfiguration config = configuration.getPluginConfiguration(plugin);
+                    if (config == null) {
+                        config = new PluginConfiguration(plugin);
+                    }
+                    config.addProperty("callbackUrl", ((AbstractAjaxBehavior) behavior).getCallbackUrl().toString());
+
+                    configuration.addPluginConfiguration(config);
+                }
             }
         }
         super.onBeforeRender();
@@ -338,6 +371,8 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
         sb.append(", ");
         sb.append("focus: ").append(configuration.getFocusAfterLoad());
         sb.append(", ");
+        sb.append("fullscreen: ").append(configuration.isRenderFullscreen());
+        sb.append(", ");
         sb.append("properties: ").append(JsonParser.asKeyValueArray(configuration.getProperties()));
         sb.append(", ");
         sb.append("plugins: ").append(JsonParser.asArray(configuration.getPluginConfigurations()));
@@ -395,6 +430,7 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
 
         private boolean focusAfterLoad;
         private boolean editorStarted;
+        private boolean renderFullscreen;
 
         //Xinha built-in options
         private final String skin;
@@ -488,6 +524,14 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
 
         public void setEditorStarted(boolean set) {
             this.editorStarted = set;
+        }
+
+        public boolean isRenderFullscreen() {
+            return renderFullscreen;
+        }
+
+        public void setRenderFullscreen(final boolean renderFullscreen) {
+            this.renderFullscreen = renderFullscreen;
         }
 
         public void setTextareaName(String name) {
