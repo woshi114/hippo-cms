@@ -49,6 +49,9 @@ public class ValueTemplatePlugin extends RenderPlugin<String> {
             if (config.getString("size") != null) {
                 widget.setSize(config.getString("size"));
             }
+            if (config.getString("maxlength") != null) {
+                widget.setMaxlength(config.getString("maxlength"));
+            }
             add(widget);
         } else if (IEditor.Mode.COMPARE == mode) {
             final IModel<?> baseModel = context.getService(config.getString("model.compareTo"), IModelReference.class)

@@ -28,6 +28,8 @@ public class TextFieldWidget extends AjaxUpdatingWidget<String> {
 
     private String size;
 
+    private String maxlength;
+
     public TextFieldWidget(String id, IModel<String> model) {
         this(id, model, null);
     }
@@ -44,6 +46,9 @@ public class TextFieldWidget extends AjaxUpdatingWidget<String> {
 
             @Override
             protected void onComponentTag(final ComponentTag tag) {
+                if (getMaxlength() != null) {
+                    tag.put("maxlength", getMaxlength());
+                }
                 if (getSize() != null) {
                     tag.put("size", getSize());
                 }
@@ -62,5 +67,13 @@ public class TextFieldWidget extends AjaxUpdatingWidget<String> {
 
     public String getSize() {
         return size;
+    }
+
+    public String getMaxlength() {
+        return maxlength;
+    }
+
+    public void setMaxlength(String maxlength) {
+        this.maxlength = maxlength;
     }
 }
