@@ -15,10 +15,10 @@
  */
 
 
-if (Hippo.Translation.Dialog === undefined) {
+if (Hippo.Translation.WicketHook == undefined) {
   (function() {
 
-    Hippo.Translation.Dialog = {
+    Hippo.Translation.WicketHook = {
       listeners: [],
 
       cleanup: function() {
@@ -32,7 +32,7 @@ if (Hippo.Translation.Dialog === undefined) {
         }
       },
 
-      update: function() {
+      preAjaxCall: function() {
         var listenersLength = this.listeners.length;
         for (var i = 0; i < listenersLength; i++) {
           var listener = this.listeners[i];
@@ -50,6 +50,9 @@ if (Hippo.Translation.Dialog === undefined) {
 
     };
   })();
+  Wicket.Ajax.registerPreCallHandler(function() { 
+    Hippo.Translation.WicketHook.preAjaxCall();
+  });
 }
 
 Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
@@ -113,7 +116,7 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
         }
     };
 
-    Hippo.Translation.Dialog.addListener(config.id, function() {
+    Hippo.Translation.WicketHook.addListener(config.id, function() {
         var record = self.record;
         if (record !== null && self.dirty.indexOf(record) !== -1 && !record.checked) {
             self.updateUrl(record, record.get('namefr'), false);
@@ -314,6 +317,14 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
         this.dirty[i].markDirty();
       }
       this.dirty = [];
+    }, this);
+    this.on('render', function() {
+      var self = this;
+      Hippo.Translation.WicketHook.addListener(this.getEl().id, function() {
+        if (self.dirty.length > 0) {
+            self.store.save();
+        }
+      });
     }, this);
   },
 
