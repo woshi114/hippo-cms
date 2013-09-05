@@ -212,6 +212,9 @@ public abstract class AbstractFieldPlugin<P extends Item, C extends IModel> exte
     private boolean isFieldValid(final IValidationResult validation) {
         if(!validation.isValid()) {
             IFieldDescriptor field = getFieldHelper().getField();
+            if (field == null) {
+                return false;
+            }
             for (Violation violation : validation.getViolations()) {
                 Set<ModelPath> paths = violation.getDependentPaths();
                 for (ModelPath path : paths) {
@@ -231,7 +234,7 @@ public abstract class AbstractFieldPlugin<P extends Item, C extends IModel> exte
         IComparer comparer;
         IFieldDescriptor field = helper.getField();
         if (field != null) {
-            ITypeDescriptor type = helper.getField().getTypeDescriptor();
+            ITypeDescriptor type = field.getTypeDescriptor();
             if (type.isNode()) {
                 comparer = new NodeComparer(type);
             } else {
@@ -303,7 +306,7 @@ public abstract class AbstractFieldPlugin<P extends Item, C extends IModel> exte
             } else if (comparingController != null) {
                 oldProvider = getProvider(compareTo);
                 newProvider = getProvider(getModel());
-                comparingController.start(oldProvider, newProvider, helper.getField().getTypeDescriptor());
+                comparingController.start(oldProvider, newProvider);
             }
             restartTemplates = false;
         }
@@ -408,7 +411,8 @@ public abstract class AbstractFieldPlugin<P extends Item, C extends IModel> exte
         switch (mode) {
         case EDIT:
             final FieldItem itemRenderer = templateController.getFieldItem(renderer);
-            if (managedValidation && getFieldHelper().getField().isMultiple()) {
+            final IFieldDescriptor field = getFieldHelper().getField();
+            if (managedValidation && field != null && field.isMultiple()) {
                 item.setOutputMarkupId(true);
                 ValidationFilter listener = new ValidationFilter() {
                     private static final long serialVersionUID = 1L;
@@ -482,10 +486,14 @@ public abstract class AbstractFieldPlugin<P extends Item, C extends IModel> exte
     protected boolean doesTemplateSupportValidation() {
         ITemplateEngine engine = getTemplateEngine();
         IFieldDescriptor field = helper.getField();
-        try {
-            IClusterConfig template = engine.getTemplate(field.getTypeDescriptor(), mode);
-            return (template.getReferences().contains(IValidationService.VALIDATE_ID));
-        } catch (TemplateEngineException e) {
+        if (field != null) {
+            try {
+                IClusterConfig template = engine.getTemplate(field.getTypeDescriptor(), mode);
+                return (template.getReferences().contains(IValidationService.VALIDATE_ID));
+            } catch (TemplateEngineException e) {
+                return false;
+            }
+        } else {
             return false;
         }
     }
@@ -509,6 +517,9 @@ public abstract class AbstractFieldPlugin<P extends Item, C extends IModel> exte
         }
         ITemplateEngine engine = getTemplateEngine();
         IFieldDescriptor field = helper.getField();
+        if (field == null) {
+            throw new TemplateEngineException("No field available to locate template");
+        }
         IClusterConfig template;
         try {
             template = engine.getTemplate(field.getTypeDescriptor(), mode);
