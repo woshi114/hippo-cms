@@ -15,13 +15,15 @@
  */
 package org.hippoecm.frontend.plugins.console.editor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -36,7 +38,7 @@ import org.hippoecm.frontend.model.properties.JcrPropertyValueModel;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.frontend.widgets.TextFieldWidget;
 
-class HstTemplateEditor extends Panel {
+class HstReferenceEditor extends Panel {
     private static final long serialVersionUID = 1L;
 
     private static final String NODE_HST_CONFIGURATION = "hst:configuration";
@@ -47,12 +49,24 @@ class HstTemplateEditor extends Panel {
     private static final String PROPERTY_HST_TEMPLATE = "hst:template";
     private static final String PROPERTY_HST_RENDERPATH = "hst:renderpath";
     private static final String PROPERTY_HST_SCRIPT = "hst:script";
+    private static final String PROPERTY_HST_COMPONENTCONFIGURATIONID = "hst:componentconfigurationid";
+    private static final String PROPERTY_HST_REFERENCECOMPONENT = "hst:referencecomponent";
+    private static final String PROPERTY_HST_COMPONENTCLASSNAME = "hst:componentclassname";
 
-    HstTemplateEditor(String id, JcrPropertyModel propertyModel, JcrPropertyValueModel valueModel) {
+    private static List<String> referenceProperties = new ArrayList<String>(3);
+    static {
+        referenceProperties.add(PROPERTY_HST_TEMPLATE);
+        referenceProperties.add(PROPERTY_HST_COMPONENTCONFIGURATIONID);
+        referenceProperties.add(PROPERTY_HST_REFERENCECOMPONENT);
+    }
+
+    HstReferenceEditor(String id, JcrPropertyModel propertyModel, JcrPropertyValueModel valueModel) {
         super(id);
         try {
+            final boolean isHstTemplate = propertyModel.getProperty().getName().equals(PROPERTY_HST_TEMPLATE);
+
             String stringValue = valueModel.getValue().getString();
-            Node targetNode = getHstTemplateNode(propertyModel, stringValue);
+            Node targetNode = getHstReferencedNode(propertyModel, stringValue, isHstTemplate);
 
             // link to referenced node
             AjaxLink link = new AjaxLink("reference-link", new JcrNodeModel(targetNode)) {
@@ -65,7 +79,7 @@ class HstTemplateEditor extends Panel {
                 }
             };
             add(link);
-            addLinkTitle(link, targetNode);
+            addLinkTitle(link, targetNode, propertyModel.getProperty().getName());
             link.add(new Label("reference-link-text", new Model(targetNode.getPath())));
 
             // input field
@@ -78,7 +92,7 @@ class HstTemplateEditor extends Panel {
             editor.setSize("40");
             add(editor);
 
-            DisabledLink link = new DisabledLink("reference-link", new Model(getString("template-not-found")));
+            DisabledLink link = new DisabledLink("reference-link", new Model(getString("reference-not-found")));
             link.add(new AttributeAppender("style", new Model("color:red"), " "));
             add(link);
 
@@ -88,22 +102,30 @@ class HstTemplateEditor extends Panel {
         }
     }
 
-    private void addLinkTitle(final AjaxLink link, final Node targetNode) throws RepositoryException {
-        if(targetNode.hasProperty(PROPERTY_HST_RENDERPATH)) {
-            link.add(new SimpleAttributeModifier("title", targetNode.getProperty(PROPERTY_HST_RENDERPATH).getString()));
-        } else if (targetNode.hasProperty(PROPERTY_HST_SCRIPT)) {
-            link.add(new SimpleAttributeModifier("title", getString("template-has-script")));
+    private void addLinkTitle(final AjaxLink link, final Node targetNode, final String propertyName) throws RepositoryException {
+        if (propertyName.equals(PROPERTY_HST_TEMPLATE)) {
+            if(targetNode.hasProperty(PROPERTY_HST_RENDERPATH)) {
+                link.add(new SimpleAttributeModifier("title", targetNode.getProperty(PROPERTY_HST_RENDERPATH).getString()));
+            } else if (targetNode.hasProperty(PROPERTY_HST_SCRIPT)) {
+                link.add(new SimpleAttributeModifier("title", getString("template-has-script")));
+            }
+        } else if(propertyName.equals(PROPERTY_HST_COMPONENTCONFIGURATIONID) || propertyName.equals(PROPERTY_HST_REFERENCECOMPONENT)) {
+            if(targetNode.hasProperty(PROPERTY_HST_COMPONENTCLASSNAME)) {
+                link.add(new SimpleAttributeModifier("title", targetNode.getProperty(PROPERTY_HST_COMPONENTCLASSNAME).getString()));
+            }
         }
     }
 
     /**
      * Get the hst:template node that a hst:template property refers to
+     *
      * @param propertyModel model representing the hst:template property
      * @param templateName the value of the property i.e. the name of the template node
+     * @param isHstTemplate true if the reference is to a hst:template node
      * @return the requested node or null
      * @throws RepositoryException for any unexpected repository problem
      */
-    private Node getHstTemplateNode(final JcrPropertyModel propertyModel, final String templateName) throws RepositoryException {
+    private Node getHstReferencedNode(final JcrPropertyModel propertyModel, final String templateName, final boolean isHstTemplate) throws RepositoryException {
         final Node rootNode = UserSession.get().getJcrSession().getRootNode();
 
         // first try: hst:templates in the current hst:configuration group
@@ -115,7 +137,7 @@ class HstTemplateEditor extends Panel {
             currentHstConfiguration = currentHstConfiguration.getParent();
         } while (!currentHstConfiguration.equals(rootNode));
 
-        Node templateNode = getTemplateNode(currentHstConfiguration, templateName);
+        Node templateNode = getTemplateNode(currentHstConfiguration, templateName, isHstTemplate);
         if(templateNode != null) {
             return templateNode;
         }
@@ -125,7 +147,7 @@ class HstTemplateEditor extends Panel {
             final Value[] inheritFromPaths = currentHstConfiguration.getProperty(PROPERY_HST_INHERITSFROM).getValues();
             for(Value inheritsFromPath : inheritFromPaths) {
                 Node inheritedHstConfiguration = currentHstConfiguration.getNode(inheritsFromPath.getString());
-                templateNode = getTemplateNode(inheritedHstConfiguration, templateName);
+                templateNode = getTemplateNode(inheritedHstConfiguration, templateName, isHstTemplate);
                 if(templateNode != null) {
                     return templateNode;
                 }
@@ -143,7 +165,7 @@ class HstTemplateEditor extends Panel {
         } while (!hstDefaultConfiguration.equals(rootNode));
 
         if(hstDefaultConfiguration.hasNode(NODE_HST_TEMPLATES)) {
-            templateNode = getTemplateNode(hstDefaultConfiguration, templateName);
+            templateNode = getTemplateNode(hstDefaultConfiguration, templateName, isHstTemplate);
             if(templateNode != null) {
                 return templateNode;
             }
@@ -154,16 +176,22 @@ class HstTemplateEditor extends Panel {
 
     /**
      * Get a hst:template subnode of the hst:templates node
+     *
      * @param hstConfiguration a hst:configuration node that may have a named hst:template node
      * @param templateName the name of the template node to be retrieved
+     * @param isHstTemplate true if the reference is to a hst:template node
      * @return the requested node or null
      * @throws RepositoryException for any unexpected repository problem
      */
-    private Node getTemplateNode(final Node hstConfiguration, String templateName) throws RepositoryException {
-        if(hstConfiguration.hasNode(NODE_HST_TEMPLATES)) {
-            if(hstConfiguration.getNode(NODE_HST_TEMPLATES).hasNode(templateName)) {
-                return hstConfiguration.getNode(NODE_HST_TEMPLATES).getNode(templateName);
-            }
+    private Node getTemplateNode(final Node hstConfiguration, String templateName, final boolean isHstTemplate) throws RepositoryException {
+        StringBuilder relPath = new StringBuilder();
+        if(isHstTemplate) {
+            relPath.append(NODE_HST_TEMPLATES);
+            relPath.append("/");
+        }
+        relPath.append(templateName);
+        if(hstConfiguration.hasNode(relPath.toString())) {
+           return hstConfiguration.getNode(relPath.toString());
         }
         return null;
     }
@@ -173,13 +201,13 @@ class HstTemplateEditor extends Panel {
      * @param valueModel the model to inspect
      * @return true if the property is of type hst:template
      */
-    static boolean isHstTemplateReference(JcrPropertyValueModel valueModel) {
+    static boolean isHstReference(JcrPropertyValueModel valueModel) {
         if (valueModel == null) {
             return false;
         }
         try {
             Property property = valueModel.getJcrPropertymodel().getProperty();
-            return property.getName().equals(PROPERTY_HST_TEMPLATE);
+            return referenceProperties.contains(property.getName());
         } catch (RepositoryException e) {
             NodeEditor.log.error(e.getMessage());
             return false;
