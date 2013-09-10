@@ -113,22 +113,6 @@ public class EditorForm extends Form<Node> {
     protected void onSubmit() {
         super.onSubmit();
 
-        // do the validation
-        IValidationService validator = context.getService(config.getString(IValidationService.VALIDATE_ID),
-                IValidationService.class);
-        if (validator != null) {
-            try {
-                validator.validate();
-                IValidationResult result = validator.getValidationResult();
-                if (!result.isValid()) {
-                    log.debug("Invalid model {}", getModel());
-                }
-            } catch (ValidationException e) {
-                log.warn("Failed to validate " + getModel());
-            }
-        } else {
-            log.info("No validator configured");
-        }
     }
 
     @Override
