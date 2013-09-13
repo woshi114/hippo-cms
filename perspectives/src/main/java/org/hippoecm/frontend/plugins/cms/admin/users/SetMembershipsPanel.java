@@ -112,9 +112,7 @@ public class SetMembershipsPanel extends Panel {
                     log.error("Failed to add memberships", e);
                 }
                 target.addComponent(localMembershipContainer);
-                target.addComponent(externalMembershipsContainer);
             }
-
         };
         form.add(submit);
 
@@ -136,12 +134,11 @@ public class SetMembershipsPanel extends Panel {
 
         // external memberships
         Label externalLabel = new Label("external-memberships-label", new ResourceModel("user-external-memberships"));
-        ListView externalList = new MembershipsListView("external-memberships", "external-membership", user);
+        ListView externalList = new MembershipsListView("external-memberships", "label", user);
         externalLabel.setVisible((user.getExternalMemberships().size() > 0));
         externalList.setVisible((user.getExternalMemberships().size() > 0));
         form.add(externalLabel);
         externalMembershipsContainer.add(externalList);
-
 
         // add a cancel/back button
         form.add(new AjaxButton("back-button") {
@@ -192,24 +189,8 @@ public class SetMembershipsPanel extends Panel {
             item.add(groupLink);
 
 
-            List<PermissionBean> groupPermissions = group.getPermissions();
-            Map<Domain, List<String>> domainsWithRoles = new HashMap<Domain, List<String>>();
-            for (PermissionBean permission : groupPermissions) {
-                Domain domain = permission.getDomain().getObject();
-                List<String> roles = domainsWithRoles.get(domain);
-                if (roles == null) {
-                    roles = new ArrayList<String>();
-                }
-                roles.add(permission.getAuthRole().getRole());
-                domainsWithRoles.put(domain, roles);
-            }
+            addDomainLinkListPanelForGroup(item, group);
 
-            DomainLinkListPanel domainLinkList = new DomainLinkListPanel(
-                    "securityDomains", domainsWithRoles,
-                    findParent(ViewUserPanel.class)
-            );
-
-            item.add(domainLinkList);
             item.add(new AjaxLinkLabel("remove", new ResourceModel("user-membership-remove-action")) {
                 private static final long serialVersionUID = 1L;
 
@@ -240,7 +221,7 @@ public class SetMembershipsPanel extends Panel {
     /**
      * list view to be nested in the form.
      */
-    private final class MembershipsListView extends ListView<DetachableGroup> {
+    private static final class MembershipsListView extends ListView<DetachableGroup> {
         private static final long serialVersionUID = 1L;
         private String labelId;
 
@@ -251,8 +232,13 @@ public class SetMembershipsPanel extends Panel {
         }
 
         protected void populateItem(final ListItem item) {
-            final DetachableGroup dg = (DetachableGroup) item.getModelObject();
-            item.add(new Label(labelId, dg.getGroup().getGroupname()));
+            DetachableGroup dg = (DetachableGroup) item.getModelObject();
+            Group group = dg.getGroup();
+            Label label = new Label(labelId, group.getGroupname());
+            label.setRenderBodyOnly(true);
+            item.add(label);
+
+            addDomainLinkListPanelForGroup(item, group);
         }
 
     }
@@ -267,4 +253,23 @@ public class SetMembershipsPanel extends Panel {
         return new StringResourceModel("user-set-memberships-title", component, userModel);
     }
 
+    private static void addDomainLinkListPanelForGroup(ListItem item, Group group) {
+        List<PermissionBean> groupPermissions = group.getPermissions();
+        Map<Domain, List<String>> domainsWithRoles = new HashMap<Domain, List<String>>();
+        for (PermissionBean permission : groupPermissions) {
+            Domain domain = permission.getDomain().getObject();
+            List<String> roles = domainsWithRoles.get(domain);
+            if (roles == null) {
+                roles = new ArrayList<String>();
+            }
+            roles.add(permission.getAuthRole().getRole());
+            domainsWithRoles.put(domain, roles);
+        }
+
+        DomainLinkListPanel domainLinkList = new DomainLinkListPanel(
+                "securityDomains", domainsWithRoles, item.findParent(ViewUserPanel.class)
+        );
+
+        item.add(domainLinkList);
+    }
 }
