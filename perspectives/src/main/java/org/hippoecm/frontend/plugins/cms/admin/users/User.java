@@ -67,7 +67,7 @@ public class User implements Comparable<User>, IClusterable {
     public static final String PROP_PROVIDER = HippoNodeType.HIPPO_SECURITYPROVIDER;
     public static final String PROP_PREVIOUSPASSWORDS = HippoNodeType.HIPPO_PREVIOUSPASSWORDS;
     public static final String PROP_PASSWORDLASTMODIFIED = HippoNodeType.HIPPO_PASSWORDLASTMODIFIED;
-    public static final String PROP_SYSTEM = HippoNodeType.HIPPO_SYSTEM;
+    public static final String PROP_SYSTEM = "hipposys:system";
 
     private static final String QUERY_USER = "SELECT * FROM hipposys:user WHERE fn:name()='{}'";
 
