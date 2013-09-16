@@ -48,7 +48,10 @@ public class TranslationVirtualProvider extends HippoVirtualProvider {
     @SuppressWarnings("unused")
     private final static String SVN_ID = "$Id$";
 
-    static final Logger log = LoggerFactory.getLogger(TranslationVirtualProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(TranslationVirtualProvider.class);
+    private static final Logger translationsSizeLog = LoggerFactory.getLogger(TranslationVirtualProvider.class.getName() + "/TranslationsSize");
+
+    private static final int MAX_TRANSLATIONS = 100;
 
     private HippoVirtualProvider subNodesProvider;
     private FacetedNavigationEngine<Query, Context> facetedEngine;
@@ -173,6 +176,14 @@ public class TranslationVirtualProvider extends HippoVirtualProvider {
                 }
 
                 state.addChildNodeEntry(child.getValue().name, child.getValue());
+            }
+
+            final int numberOfTranslations = state.getChildNodeEntries().size();
+            if (numberOfTranslations > MAX_TRANSLATIONS) {
+                translationsSizeLog.warn("The translations node {} has {} translations which is more than {}. This usually " +
+                        "indicates a workflow misconfiguration.", new String[] {state.getNodeId().toString(),
+                        String.valueOf(numberOfTranslations), String.valueOf(MAX_TRANSLATIONS) });
+
             }
 
         }
