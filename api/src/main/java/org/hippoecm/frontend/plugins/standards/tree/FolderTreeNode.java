@@ -52,7 +52,7 @@ public class FolderTreeNode extends JcrTreeNode {
 
     @Override
     public IJcrTreeNode getChild(String name) throws RepositoryException {
-        if (getChainedModel().getObject().hasNode(name)) {
+        if (getChainedModel().getObject()!=null && getChainedModel().getObject().hasNode(name)) {
             JcrNodeModel childModel = new JcrNodeModel(getChainedModel().getObject().getNode(name));
             return new FolderTreeNode(childModel, this);
         }
