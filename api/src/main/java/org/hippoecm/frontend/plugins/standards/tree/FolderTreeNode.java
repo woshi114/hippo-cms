@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2013 Hippo.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -33,8 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FolderTreeNode extends JcrTreeNode {
-    @SuppressWarnings("unused")
-    private final static String SVN_ID = "$Id$";
     private static final long serialVersionUID = 1L;
     static final Logger log = LoggerFactory.getLogger(FolderTreeNode.class);
 
@@ -52,8 +50,9 @@ public class FolderTreeNode extends JcrTreeNode {
 
     @Override
     public IJcrTreeNode getChild(String name) throws RepositoryException {
-        if (getChainedModel().getObject()!=null && getChainedModel().getObject().hasNode(name)) {
-            JcrNodeModel childModel = new JcrNodeModel(getChainedModel().getObject().getNode(name));
+        final Node node = getChainedModel().getObject();
+        if (node != null && node.hasNode(name)) {
+            JcrNodeModel childModel = new JcrNodeModel(node.getNode(name));
             return new FolderTreeNode(childModel, this);
         }
         return null;
