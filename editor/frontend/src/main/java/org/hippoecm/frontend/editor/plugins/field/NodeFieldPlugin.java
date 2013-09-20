@@ -31,6 +31,7 @@ import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.hippoecm.frontend.editor.TemplateEngineException;
+import org.hippoecm.frontend.editor.plugins.fieldhint.FieldHint;
 import org.hippoecm.frontend.model.AbstractProvider;
 import org.hippoecm.frontend.model.ChildNodeProvider;
 import org.hippoecm.frontend.model.JcrItemModel;
@@ -65,6 +66,7 @@ public class NodeFieldPlugin extends AbstractFieldPlugin<Node, JcrNodeModel> {
         }
         add(required);
 
+        add(new FieldHint("hint-panel", config.getString("hint")));
         add(createAddLink());
     }
 

@@ -55,6 +55,7 @@ public class TextAreaWidget extends AjaxUpdatingWidget<String> {
                 super.onComponentTag(tag);
             }
         };
+        textArea.setType(String.class);
         addFormField(textArea);
     }
 

@@ -29,8 +29,8 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.hippoecm.frontend.editor.plugins.fieldhint.FieldHint;
 import org.hippoecm.frontend.model.AbstractProvider;
-import org.hippoecm.frontend.model.JcrItemModel;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.model.PropertyValueProvider;
 import org.hippoecm.frontend.model.event.IEvent;
@@ -77,6 +77,7 @@ public class PropertyFieldPlugin extends AbstractFieldPlugin<Property, JcrProper
         }
         add(required);
 
+        add(new FieldHint("hint-panel", config.getString("hint")));
         add(createAddLink());
     }
 

@@ -606,3 +606,8 @@ div.lock-ui {
   cursor: wait;
   opacity: 0.6;
 }
+
+/* Allow for the hint marker to be placed to the right of the caption. */
+.hippo-editor-field-title {
+    display:inline;
+}
