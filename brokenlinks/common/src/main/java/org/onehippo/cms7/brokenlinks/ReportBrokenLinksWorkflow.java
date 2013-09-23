@@ -22,6 +22,7 @@ import javax.jcr.RepositoryException;
 
 import org.hippoecm.repository.api.Workflow;
 import org.hippoecm.repository.api.WorkflowException;
+import org.hippoecm.repository.api.annotation.WorkflowAction;
 
 public interface ReportBrokenLinksWorkflow extends Workflow {
 
@@ -34,5 +35,6 @@ public interface ReportBrokenLinksWorkflow extends Workflow {
      * @throws RepositoryException
      * @throws RemoteException
      */
+    @WorkflowAction(loggable=false)
     void reportBrokenLinks(Collection<Link> brokenLinks) throws WorkflowException, RepositoryException, RemoteException;
 }
