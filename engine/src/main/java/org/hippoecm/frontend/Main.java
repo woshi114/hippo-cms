@@ -149,13 +149,8 @@ public class Main extends PluginApplication {
         IResourceSettings resourceSettings = getResourceSettings();
 
         // replace current loaders with own list, starting with component-specific
-        List<IStringResourceLoader> loaders = new ArrayList<IStringResourceLoader>(resourceSettings
-                .getStringResourceLoaders());
-        resourceSettings.addStringResourceLoader(new StringResourceProviderConsumer());
-        resourceSettings.addStringResourceLoader(new ClassFromKeyStringResourceLoader());
-        for (IStringResourceLoader loader : loaders) {
-            resourceSettings.addStringResourceLoader(loader);
-        }
+        resourceSettings.addStringResourceLoader(0, new StringResourceProviderConsumer());
+        resourceSettings.addStringResourceLoader(1, new ClassFromKeyStringResourceLoader());
 
         resourceSettings.setAddLastModifiedTimeToResourceReferenceUrl(true);
 
