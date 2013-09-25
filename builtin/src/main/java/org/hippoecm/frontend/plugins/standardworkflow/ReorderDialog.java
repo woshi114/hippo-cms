@@ -77,11 +77,13 @@ class ReorderDialog extends CompatibilityWorkflowPlugin.WorkflowAction.WorkflowD
         private IModel<String> displayName;
         private AttributeModifier cellModifier;
         private JcrNodeModel nodeModel;
+        private int index;
 
         ListItem(JcrNodeModel nodeModel, DocumentTypeIconAttributeModifier attributeModifier) {
             this.nodeModel = nodeModel;
             try {
                 name = nodeModel.getNode().getName();
+                index = nodeModel.getNode().getIndex();
                 displayName = new NodeTranslator(nodeModel).getNodeName();
                 cellModifier = attributeModifier.getCellAttributeModifier(nodeModel.getNode());
             } catch (RepositoryException e) {
@@ -95,6 +97,10 @@ class ReorderDialog extends CompatibilityWorkflowPlugin.WorkflowAction.WorkflowD
 
         public String getName() {
             return name;
+        }
+
+        public String getPathName() {
+            return name + (index > 1 ? "["+index+"]" : "");
         }
 
         public AttributeModifier getCellModifier() {
@@ -196,7 +202,7 @@ class ReorderDialog extends CompatibilityWorkflowPlugin.WorkflowAction.WorkflowD
         public List<String> getMapping() {
             LinkedList<String> newOrder = new LinkedList<String>();
             for (ListItem item : listItems) {
-                newOrder.add(item.getName());
+                newOrder.add(item.getPathName());
             }
             return newOrder;
         }
