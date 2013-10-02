@@ -42,13 +42,14 @@ public class UserDataProvider extends SearchableDataProvider<User> {
                 +" WHERE (hipposys:system <> 'true' OR hipposys:system IS NULL) AND " +
                             " ( " +
                                 " fn:name() = '{}' OR " +
-                                " jcr:contains(hipposys:firstname, '{}') OR "+
-                                " jcr:contains(hipposys:lastname, '{}') OR "+
-                                " jcr:contains(hipposys:email, '{}') "+
+                                " contains(hipposys:firstname, '{}') OR "+
+                                " contains(hipposys:lastname, '{}') OR "+
+                                " contains(hipposys:email, '{}') "+
                             " ) ";
 
     public UserDataProvider() {
-        super(QUERY_USER_LIST, QUERY_USER_LIST_TEMPLATE, "/hippo:configuration/hippo:users", HippoNodeType.NT_USER, HippoNodeType.NT_USERFOLDER);
+        super(QUERY_USER_LIST, QUERY_USER_LIST_TEMPLATE, "/hippo:configuration/hippo:users", HippoNodeType.NT_USER,
+                HippoNodeType.NT_USERFOLDER);
         setSort("username", true);
     }
 
