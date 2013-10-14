@@ -161,7 +161,7 @@
             <sv:value>154px</sv:value>
           </sv:property>
           <sv:property sv:name="fileupload.autoUpload" sv:type="String">
-            <sv:value>false</sv:value>
+            <sv:value>true</sv:value>
           </sv:property>
           <sv:property sv:name="fileupload.flashEnabled" sv:type="String">
             <sv:value>false</sv:value>
@@ -170,7 +170,7 @@
             <sv:value>true</sv:value>
           </sv:property>
           <sv:property sv:name="fileupload.clearTimeout" sv:type="String">
-            <sv:value>1000</sv:value>
+            <sv:value>500</sv:value>
           </sv:property>
           <sv:property sv:name="fileupload.hideBrowseDuringUpload" sv:type="String">
             <sv:value>true</sv:value>
