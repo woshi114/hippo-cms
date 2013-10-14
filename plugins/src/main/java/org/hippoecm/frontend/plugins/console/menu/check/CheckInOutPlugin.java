@@ -1,5 +1,5 @@
 /*
- *  Copyright 2011 Hippo.
+ *  Copyright 2011-2013 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,11 +19,9 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.ResourceReference;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.Model;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
@@ -36,7 +34,6 @@ public class CheckInOutPlugin extends RenderPlugin<Node> {
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(CheckInOutPlugin.class);
     
-    private final Image icon;
     private final AjaxLink<Void> link;
 
     public CheckInOutPlugin(IPluginContext context, IPluginConfig config) {
@@ -45,13 +42,19 @@ public class CheckInOutPlugin extends RenderPlugin<Node> {
         // set up label component
         final Label label = new Label("link-text", new Model<String>() {
             private static final long serialVersionUID = 1L;
-            @Override public String getObject() {
+
+            @Override
+            public String getObject() {
+                if (!isVersionable()) {
+                    return "";
+                }
                 return isCheckedOut() ? "Check In" : "Check Out";
             }
         });
         label.setOutputMarkupId(true);
         label.add(new AttributeModifier("style", true, new Model<String>() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public String getObject() {
                 if (!isVersionable()) {
@@ -60,65 +63,47 @@ public class CheckInOutPlugin extends RenderPlugin<Node> {
                 return isCheckedOut() ? "color:green" : "color:red";
             }
         }));
-        // set up icon component
-        icon = new Image("icon") {
-            private static final long serialVersionUID = 1L;
-            private final ResourceReference emptyGif 
-                = new ResourceReference(CheckInOutPlugin.class, "empty.gif");
-            private final ResourceReference checkedinIcon 
-                = new ResourceReference(CheckInOutPlugin.class, "checkedin.png");
-            private final ResourceReference checkedoutIcon 
-                = new ResourceReference(CheckInOutPlugin.class, "checkedout.png");
-            @Override
-            protected ResourceReference getImageResourceReference() {
-                if (!isVersionable()) {
-                    return emptyGif;
-                }
-                return isCheckedOut() ? checkedoutIcon : checkedinIcon;
-            }
-        };
-        icon.setOutputMarkupId(true);
-        add(icon);
         // set up link component
         link = new AjaxLink<Void>("link") {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (isVersionable()) {
                     if (isCheckedOut()) {
                         checkin();
-                    }
-                    else {
+                    } else {
                         checkout();
                     }
                 }
                 target.addComponent(label);
-                target.addComponent(icon);
             }
         };
         link.add(label);
         link.setEnabled(isVersionable());
         add(link);
     }
-    
+
     private boolean isCheckedOut() {
         try {
-            return getModelObject().isCheckedOut();
+            final Node node = getModelObject();
+            return node != null && node.isCheckedOut();
         } catch (RepositoryException e) {
             log.error("An error occurred determining if node is checked out.", e);
-            return false;
         }
+        return false;
     }
     
     private boolean isVersionable() {
         try {
-            return getModelObject() == null ? false : getModelObject().isNodeType("mix:versionable");
+            final Node node = getModelObject();
+            return node != null && node.isNodeType("mix:versionable");
         } catch (RepositoryException e) {
             log.error("An error occurred determining if node is versionable.", e);
             return false;
         }
     }
-    
+
     private void checkin() {
         try {
             getModelObject().checkin();
@@ -126,7 +111,7 @@ public class CheckInOutPlugin extends RenderPlugin<Node> {
             log.error("An error occurred trying to check in node.", e);
         }
     }
-    
+
     private void checkout() {
         try {
             getModelObject().checkout();
@@ -134,11 +119,10 @@ public class CheckInOutPlugin extends RenderPlugin<Node> {
             log.error("An error occurred trying to check out node.", e);
         }
     }
-        
+
     @Override
     protected void onModelChanged() {
         link.setEnabled(isVersionable());
-        icon.setEnabled(isVersionable());
         redraw();
     }
 
