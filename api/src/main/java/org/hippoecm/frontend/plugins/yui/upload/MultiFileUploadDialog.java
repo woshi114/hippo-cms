@@ -111,7 +111,7 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
         };
         closeButton.setEnabled(false);
         closeButton.setVisible(false);
-        closeButton.add(new InputBehavior(new KeyType[]{KeyType.Escape}, EventType.click));
+        closeButton.add(new InputBehavior(new KeyType[] { KeyType.Escape }, EventType.click));
         addButton(closeButton);
 
         String serviceId = pluginConfig.getString(FileUploadValidationService.VALIDATE_ID);

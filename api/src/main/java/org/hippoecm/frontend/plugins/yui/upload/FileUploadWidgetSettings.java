@@ -151,39 +151,24 @@ public class FileUploadWidgetSettings implements IClusterable {
     }
 
     private void parsePluginConfig(final IPluginConfig pluginConfig) {
-        if (pluginConfig.containsKey(FILEUPLOAD_FLASH_ENABLED_SETTING)) {
-            this.flashUploadEnabled = pluginConfig.getAsBoolean(FILEUPLOAD_FLASH_ENABLED_SETTING);
-        }
-        if (pluginConfig.containsKey(FILEUPLOAD_MAX_ITEMS_SETTING)) {
-            this.maxNumberOfFiles = pluginConfig.getAsInteger(FILEUPLOAD_MAX_ITEMS_SETTING);
-        }
+        autoUpload = pluginConfig.getAsBoolean(FILEUPLOAD_AUTOUPLOAD_SETTING, autoUpload);
+        maxNumberOfFiles = pluginConfig.getAsInteger(FILEUPLOAD_MAX_ITEMS_SETTING, maxNumberOfFiles);
+        flashUploadEnabled = pluginConfig.getAsBoolean(FILEUPLOAD_FLASH_ENABLED_SETTING, flashUploadEnabled);
+
+        buttonWidth = pluginConfig.getString(FILEUPLOAD_BUTTON_WIDTH, buttonWidth);
+        buttonHeight = pluginConfig.getString(FILEUPLOAD_BUTTON_HEIGHT, buttonHeight);
+
+        clearTimeout = pluginConfig.getAsInteger(FILEUPLOAD_CLEAR_TIMEOUT, clearTimeout);
+        clearAfterUpload = pluginConfig.getAsBoolean(FILEUPLOAD_CLEAR_AFTER_UPLOAD, clearAfterUpload);
+        hideBrowseDuringUpload = pluginConfig.getAsBoolean(FILEUPLOAD_HIDE_BROWSE_DURING_UPLOAD, hideBrowseDuringUpload);
+
         // for backwards compatibility
         if(pluginConfig.containsKey(FILE_EXTENSIONS_SETTING)) {
-            this.fileExtensions = pluginConfig.getStringArray(FILE_EXTENSIONS_SETTING);
+            fileExtensions = pluginConfig.getStringArray(FILE_EXTENSIONS_SETTING);
         }
         if(pluginConfig.containsKey(FILEUPLOAD_ALLOWED_EXTENSIONS_SETTING)) {
-            this.fileExtensions = pluginConfig.getStringArray(FILEUPLOAD_ALLOWED_EXTENSIONS_SETTING);
+            fileExtensions = pluginConfig.getStringArray(FILEUPLOAD_ALLOWED_EXTENSIONS_SETTING);
         }
-
-        if(pluginConfig.containsKey(FILEUPLOAD_AUTOUPLOAD_SETTING)) {
-            this.autoUpload = pluginConfig.getAsBoolean(FILEUPLOAD_AUTOUPLOAD_SETTING);
-        }
-        if(pluginConfig.containsKey(FILEUPLOAD_BUTTON_WIDTH)) {
-            this.buttonWidth = pluginConfig.getString(FILEUPLOAD_BUTTON_WIDTH);
-        }
-        if(pluginConfig.containsKey(FILEUPLOAD_BUTTON_HEIGHT)) {
-            this.buttonHeight = pluginConfig.getString(FILEUPLOAD_BUTTON_HEIGHT);
-        }
-        if(pluginConfig.containsKey(FILEUPLOAD_CLEAR_AFTER_UPLOAD)) {
-            this.clearAfterUpload = pluginConfig.getAsBoolean(FILEUPLOAD_CLEAR_AFTER_UPLOAD);
-        }
-        if(pluginConfig.containsKey(FILEUPLOAD_CLEAR_TIMEOUT)) {
-            this.clearTimeout = pluginConfig.getAsInteger(FILEUPLOAD_CLEAR_TIMEOUT);
-        }
-        if(pluginConfig.containsKey(FILEUPLOAD_HIDE_BROWSE_DURING_UPLOAD)) {
-            this.hideBrowseDuringUpload = pluginConfig.getAsBoolean(FILEUPLOAD_HIDE_BROWSE_DURING_UPLOAD);
-        }
-
     }
 
 }

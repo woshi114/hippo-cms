@@ -52,7 +52,6 @@ public class FileUploadWidget extends Panel {
 
     private static final long serialVersionUID = 1L;
 
-
     final Logger log = LoggerFactory.getLogger(FileUploadWidget.class);
 
     private static final String COMPONENT_ID = "component";
@@ -151,6 +150,7 @@ public class FileUploadWidget extends Panel {
         ajaxSettings.setHideBrowseDuringUpload(settings.isHideBrowseDuringUpload());
         ajaxSettings.setAjaxIndicatorId(getAjaxIndicatorId());
         ajaxSettings.setButtonWidth(settings.getButtonWidth());
+        ajaxSettings.setMaxNumberOfFiles(settings.getMaxNumberOfFiles());
         replace(panel = new AjaxMultiFileUploadComponent(COMPONENT_ID, ajaxSettings) {
 
             @Override
@@ -187,16 +187,14 @@ public class FileUploadWidget extends Panel {
     }
 
     protected void renderJavascriptUpload() {
-        int max = settings.isAutoUpload() ? 1 : settings.getMaxNumberOfFiles();
-        replace(panel = new MultiFileUploadComponent(COMPONENT_ID, max));
+        replace(panel = new MultiFileUploadComponent(COMPONENT_ID, settings));
     }
 
     protected void onFinishAjaxUpload(AjaxRequestTarget target) {
     }
 
     /**
-     * The HTML4 upload will collect the new files in the MultiFileUploadComponent, after the form
-     * has been completly submitted, onFinishHtmlUpload is called which will process
+     * The HTML4 upload collects the new files after the form has been fully posted to the server.
      */
     public void onFinishHtmlUpload() {
         onFinishUpload();
