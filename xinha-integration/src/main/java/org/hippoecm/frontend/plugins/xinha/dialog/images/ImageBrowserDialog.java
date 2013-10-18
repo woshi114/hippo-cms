@@ -96,6 +96,8 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
     public final static List<String> ALIGN_OPTIONS = Arrays.asList("top", "middle", "bottom", "left", "right");
     private static final String CONFIG_KEY_PREFERRED_RESOURCE_NAMES = "preferred.resource.names";
     private static final String GALLERY_TYPE_SELECTOR_ID = "galleryType";
+    public static final String BLACKLIST_NAME_TYPES = "blacklist.nameTypes";
+    public static final String WHITELIST_NAME_TYPES = "whitelist.nameTypes";
 
     DropDownChoice<String> type;
 
@@ -241,7 +243,7 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
 
     private void setTypeChoices(final Node imageSetNode) {
         if (nameTypeMap == null) {
-             nameTypeMap = new LinkedHashMap<String, String>();
+            nameTypeMap = new LinkedHashMap<String, String>();
         } else {
             nameTypeMap.clear();
         }
@@ -260,12 +262,23 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
             }
             TypeTranslator typeTranslator = new TypeTranslator(new JcrNodeTypeModel(tmpImageSetNode.getPrimaryNodeType()));
             NodeIterator childNodes = tmpImageSetNode.getNodes();
+            List<String> initials = new ArrayList<String>();
             while (childNodes.hasNext()) {
                 Node childNode = childNodes.nextNode();
                 if (childNode.isNodeType("hippogallery:image")) {
                     String childNodeName = childNode.getName();
-                    sortedEntries.add(new AbstractMap.SimpleEntry<String, String>(childNodeName, typeTranslator.getPropertyName(childNodeName).getObject()));
+                    initials.add(childNodeName);
                 }
+            }
+            List<String> allowedChildNodeNames;
+            if (hasWhiteList()){
+                allowedChildNodeNames = WhiteBlackListResolver.getAllowedList(initials,getBlackListNameTypes(),getWhiteListNameTypes());
+            }
+            else{
+                allowedChildNodeNames = WhiteBlackListResolver.getAllowedList(initials,getBlackListNameTypes());
+            }
+            for (String childNodeName:allowedChildNodeNames){
+                sortedEntries.add(new AbstractMap.SimpleEntry<String, String>(childNodeName, typeTranslator.getPropertyName(childNodeName).getObject()));
             }
         } catch (RepositoryException repositoryException) {
             log.error("Error updating the available image variants.", repositoryException);
@@ -280,6 +293,32 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
             type.updateModel();
         }
     }
+
+
+
+    private List<String> getWhiteListNameTypes(){
+        return getListNameTypes(WHITELIST_NAME_TYPES);
+    }
+
+    private List<String> getBlackListNameTypes(){
+        return getListNameTypes(BLACKLIST_NAME_TYPES);
+    }
+
+    private List<String> getListNameTypes(final String key) {
+        List<String> result = new ArrayList<String>();
+        final String[] stringArray = getPluginConfig().getStringArray(key);
+        if (stringArray!=null){
+            for (String s : stringArray) {
+                result.add(s);
+            }
+        }
+        return result;
+    }
+
+    private boolean hasWhiteList() {
+        return getPluginConfig().getStringArray(WHITELIST_NAME_TYPES)!=null;
+    }
+
 
     @SuppressWarnings("unchecked")
     private Component createUploadForm() {
@@ -496,13 +535,13 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
                 return getChoices().size() > 1;
             }
         }
-        .setNullValid(false)
-        .add(new AjaxFormComponentUpdatingBehavior("onchange") {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                // required because abstract, but all we need is to have galleryType set, which happens underwater.
-            }
-        });
+                .setNullValid(false)
+                .add(new AjaxFormComponentUpdatingBehavior("onchange") {
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        // required because abstract, but all we need is to have galleryType set, which happens underwater.
+                    }
+                });
     }
 
     /**
