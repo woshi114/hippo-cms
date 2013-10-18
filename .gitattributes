@@ -1163,6 +1163,7 @@ console/frontend/src/main/java/org/hippoecm/frontend/plugins/logout/LogoutLink.h
 console/frontend/src/main/java/org/hippoecm/frontend/plugins/logout/LogoutLink.java svneol=native#text/plain
 console/frontend/src/main/java/org/hippoecm/frontend/plugins/logout/LogoutPlugin.html svneol=native#text/plain
 console/frontend/src/main/java/org/hippoecm/frontend/plugins/logout/LogoutPlugin.java svneol=native#text/plain
+console/frontend/src/main/java/org/hippoecm/util/HttpRequestUtils.java -text
 console/frontend/src/site/apt/index.apt -text
 console/frontend/src/site/site.xml svneol=native#text/plain
 console/frontend/src/test/java/org/hippoecm/frontend/plugins/login/BrowserTest.java -text svneol=unset#text/plain
