@@ -41,13 +41,14 @@ public class GroupDataProvider extends SearchableDataProvider<Group> {
                     " WHERE (hipposys:system <> 'true' OR hipposys:system IS NULL) AND " +
                           " ( " +
                               "fn:name() = '{}' OR " +
-                              "jcr:contains(hipposys:description, '{}') OR " +
-                              "jcr:contains(hipposys:members, '{}') OR " +
-                              "jcr:contains(hipposys:groups, '{}') " +
+                              "contains(hipposys:description, '{}') OR " +
+                              "contains(hipposys:members, '{}') OR " +
+                              "contains(hipposys:groups, '{}') " +
                           " ) ";
 
     public GroupDataProvider() {
-        super(QUERY_ALL_GROUP_LIST, QUERY_GROUP_LIST_TEMPLATE, "/hippo:configuration/hippo:groups", HippoNodeType.NT_GROUP, HippoNodeType.NT_GROUPFOLDER);
+        super(QUERY_ALL_GROUP_LIST, QUERY_GROUP_LIST_TEMPLATE, "/hippo:configuration/hippo:groups",
+                HippoNodeType.NT_GROUP, HippoNodeType.NT_GROUPFOLDER);
         setSort("groupname", true);
     }
 
