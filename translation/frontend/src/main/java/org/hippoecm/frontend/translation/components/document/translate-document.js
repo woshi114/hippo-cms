@@ -139,6 +139,20 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
       self.updateUrlTask.delay(500);
     };
 
+
+    this.isRecordEmpty = function() {
+        var empty = false;
+        config.store.each(function(record) {
+            if (record.get('namefr') && record.get('urlfr')) {
+                empty = false;
+            } else {
+                empty = true;
+                return false;
+            }
+        });
+        return empty;
+    };
+
     // the column model has information about grid columns
     // dataIndex maps the column to the specific data field in
     // the data store (created below)
@@ -168,6 +182,12 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
           listeners: {
             keyup: function(field, event) {
               self.onKeyUp(field, event);
+            },
+            focus: function() {
+              self.setOkButtonEnabled(false);
+            },
+            blur: function() {
+              self.setOkButtonEnabled(!self.isRecordEmpty());
             }
           }
         })
@@ -292,6 +312,15 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
     Ext.apply(this, config);
   },
 
+    setOkButtonEnabled: function(arg) {
+        var i, dialogButtons = Ext.query('.hippo-window-buttons input');
+        for (i=0; i<dialogButtons.length; i++) {    // refactor into method for enabling/disabling ok button
+          if (dialogButtons[i].type === 'submit') {
+             dialogButtons[i].disabled = !arg ? true : false;
+          }
+        }
+    },
+
   initComponent : function() {
     Hippo.Translation.Document.superclass.initComponent.call(this);
 
@@ -311,6 +340,7 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
           this.dirty.push(record);
         }
       }
+      this.setOkButtonEnabled(!this.isRecordEmpty());
     }, this);
     this.store.on('beforesave', function() {
       for (var i = 0; i < this.dirty.length; i++) {
@@ -326,6 +356,7 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
         }
       });
     }, this);
+    this.setOkButtonEnabled(false);
   },
 
   renderFolder: function(col, value, p, record){
