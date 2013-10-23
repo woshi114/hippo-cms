@@ -176,7 +176,7 @@ public class DefaultWorkflowPlugin extends CompatibilityWorkflowPlugin {
                     ((DefaultWorkflow) wf).rename(nodeName);
                 }
                 if (!node.getLocalizedName().equals(localName)) {
-                    defaultWorkflow.localizeName(localName);
+                    defaultWorkflow.localizeName(UserSession.get().getLocale(), localName);
                 }
                 return null;
             }
@@ -239,7 +239,7 @@ public class DefaultWorkflowPlugin extends CompatibilityWorkflowPlugin {
                 if (!node.getLocalizedName().equals(localName)) {
                     WorkflowManager manager = ((UserSession) Session.get()).getWorkflowManager();
                     DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
-                    defaultWorkflow.localizeName(localName);
+                    defaultWorkflow.localizeName(UserSession.get().getLocale(), localName);
                 }
                 browseTo(copyMode);
                 return null;
