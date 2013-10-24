@@ -361,7 +361,7 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
                     this.dirty.push(record);
                 }
             }
-            this.setOkButtonEnabled(!self.isRecordEmpty());
+            this.setOkButtonEnabled(!this.isRecordEmpty());
         }, this);
         this.store.on('beforesave', function() {
             var i, len;
