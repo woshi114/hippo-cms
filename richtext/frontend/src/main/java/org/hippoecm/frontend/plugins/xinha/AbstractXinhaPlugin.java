@@ -87,6 +87,7 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
             "xinha-tools-dev.js");
 
     public static final String DISABLE_OPEN_IN_A_NEW_WINDOW_CONFIG = "open.in.new.window.disabled";
+    public static final String EXTERNAL_PROTOCOLS_OVERWRITE_DEFAULT = "external.protocols";
 
     private final IEditor.Mode mode;
     protected RichTextArea editor;
