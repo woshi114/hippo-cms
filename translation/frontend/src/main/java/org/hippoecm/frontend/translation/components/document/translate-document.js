@@ -191,6 +191,9 @@ Hippo.Translation.Document = Ext.extend(Ext.FormPanel, {
                             },
                             focus: function() {
                                 self.setOkButtonEnabled(false);
+                            },
+                            blur: function() {
+                                self.setOkButtonEnabled(!self.isRecordEmpty());
                             }
                         }
                     })
