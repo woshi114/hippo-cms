@@ -347,10 +347,10 @@
 // https://developer.mozilla.org/en-US/docs/Web/API/DOMParser?redirectlocale=en-US&redirectslug=DOM%2FDOMParser
 (function (DOMParser) {
     if (!DOMParser) {
-        DOMParser = {};
+        return;
     }
-    var DOMParser_proto = DOMParser.prototype, real_parseFromString = DOMParser_proto.parseFromString;
 
+    var DOMParser_proto = DOMParser.prototype, real_parseFromString = DOMParser_proto.parseFromString;
     // Firefox/Opera/IE throw errors on unsupported types
     try {
         // WebKit returns null on unsupported types
@@ -373,4 +373,4 @@
         }
         return real_parseFromString.apply(this, arguments);
     };
-}(DOMParser));
+}(window.DOMParser || false));
