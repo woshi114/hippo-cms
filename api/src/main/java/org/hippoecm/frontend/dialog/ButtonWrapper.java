@@ -124,7 +124,12 @@ public class ButtonWrapper implements IClusterable {
         button.setEnabled(enabled);
         button.setVisible(visible);
         if (getKeyType() != null) {
-            button.add(new InputBehavior(new KeyType[]{getKeyType()}, EventType.click));
+            button.add(new InputBehavior(new KeyType[]{getKeyType()}, EventType.click) {
+                @Override
+                protected Boolean getDisable_in_input() {
+                    return true;
+                }
+            });
         }
         return button;
     }
