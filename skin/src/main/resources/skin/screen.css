@@ -548,6 +548,10 @@ body.hippo-root #doc3 {
   color: #000;
 }
 
+.hippo-referring-documents-list .hippo-list-paging .paging-label {
+  margin-top: 0px;
+}
+
 .hippo-list-details tr.hippo-list-paging td {
   width: 630px;
   text-align: right;
