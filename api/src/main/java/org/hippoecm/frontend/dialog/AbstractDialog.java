@@ -41,7 +41,6 @@ import org.apache.wicket.markup.IMarkupResourceStreamProvider;
 import org.apache.wicket.markup.MarkupException;
 import org.apache.wicket.markup.MarkupNotFoundException;
 import org.apache.wicket.markup.MarkupStream;
-import org.apache.wicket.markup.html.IHeaderResponse;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
@@ -333,12 +332,6 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
             }
         });
 
-    }
-
-    @Override
-    public void renderHead(final IHeaderResponse response) {
-        super.renderHead(response);
-        response.renderOnDomReadyJavascript("if (Wicket != null && Wicket.Window != null) { Wicket.Window.unloadConfirmation = false; };");
     }
 
     /**
