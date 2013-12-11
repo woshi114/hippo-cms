@@ -1,12 +1,12 @@
 /*
  *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
- * 
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -332,7 +332,7 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
                     ((FullReviewedActionsWorkflow) wf).rename(nodeName);
                 }
                 if (!node.getLocalizedName().equals(localName)) {
-                    defaultWorkflow.localizeName(localName);
+                    defaultWorkflow.localizeName(UserSession.get().getLocale(), localName);
                 }
                 return null;
             }
@@ -392,7 +392,7 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
 
                 WorkflowManager manager = UserSession.get().getWorkflowManager();
                 DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", result.getNode(nodeName));
-                defaultWorkflow.localizeName(getLocalizeCodec().encode(name));
+                defaultWorkflow.localizeName(UserSession.get().getLocale(), getLocalizeCodec().encode(name));
 
                 browseTo(resultModel);
                 return null;
@@ -628,7 +628,7 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
 
     /**
      * Get the name of the node this workflow operates on
-     * 
+     *
      * @return The name of the node that the workflow operates on or an empty String if an error occurs
      * @throws RepositoryException
      */
@@ -643,7 +643,7 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
     //    }
     /**
      * Use the IBrowseService to select the node referenced by parameter path
-     * 
+     *
      * @param nodeModel Absolute path of node to browse to
      * @throws RepositoryException
      */
