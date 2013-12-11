@@ -237,7 +237,13 @@ public class PluginUserSession extends UserSession {
     }
 
     public void login() {
-        login((UserCredentials) null, null);
+        login((UserCredentials)null, null);
+    }
+
+    @Override
+    public void login(final String username, final String password) throws LoginException {
+        UserCredentials credentials = new UserCredentials(username, password);
+        this.login(credentials);
     }
 
     public void login(UserCredentials credentials) throws LoginException {
