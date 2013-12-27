@@ -5,13 +5,13 @@
  --  BSD license)  please read license.txt in this package for details.
  --
  --  Copyright (c) 2005-2008 Xinha Developer Team and contributors
- --  
+ --
  --  Xinha was originally based on work by Mihai Bazon which is:
  --      Copyright (c) 2003-2004 dynarch.com.
  --      Copyright (c) 2002-2003 interactivetools.com, inc.
  --      This copyright notice MUST stay intact for use.
  --
- --  Developers - Coding Style: 
+ --  Developers - Coding Style:
  --         Before you are going to work on Xinha code, please see http://trac.xinha.org/wiki/Documentation/StyleGuide
  --
  --  $HeadURL: http://svn.xinha.webfactional.com/trunk/XinhaCore.js $
@@ -19,8 +19,8 @@
  --  $LastChangedRevision: 1297 $
  --  $LastChangedBy: gogo $
  --------------------------------------------------------------------------*/
-/*jslint regexp: false, rhino: false, browser: true, bitwise: false, forin: true, adsafe: false, evil: true, nomen: false, 
- glovar: false, debug: false, eqeqeq: false, passfail: false, sidebar: false, laxbreak: false, on: false, cap: true, 
+/*jslint regexp: false, rhino: false, browser: true, bitwise: false, forin: true, adsafe: false, evil: true, nomen: false,
+ glovar: false, debug: false, eqeqeq: false, passfail: false, sidebar: false, laxbreak: false, on: false, cap: true,
  white: false, widget: false, undef: true, plusplus: false*/
 /*global  Dialog , _editor_css , _editor_icons, _editor_lang , _editor_skin , _editor_url, dumpValues, ActiveXObject, HTMLArea, _editor_lcbackend*/
 
@@ -267,7 +267,7 @@ function Xinha(textarea, config)
   this._textArea.spellcheck = false;
   Xinha.freeLater(this, '_textArea');
 
-  // 
+  //
   /** Before we modify anything, get the initial textarea size
    * @private
    * @type Object w,h
@@ -1593,6 +1593,7 @@ Xinha.prototype._createToolbar = function ()
   // ._toolbar is for legacy, ._toolBar is better thanks.
   this._toolBar = this._toolbar = toolbar;
   toolbar.className = "toolbar";
+  toolbar.unselectable = "1";
   toolbar.align = this.config.toolbarAlign;
 
   Xinha.freeLater(this, '_toolBar');
@@ -2219,8 +2220,8 @@ Xinha.prototype._createStatusBar = function()
     self._statusBar.style.width = null;
   });
   this.notifyOn("resize", function(evt, size) {
-    // HACK! IE6 doesn't update the width properly when resizing if it's 
-    // given in pixels, but does hide the overflow content correctly when 
+    // HACK! IE6 doesn't update the width properly when resizing if it's
+    // given in pixels, but does hide the overflow content correctly when
     // using 100% as the width. (FF, Safari and IE7 all require fixed
     // pixel widths to do the overflow hiding correctly.)
     if (Xinha.is_ie && Xinha.ie_version == 6)
@@ -2686,7 +2687,7 @@ Xinha.prototype.generate = function ()
   Xinha.removeFromParent(textarea);
   fw.ed_cell.appendChild(textarea);
 
-  // if another editor is activated while this one is in text mode, toolbar is disabled   
+  // if another editor is activated while this one is in text mode, toolbar is disabled
   Xinha.addDom0Event(
       this._textArea,
       'click',
@@ -3642,7 +3643,7 @@ Xinha.prototype.setEditorEvents = function(resetting_events_for_opera)
 
         // FIXME - this needs to be cleaned up and use editor.firePluginEvent
         //  I don't like both onGenerate and onGenerateOnce, we should only
-        //  have onGenerate and it should only be called when the editor is 
+        //  have onGenerate and it should only be called when the editor is
         //  generated (once and only once)
         // check if any plugins have registered refresh handlers
         for ( var i in editor.plugins )
@@ -3662,7 +3663,7 @@ Xinha.prototype.setEditorEvents = function(resetting_events_for_opera)
           (function() { eval(editor._textArea.getAttribute('onxinhaready')) }).call(editor.textArea);
         }
 
-        //ticket #1407 IE8 fires two resize events on one actual resize, seemingly causing an infinite loop (but not  when Xinha is in an frame/iframe) 
+        //ticket #1407 IE8 fires two resize events on one actual resize, seemingly causing an infinite loop (but not  when Xinha is in an frame/iframe)
         Xinha.addDom0Event(window, 'resize', function(e)
         {
           if (Xinha.ie_version > 7 && !window.parent)
@@ -4007,7 +4008,7 @@ Xinha.loadPlugins = function(plugins, callbackIfNotReady,url)
   return retVal;
 };
 
-// 
+//
 /** Refresh plugin by calling onGenerate or onGenerateOnce method.
  * @private
  * @param {PluginInstance} plugin
@@ -4832,62 +4833,75 @@ Xinha.prototype.updateToolbar = function(noStatus)
     }
   }
 
-  for ( var cmd in this._toolbarObjects )
+  var contextMatched = function(ctx) {
+    var atts = [],
+        matched = false;
+
+    if (/(.*)\[(.*?)\]/.test(ctx))
+    {
+      ctx = RegExp.$1;
+      atts = RegExp.$2.split(",");
+    }
+    ctx = ctx.toLowerCase();
+    for ( var k = 0; k < ancestors.length; ++k )
+    {
+      if ( !ancestors[k] )
+      {
+        // the impossible really happens.
+        continue;
+      }
+      if (ctx === '*' || ctx === ancestors[k].tagName.toLowerCase())
+      {
+        matched = true;
+        var contextSplit = null;
+        var att = null;
+        var comp = null;
+        var attVal = null;
+        for ( var ka = 0; ka < atts.length; ++ka )
+        {
+          contextSplit = atts[ka].match(/(.*)(==|!=|===|!==|>|>=|<|<=)(.*)/);
+          att = contextSplit[1];
+          comp = contextSplit[2];
+          attVal = contextSplit[3];
+
+          if (!eval(ancestors[k][att] + comp + attVal))
+          {
+            matched = false;
+            break;
+          }
+        }
+
+        if (matched) {
+          break;
+        }
+      }
+    }
+    return matched;
+  };
+
+  for (var cmd in this._toolbarObjects )
   {
     var btn = this._toolbarObjects[cmd];
-    var inContext = true;
     // prevent iterating over wrong type
     if ( typeof btn.state != 'function' )
     {
       continue;
     }
-    if ( btn.context && !text )
-    {
-      inContext = false;
-      var context = btn.context;
-      var attrs = [];
-      if ( /(.*)\[(.*?)\]/.test(context) )
-      {
-        context = RegExp.$1;
-        attrs = RegExp.$2.split(",");
-      }
-      context = context.toLowerCase();
-      var match = (context == "*");
-      for ( var k = 0; k < ancestors.length; ++k )
-      {
-        if ( !ancestors[k] )
-        {
-          // the impossible really happens.
-          continue;
-        }
-        if ( match || ( ancestors[k].tagName.toLowerCase() == context ) )
-        {
-          inContext = true;
-          var contextSplit = null;
-          var att = null;
-          var comp = null;
-          var attVal = null;
-          for ( var ka = 0; ka < attrs.length; ++ka )
-          {
-            contextSplit = attrs[ka].match(/(.*)(==|!=|===|!==|>|>=|<|<=)(.*)/);
-            att = contextSplit[1];
-            comp = contextSplit[2];
-            attVal = contextSplit[3];
 
-            if (!eval(ancestors[k][att] + comp + attVal))
-            {
-              inContext = false;
-              break;
-            }
-          }
-          if ( inContext )
-          {
-            break;
-          }
+    var inContext = true;
+    if ( btn.context && !text ) {
+      inContext = false;
+      var contextElements = btn.context.split("|");
+      for (var ce=0; ce < contextElements.length; ce++) {
+        var cur_context = contextElements[ce];
+        if (contextMatched(cur_context)) {
+          inContext = true;
+          break;
         }
       }
     }
     btn.state("enabled", (!text || btn.text) && inContext);
+
     if ( typeof cmd == "function" )
     {
       continue;
@@ -5275,7 +5289,7 @@ Xinha.prototype._comboSelected = function(el, txt)
       this.execCommand(txt, false, value);
       break;
     case "formatblock":
-      // Mozilla inserts an empty tag (<>) if no parameter is passed  
+      // Mozilla inserts an empty tag (<>) if no parameter is passed
       if ( !value )
       {
         this.updateToolbar();
@@ -5316,7 +5330,7 @@ Xinha.prototype._colorSelector = function(cmdID)
   {
     try
     {
-      editor._doc.execCommand('useCSS', false, false); // useCSS deprecated & replaced by styleWithCSS 
+      editor._doc.execCommand('useCSS', false, false); // useCSS deprecated & replaced by styleWithCSS
       editor._doc.execCommand('styleWithCSS', false, true);
 
     } catch (ex) {}
@@ -5750,9 +5764,9 @@ Xinha.prototype.outwardHtml = function(html)
   var serverBase = location.href.replace(/(https?:\/\/[^\/]*)\/.*/, '$1') + '/';
 
   // IE puts this in can't figure out why
-  //  leaving this in the core instead of InternetExplorer 
+  //  leaving this in the core instead of InternetExplorer
   //  because it might be something we are doing so could present itself
-  //  in other browsers - James 
+  //  in other browsers - James
   html = html.replace(/https?:\/\/null\//g, serverBase);
 
   // Make semi-absolute links to be truely absolute
@@ -6093,7 +6107,7 @@ Xinha.cloneObject = function(obj)
  document.write("<h1>Superclass Creation And Test</h1>");
 
  function Vehicle(name, sound)
- {    
+ {
  this.name  = name;
  this.sound = sound
  }
@@ -6145,7 +6159,7 @@ Xinha.cloneObject = function(obj)
  document.write("<h1>Extend/Override Inherited Method in Sub Class And Test</h1>");
 
  Car.prototype.pressHorn = function()
- { 
+ {
  document.write(this.name + ': I am going to press the horn... <br/>');
  Car.superClass.pressHorn.call(this);
  }
@@ -6212,7 +6226,7 @@ Xinha.flushEvents = function()
     e = Xinha._eventFlushers.pop();
   }
 
-  /* 
+  /*
    // This code is very agressive, and incredibly slow in IE, so I've disabled it.
 
    if(document.all)
@@ -7061,9 +7075,9 @@ Xinha._hasClass = function(el, className)
  *  @type Boolean
  *  @private
  */
-// 
-// 
-// 
+//
+//
+//
 Xinha._postback_send_charset = true;
 /** Use XMLHTTPRequest to send some some data to the server and do something
  *  with the getback (asyncronously!)
@@ -7947,7 +7961,7 @@ Xinha.pageSize = function(scope)
   var x,y;
 
   var test1 = scope.document.body.scrollHeight; //IE Quirks
-  var test2 = scope.document.documentElement.scrollHeight; // IE Standard + Moz Here quirksmode.org errs! 
+  var test2 = scope.document.documentElement.scrollHeight; // IE Standard + Moz Here quirksmode.org errs!
 
   if (test1 > test2)
   {
