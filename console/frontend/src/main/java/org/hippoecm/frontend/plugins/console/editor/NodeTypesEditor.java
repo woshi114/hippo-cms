@@ -15,126 +15,98 @@
  */
 package org.hippoecm.frontend.plugins.console.editor;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.jackrabbit.JcrConstants;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.hippoecm.frontend.model.NodeModelWrapper;
-import org.hippoecm.frontend.session.UserSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
-import javax.jcr.nodetype.NodeType;
 import javax.jcr.nodetype.NodeTypeIterator;
 import javax.jcr.nodetype.NodeTypeManager;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
-class NodeTypesEditor extends WebMarkupContainer {
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.Check;
+import org.apache.wicket.markup.html.form.CheckGroup;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.hippoecm.frontend.session.UserSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+class NodeTypesEditor extends CheckGroup<String> {
 
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(NodeTypesEditor.class);
-    private IModel<Node> model;
+
+    private IModel<Node> nodeModel;
+    private final Collection<String> inheritedMixinTypes = new HashSet<String>();
 
     NodeTypesEditor(String id, IModel<Node> nodeModel) {
-        super(id, nodeModel);
-        setOutputMarkupId(true);
+        super(id, Collections.<String>emptyList());
+        this.nodeModel = nodeModel;
 
         add(new ListView<String>("type", getAllNodeTypes()) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(final ListItem<String> item) {
+            protected void populateItem(ListItem<String> item) {
                 IModel<String> model = item.getModel();
-                String type = model.getObject();
 
-                final IModel<Node> defaultModel = NodeTypesEditor.this.getModel();
-                AjaxCheckBox check = new AjaxCheckBox("check", new MixinModel(defaultModel, type)) {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-                        target.addComponent(NodeTypesEditor.this);
-                    }
-
-                    @Override
-                    public boolean isEnabled() {
-                        MixinModel mixinModel = (MixinModel) getModel();
-                        return !mixinModel.isInherited();
-                    }
-                };
+                Check<String> check = new Check<String>("check", model);
                 item.add(check);
 
-                AttributeAppender attributeAppender = new AttributeAppender("for", Model.of(check.getMarkupId()), "");
-                check.add(new Label("name", type).add(attributeAppender));
+                String type = model.getObject();
+                check.add(new Label("name", type));
+
+                check.setEnabled(!inheritedMixinTypes.contains(type));
             }
         });
     }
 
-    public IModel<Node> getModel() {
-        return (IModel<Node>) getDefaultModel();
+    @Override
+    protected boolean wantOnSelectionChangedNotifications() {
+        return true;
     }
 
-    public void setModel(final IModel<Node> model) {
-        setDefaultModel(model);
-    }
+    @Override
+    protected void onSelectionChanged(Collection<? extends String> selection) {
+        if (getModelObject() instanceof List && nodeModel != null) {
+            try {
+                final Node node = nodeModel.getObject();
 
-    @SuppressWarnings("unused")
-    public String getMixinTypes() {
-        Node node = (Node) getDefaultModelObject();
-        try {
-            final Collection<String> declaredMixinTypes = getDeclaredMixinTypes(node);
-            final Collection<String> inheritedMixinTypes = getInheritedMixinTypes(node);
-            final Collection<String> allMixinTypes = new ArrayList(declaredMixinTypes);
-            allMixinTypes.addAll(inheritedMixinTypes);
-
-            return StringUtils.join(allMixinTypes, ", ");
-        } catch (RepositoryException re) {
-            log.error(re.getMessage());
-        }
-        return "";
-    }
-
-    private Collection<String> getDeclaredMixinTypes(final Node node) throws RepositoryException {
-        final List<String> result = new ArrayList<String>();
-        for (NodeType nodeType : node.getMixinNodeTypes()) {
-            result.add(nodeType.getName());
-        }
-        return result;
-    }
-
-    private Collection<String> getInheritedMixinTypes(final Node node) throws RepositoryException {
-        final List<String> result = new ArrayList<String>();
-        for (NodeType nodeType : node.getMixinNodeTypes()) {
-            for (NodeType superType : nodeType.getSupertypes()) {
-                if (superType.isMixin()) {
-                    result.add(superType.getName());
+                final Set<String> actualTypes = new HashSet<String>();
+                if (node.hasProperty("jcr:mixinTypes")) {
+                    Value[] nodeTypes = node.getProperty("jcr:mixinTypes").getValues();
+                    for (Value nodeType : nodeTypes) {
+                        actualTypes.add(nodeType.getString());
+                    }
                 }
+
+                final Set<String> toBeAdded = new HashSet<String>(selection);
+                toBeAdded.removeAll(actualTypes);
+                for (String add : toBeAdded) {
+                    node.addMixin(add);
+                }
+
+                final Set<String> toBeRemoved = new HashSet<String>(actualTypes);
+                toBeRemoved.removeAll(selection);
+                for (String remove : toBeRemoved) {
+                    node.removeMixin(remove);
+                }
+            } catch (RepositoryException e) {
+                log.error(e.getMessage(), e);
             }
         }
-        for (NodeType nodeType : node.getPrimaryNodeType().getSupertypes()) {
-            if (nodeType.isMixin()) {
-                result.add(nodeType.getName());
-            }
-        }
-        return result;
     }
 
     private List<String> getAllNodeTypes() {
-        final List<String> result = new ArrayList();
+        final List<String> result = new ArrayList<String>();
         try {
             final Session session = UserSession.get().getJcrSession();
             final NodeTypeManager ntmgr = session.getWorkspace().getNodeTypeManager();
@@ -149,92 +121,12 @@ class NodeTypesEditor extends WebMarkupContainer {
         return result;
     }
 
-    private static class MixinModel extends NodeModelWrapper<Boolean> {
-        private static final long serialVersionUID = 1L;
-
-        String type;
-
-        MixinModel(IModel<Node> nodeModel, String mixin) {
-            super(nodeModel);
-            this.type = mixin;
-        }
-
-        public String getMixin() {
-            return type;
-        }
-
-        public Boolean getObject() {
-            try {
-                return isNodeType();
-            } catch (RepositoryException ex) {
-                log.error(ex.getMessage());
-            }
-            return false;
-        }
-
-        public void setObject(Boolean value) {
-            try {
-                Node node = getNode();
-                if (node == null) {
-                    throw new UnsupportedOperationException();
-                }
-                if (value) {
-                    if (!isNodeType()) {
-                        node.addMixin(type);
-                    }
-                } else {
-                    if (isNodeType() && hasMixin()) {
-                        node.removeMixin(type);
-                    }
-                }
-                node.save();
-            } catch (RepositoryException ex) {
-                log.error(ex.getMessage());
-            }
-        }
-
-        private boolean isNodeType() throws RepositoryException {
-            Node node = getNode();
-            if (node == null) {
-                return false;
-            }
-            if (!node.hasProperty(JcrConstants.JCR_MIXINTYPES)) {
-                return false;
-            }
-            NodeTypeManager ntMgr = node.getSession().getWorkspace().getNodeTypeManager();
-            for (Value value : node.getProperty(JcrConstants.JCR_MIXINTYPES).getValues()) {
-                NodeType nt = ntMgr.getNodeType(value.getString());
-                if (nt.isNodeType(type)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private boolean hasMixin() throws RepositoryException {
-            Node node = getNode();
-            if (node == null) {
-                return false;
-            }
-            if (!node.hasProperty(JcrConstants.JCR_MIXINTYPES)) {
-                return false;
-            }
-            for (Value value : node.getProperty(JcrConstants.JCR_MIXINTYPES).getValues()) {
-                if (value.getString().equals(type)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public boolean isInherited() {
-            try {
-                return isNodeType() && !hasMixin();
-            } catch (RepositoryException re) {
-                log.error(re.getMessage());
-            }
-            return false;
-        }
+    void setNodeModel(IModel<Node> newModel) {
+        nodeModel = newModel;
     }
 
+    public void setInheritedMixinTypes(final Collection<String> inheritedMixinTypes) {
+        this.inheritedMixinTypes.clear();
+        this.inheritedMixinTypes.addAll(inheritedMixinTypes);
+    }
 }
