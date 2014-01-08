@@ -80,7 +80,7 @@
 }
 
 .hippo-editor .hippo-editor-field {
-  overflow: visible;
+  overflow: auto;
 }
 
 /* Template editor styling */
