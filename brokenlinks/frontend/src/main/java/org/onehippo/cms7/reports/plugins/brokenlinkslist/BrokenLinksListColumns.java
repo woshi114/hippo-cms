@@ -404,7 +404,7 @@ public class BrokenLinksListColumns implements IClusterable {
                         statusMessage = getResourceValue("exception-generic").concat(": " + errorMessage);
                     }
                 } else {
-                    statusMessage = getResourceValue("httpstatus")+" ("+statusCode+")";
+                    log.info("Unhandled status code: {}", statusCode);
                 }
 
                 aggregateCell.append(statusMessage).append("<br/>");
