@@ -351,7 +351,6 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
                 }
                 if (!getLocalizedNameForSession(node).equals(localName)) {
                     defaultWorkflow.replaceAllLocalizedNames(localName);
-                    defaultWorkflow.localizeName(UserSession.get().getLocale(), localName);
                 }
                 return null;
             }
