@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@ package org.hippoecm.frontend.plugins.reviewedactions;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.jcr.Node;
@@ -63,6 +65,7 @@ import org.hippoecm.frontend.plugins.reviewedactions.dialogs.UnpublishedReferenc
 import org.hippoecm.frontend.plugins.reviewedactions.model.ReferenceProvider;
 import org.hippoecm.frontend.plugins.reviewedactions.model.UnpublishedReferenceProvider;
 import org.hippoecm.frontend.plugins.standards.list.resolvers.CssClassAppender;
+import org.hippoecm.frontend.plugins.standardworkflow.RenameMessage;
 import org.hippoecm.frontend.service.IBrowseService;
 import org.hippoecm.frontend.service.IEditor;
 import org.hippoecm.frontend.service.IEditorManager;
@@ -72,6 +75,7 @@ import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.repository.HippoStdNodeType;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
+import org.hippoecm.repository.api.Localized;
 import org.hippoecm.repository.api.StringCodec;
 import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.Workflow;
@@ -283,6 +287,7 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
         add(renameAction = new StdWorkflow("rename", new StringResourceModel("rename-label", this, null), context, getModel()) {
             public String targetName;
             public String uriName;
+            public Map<Localized, String> localizedNames;
 
             @Override
             protected ResourceReference getIcon() {
@@ -305,14 +310,27 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
             @Override
             protected Dialog createRequestDialog() {
                 try {
-                    uriName = ((WorkflowDescriptorModel) getDefaultModel()).getNode().getName();
-                    targetName = ((HippoNode) ((WorkflowDescriptorModel) getDefaultModel()).getNode())
-                            .getLocalizedName();
+                    final HippoNode node = getModelNode();
+                    uriName = node.getName();
+                    targetName = getLocalizedNameForSession(node);
+                    localizedNames = node.getLocalizedNames();
                 } catch (RepositoryException ex) {
                     uriName = targetName = "";
+                    localizedNames = Collections.emptyMap();
                 }
                 return new RenameDocumentDialog(this, new StringResourceModel("rename-title",
                         FullReviewedActionsWorkflowPlugin.this, null));
+            }
+
+            private HippoNode getModelNode() throws RepositoryException {
+                final WorkflowDescriptorModel model = (WorkflowDescriptorModel) getDefaultModel();
+                return (HippoNode) model.getNode();
+            }
+
+            private String getLocalizedNameForSession(final HippoNode node) throws RepositoryException {
+                final Locale cmsLocale = UserSession.get().getLocale();
+                final Localized cmsLocalized = Localized.getInstance(cmsLocale);
+                return node.getLocalizedName(cmsLocalized);
             }
 
             @Override
@@ -320,7 +338,7 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
                 if (targetName == null || targetName.trim().equals("")) {
                     throw new WorkflowException("No name for destination given");
                 }
-                HippoNode node = (HippoNode) ((WorkflowDescriptorModel) getDefaultModel()).getNode();
+                final HippoNode node = getModelNode();
                 String nodeName = getNodeNameCodec().encode(uriName);
                 String localName = getLocalizeCodec().encode(targetName);
                 if ("".equals(nodeName)) {
@@ -331,7 +349,8 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
                 if (!((WorkflowDescriptorModel) getDefaultModel()).getNode().getName().equals(nodeName)) {
                     ((FullReviewedActionsWorkflow) wf).rename(nodeName);
                 }
-                if (!node.getLocalizedName().equals(localName)) {
+                if (!getLocalizedNameForSession(node).equals(localName)) {
+                    defaultWorkflow.replaceAllLocalizedNames(localName);
                     defaultWorkflow.localizeName(UserSession.get().getLocale(), localName);
                 }
                 return null;
@@ -681,6 +700,7 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
 
             final PropertyModel<String> nameModel = new PropertyModel<String>(action, "targetName");
             final PropertyModel<String> uriModel = new PropertyModel<String>(action, "uriName");
+            final PropertyModel<Map<Localized, String>> localizedNamesModel = new PropertyModel<Map<Localized, String>>(action, "localizedNames");
 
             String s1 = nameModel.getObject();
             String s2 = uriModel.getObject();
@@ -737,6 +757,12 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
                 }
             }));
             add(uriAction);
+
+            final Locale cmsLocale = UserSession.get().getLocale();
+            final RenameMessage message = new RenameMessage(cmsLocale, localizedNamesModel.getObject());
+            if (message.shouldShow()) {
+                warn(message.forDocument());
+            };
         }
 
         @Override
