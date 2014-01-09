@@ -15,7 +15,7 @@
  */
 package org.hippoecm.frontend.plugins.standardworkflow;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -39,7 +39,7 @@ public class RenameMessageTest extends PluginTest {
     @Before
     public void setUp() throws Exception {
         super.setUp();
-        localizedNames = new HashMap<Localized, String>();
+        localizedNames = new LinkedHashMap<Localized, String>();
     }
 
     private void addDefaultLocalizedName(final String name) {

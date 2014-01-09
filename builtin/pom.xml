@@ -25,7 +25,6 @@
 
   <name>CMS Builtin</name>
   <description>Hippo CMS plugins for builtin repository workflows</description>
-  <groupId>org.onehippo.cms7</groupId>
   <artifactId>hippo-cms-builtin</artifactId>
   <packaging>jar</packaging>
 
@@ -52,6 +51,12 @@
       <groupId>org.onehippo.cms7</groupId>
       <artifactId>hippo-cms-translation-common</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.onehippo.cms7</groupId>
+      <artifactId>hippo-cms-test</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
