@@ -1,6 +1,6 @@
 /*
- *  Copyright 2008-2012 Hippo.
- * 
+ *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -59,6 +60,7 @@ import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
+import org.hippoecm.repository.api.Localized;
 import org.hippoecm.repository.api.StringCodec;
 import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.Workflow;
@@ -149,9 +151,9 @@ public class DefaultWorkflowPlugin extends CompatibilityWorkflowPlugin {
             @Override
             protected Dialog createRequestDialog() {
                 try {
-                    uriName = ((WorkflowDescriptorModel) getDefaultModel()).getNode().getName();
-                    targetName = ((HippoNode) ((WorkflowDescriptorModel) getDefaultModel()).getNode())
-                            .getLocalizedName();
+                    final HippoNode node = (HippoNode) ((WorkflowDescriptorModel) getDefaultModel()).getNode();
+                    uriName = node.getName();
+                    targetName = getLocalizedNameForSession(node);
                 } catch (RepositoryException ex) {
                     uriName = targetName = "";
                 }
@@ -172,11 +174,11 @@ public class DefaultWorkflowPlugin extends CompatibilityWorkflowPlugin {
                 }
                 WorkflowManager manager = obtainUserSession().getWorkflowManager();
                 DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
-                if (!((WorkflowDescriptorModel) getDefaultModel()).getNode().getName().equals(nodeName)) {
+                if (!node.getName().equals(nodeName)) {
                     ((DefaultWorkflow) wf).rename(nodeName);
                 }
-                if (!node.getLocalizedName().equals(localName)) {
-                    defaultWorkflow.localizeName(UserSession.get().getLocale(), localName);
+                if (!getLocalizedNameForSession(node).equals(localName)) {
+                    defaultWorkflow.replaceAllLocalizedNames(localName);
                 }
                 return null;
             }
@@ -239,7 +241,7 @@ public class DefaultWorkflowPlugin extends CompatibilityWorkflowPlugin {
                 if (!node.getLocalizedName().equals(localName)) {
                     WorkflowManager manager = ((UserSession) Session.get()).getWorkflowManager();
                     DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
-                    defaultWorkflow.localizeName(UserSession.get().getLocale(), localName);
+                    defaultWorkflow.localizeName(localName);
                 }
                 browseTo(copyMode);
                 return null;
@@ -317,6 +319,12 @@ public class DefaultWorkflowPlugin extends CompatibilityWorkflowPlugin {
                 return null;
             }
         });
+    }
+
+    private static String getLocalizedNameForSession(final HippoNode node) throws RepositoryException {
+        final Locale cmsLocale = UserSession.get().getLocale();
+        final Localized cmsLocalized = Localized.getInstance(cmsLocale);
+        return node.getLocalizedName(cmsLocalized);
     }
 
     private JcrNodeModel getFolder() {

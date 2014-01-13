@@ -1,6 +1,6 @@
 /*
- *  Copyright 2008 Hippo.
- * 
+ *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -36,6 +36,7 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.Property;
 import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.UnsupportedRepositoryOperationException;
 import javax.jcr.ValueFactory;
 import javax.jcr.Workspace;
@@ -60,6 +61,7 @@ import org.hippoecm.frontend.session.PluginUserSession;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.repository.HippoRepository;
 import org.hippoecm.repository.api.HippoSession;
+import org.onehippo.repository.security.domain.DomainRuleExtension;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.SAXException;
 
@@ -324,6 +326,11 @@ public class HippoTester extends WicketTester {
         }
 
         public void registerSessionCloseCallback(CloseCallback callback) {
+        }
+
+        @Override
+        public Session createSecurityDelegate(final Session session, final DomainRuleExtension... domainExtensions) throws RepositoryException {
+            throw new UnsupportedRepositoryOperationException();
         }
     }
     

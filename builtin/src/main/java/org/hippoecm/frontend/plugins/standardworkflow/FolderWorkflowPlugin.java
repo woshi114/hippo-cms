@@ -1,6 +1,6 @@
 /*
- *  Copyright 2009 Hippo.
- * 
+ *  Copyright 2009-2014 Hippo B.V. (http://www.onehippo.com)
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
@@ -62,6 +62,7 @@ import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.HippoWorkspace;
+import org.hippoecm.repository.api.Localized;
 import org.hippoecm.repository.api.StringCodec;
 import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.Workflow;
@@ -108,16 +109,24 @@ public class FolderWorkflowPlugin extends CompatibilityWorkflowPlugin<FolderWork
                 try {
                     HippoNode node = (HippoNode) ((WorkflowDescriptorModel) getDefaultModel()).getNode();
                     renameDocumentModel.setUriName(node.getName());
-                    renameDocumentModel.setTargetName(node.getLocalizedName());
+                    renameDocumentModel.setTargetName(getLocalizedNameForSession(node));
                     renameDocumentModel.setNodeType(node.getPrimaryNodeType());
+                    renameDocumentModel.setLocalizedNames(node.getLocalizedNames());
                 } catch (RepositoryException ex) {
                     log.error("Could not retrieve workflow document", ex);
                     renameDocumentModel.setUriName("");
                     renameDocumentModel.setTargetName("");
                     renameDocumentModel.setNodeType(null);
+                    renameDocumentModel.setLocalizedNames(null);
                 }
 
                 return newRenameDocumentDialog(renameDocumentModel, this);
+            }
+
+            private String getLocalizedNameForSession(final HippoNode node) throws RepositoryException {
+                final Locale cmsLocale = UserSession.get().getLocale();
+                final Localized cmsLocalized = Localized.getInstance(cmsLocale);
+                return node.getLocalizedName(cmsLocalized);
             }
 
             @Override
@@ -134,21 +143,8 @@ public class FolderWorkflowPlugin extends CompatibilityWorkflowPlugin<FolderWork
                 if (!((WorkflowDescriptorModel) getDefaultModel()).getNode().getName().equals(nodeName)) {
                     folderWorkflow.rename(node.getName() + (node.getIndex() > 1 ? "[" + node.getIndex() + "]" : ""), nodeName);
                 }
-
-                String translationNodeMessage = null;
-                NodeIterator nodeIterator = node.getNodes("hippo:translation");
-                while (nodeIterator.hasNext()) {
-                    Node translationNode = nodeIterator.nextNode();
-                    if (translationNode.hasProperty("hippo:language") && translationNode.hasProperty("hippo:message")) {
-                        Locale translationNodeLocale = new Locale(translationNode.getProperty("hippo:language").getString());
-                        if (UserSession.get().getLocale().equals(translationNodeLocale)) {
-                            translationNodeMessage = translationNode.getProperty("hippo:message").getString();
-                        }
-                    }
-                }
-
-                if (!localName.equals(translationNodeMessage)) {
-                    defaultWorkflow.localizeName(Session.get().getLocale(), localName);
+                if (!getLocalizedNameForSession(node).equals(localName)) {
+                    defaultWorkflow.replaceAllLocalizedNames(localName);
                 }
             }
         });
@@ -381,7 +377,7 @@ public class FolderWorkflowPlugin extends CompatibilityWorkflowPlugin<FolderWork
                                     if (!nodeName.equals(localName)) {
                                         WorkflowManager workflowMgr = ((UserSession) org.apache.wicket.Session.get()).getWorkflowManager();
                                         DefaultWorkflow defaultWorkflow = (DefaultWorkflow) workflowMgr.getWorkflow("core", nodeModel.getNode());
-                                        defaultWorkflow.localizeName(UserSession.get().getLocale(), localName);
+                                        defaultWorkflow.localizeName(localName);
                                     }
                                 } else {
                                     log.error("no workflow defined on model for selected node");
