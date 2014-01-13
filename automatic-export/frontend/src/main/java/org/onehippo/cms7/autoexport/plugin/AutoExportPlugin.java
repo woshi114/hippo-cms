@@ -114,7 +114,7 @@ public class AutoExportPlugin extends RenderPlugin<Node> {
     }
 
     private boolean isExportEnabled() {
-        boolean enabled = true;
+        boolean enabled = false;
         try {
             Node node = getJcrSession().getNode(CONFIG_NODE_PATH);
             enabled = node.getProperty(CONFIG_ENABLED_PROPERTY_NAME).getBoolean();

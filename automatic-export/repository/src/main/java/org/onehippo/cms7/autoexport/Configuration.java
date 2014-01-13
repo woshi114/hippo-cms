@@ -131,10 +131,10 @@ public class Configuration {
                 Node node = session.getNode(CONFIG_NODE_PATH);
                 enabled = node.getProperty(CONFIG_ENABLED_PROPERTY_NAME).getBoolean();
             } catch (PathNotFoundException e) {
-                enabled = true;
+                enabled = false;
                 log.debug("No such item: " + CONFIG_NODE_PATH + "/" + CONFIG_ENABLED_PROPERTY_NAME);
             } catch (RepositoryException e) {
-                enabled = true;
+                enabled = false;
                 log.error("Exception while reading export enabled flag.", e);
             }
         }
