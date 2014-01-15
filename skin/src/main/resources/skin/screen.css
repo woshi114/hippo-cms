@@ -2211,9 +2211,3 @@ body.hippo-root div.yui-log-container {
 	font-size: 14px;
 	font-weight: bold;
 }
-
-.hippo-referring-documents-list .link .ie-fallback-marker {
-    display: block;
-    height: 16px;
-    overflow: hidden;
-}
