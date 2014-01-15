@@ -553,7 +553,7 @@ body.hippo-root #doc3 {
 }
 
 .hippo-list-details tr.hippo-list-paging td {
-  width: 630px;
+  width: 75em;
   text-align: right;
 }
 
@@ -2210,4 +2210,14 @@ body.hippo-root div.yui-log-container {
 	color: red;
 	font-size: 14px;
 	font-weight: bold;
+}
+
+.hippo-referring-documents-list th.doclisting-name {
+    width: 100%;
+}
+
+.hippo-referring-documents-list td.doclisting-name span.ie-fallback-marker {
+    display: block;
+    height: 14px;
+    overflow: hidden;
 }
