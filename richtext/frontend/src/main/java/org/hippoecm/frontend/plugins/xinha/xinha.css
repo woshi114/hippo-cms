@@ -314,6 +314,34 @@ div.rte-preview-style {
   display: none; 
 }
 
+.hippo-root .dialog.CharacterMap .closeButton span,
+.hippo-root .dialog.CharacterMap .resizeHandle {
+    display: block;
+}
+
+.hippo-root .dialog.CharacterMap h1 {
+    margin-bottom: 0;
+}
+
+.hippo-root .dialog.CharacterMap .closeButton {
+    background: none;
+    top: 4px;
+    right: 2px;
+    width: 13px;
+    height: 13px;
+    padding-top: 0;
+    border: 1px solid #fff;
+    font-weight: bold;
+    color: #fff;
+}
+
+.hippo-root .dialog.CharacterMap .closeButton:hover,
+.hippo-root .dialog.CharacterMap .closeButton:active {
+    color: #FDB60A;
+    border-color: #FDB60A;
+    cursor: pointer;
+}
+
 .hippo-root .dialog, .hippo-root .dialog button, .hippo-root .dialog input, .hippo-root .dialog select, .hippo-root .dialog textarea, .hippo-root .dialog table {
   font: tahoma,arial,sans-serif,helvetica;
 }
