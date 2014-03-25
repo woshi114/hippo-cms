@@ -227,7 +227,6 @@ public class FolderShortcutPlugin extends RenderPlugin {
 
         private String templateCategory = null;
         private String prototype = null;
-        private String language = null;
 
         private final IServiceReference<IBrowseService> browseServiceRef;
         private final IServiceReference<IEditorManager> editServiceRef;
@@ -242,6 +241,7 @@ public class FolderShortcutPlugin extends RenderPlugin {
         private NameUriField nameUriContainer;
         private WebMarkupContainer prototypeContainer;
         private WebMarkupContainer templateContainer;
+        private final PropertyModel<String> languageModel;
         private LanguageField languageContainer;
 
         public Dialog(IPluginContext context, IPluginConfig config, Node folder, String defaultFolder) {
@@ -372,7 +372,8 @@ public class FolderShortcutPlugin extends RenderPlugin {
             templateContainer.add(new Label("typelabel", new StringResourceModel("document-type", this, null)));
             add(templateContainer);
 
-            languageContainer = new LanguageField("language", new PropertyModel<String>(this, "language"), getLocaleProvider());
+            languageModel = new PropertyModel<String>(this, "language");
+            languageContainer = new LanguageField("language", languageModel, getLocaleProvider());
             add(languageContainer);
 
             setOkEnabled(false);
@@ -488,8 +489,8 @@ public class FolderShortcutPlugin extends RenderPlugin {
 
                         TreeMap<String, String> arguments = new TreeMap<String, String>();
                         arguments.put("name", nodeName);
-                        if (language != null) {
-                            arguments.put("hippotranslation:locale", language);
+                        if (languageModel.getObject() != null) {
+                            arguments.put("hippotranslation:locale", languageModel.getObject());
                         }
 
                         String path = workflow.add(templateCategory, prototype, arguments);

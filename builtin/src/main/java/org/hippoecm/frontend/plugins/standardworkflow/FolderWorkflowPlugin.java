@@ -286,16 +286,18 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                     list.add(new StdWorkflow<FolderWorkflow>("id", categoryLabel, iconResource, getPluginContext(), model) {
 
                         AddDocumentArguments addDocumentModel = new AddDocumentArguments();
+                        Dialog dialog;
 
                         @Override
                         protected Dialog createRequestDialog() {
-                            return newAddDocumentDialog(
+                            this.dialog = newAddDocumentDialog(
                                     addDocumentModel,
                                     category,
                                     prototypes.get(category),
                                     translated.contains(category),
                                     this
                             );
+                            return this.dialog;
                         }
 
                         @Override
@@ -322,6 +324,11 @@ public class FolderWorkflowPlugin extends RenderPlugin {
 
                                 TreeMap<String, String> arguments = new TreeMap<String, String>();
                                 arguments.put("name", nodeName);
+
+                                if (this.dialog instanceof AddDocumentDialog) {
+                                    IModel<String> languageModel = ((AddDocumentDialog) this.dialog).getLanguage();
+                                    arguments.put("hippotranslation:locale", languageModel.getObject());
+                                }
 
                                 String path = workflow.add(category, addDocumentModel.getPrototype(), arguments);
                                 UserSession.get().getJcrSession().refresh(true);
