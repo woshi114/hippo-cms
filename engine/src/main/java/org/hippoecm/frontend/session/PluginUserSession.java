@@ -73,7 +73,7 @@ public class PluginUserSession extends UserSession {
     private static UserCredentials fallbackCredentials;
     private static final Map<UserSession, JcrSessionReference> jcrSessions = new WeakHashMap<UserSession, JcrSessionReference>();
 
-    private Session fallbackSession;
+    private transient Session fallbackSession;
     private final IModel<ClassLoader> classLoader;
     private final IModel<WorkflowManager> workflowManager;
     private transient FacetRootsObserver facetRootsObserver;
@@ -391,6 +391,11 @@ public class PluginUserSession extends UserSession {
 
     @Override
     protected void detach() {
+        if (fallbackSession != null) {
+            fallbackSession.logout();
+            fallbackSession = null;
+        }
+
         JcrSessionReference.cleanup();
         super.detach();
     }
@@ -410,11 +415,6 @@ public class PluginUserSession extends UserSession {
     }
 
     void unbind() {
-        if (fallbackSession != null) {
-            fallbackSession.logout();
-            fallbackSession = null;
-        }
-
         releaseJcrSession();
 
         JcrObservationManager.getInstance().cleanupListeners(this);
