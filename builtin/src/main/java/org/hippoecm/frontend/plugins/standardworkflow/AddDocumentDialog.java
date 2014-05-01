@@ -50,7 +50,6 @@ public class AddDocumentDialog extends AbstractWorkflowDialog<AddDocumentArgumen
     private TextField nameComponent;
     private TextField uriComponent;
     private boolean uriModified = false;
-    private final PropertyModel<String> languageModel;
     private LanguageField languageField;
     private final IModel<StringCodec> nodeNameCodecModel;
 
@@ -180,8 +179,7 @@ public class AddDocumentDialog extends AbstractWorkflowDialog<AddDocumentArgumen
         }));
         add(uriAction);
 
-        languageModel = new PropertyModel<String>(addDocumentModel, "language");
-        languageField = new LanguageField("language", languageModel, localeProvider);
+        languageField = new LanguageField("language", new PropertyModel<String>(addDocumentModel, "language"), localeProvider);
         if (!translated) {
             languageField.setVisible(false);
         }
@@ -191,10 +189,6 @@ public class AddDocumentDialog extends AbstractWorkflowDialog<AddDocumentArgumen
     @Override
     public IModel getTitle() {
         return title;
-    }
-
-    public IModel<String> getLanguage() {
-        return this.languageModel;
     }
 
     @Override
