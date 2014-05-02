@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -168,7 +168,10 @@ class NodeEditor extends Form<Node> {
             final String namespace = propertiesProvider.getNamespace();
 
             final String namespaceHeading = namespace + " (" + propertiesProvider.size() + ")";
-            item.add(new ToggleHeader("toggle-namespace", namespace, namespaceHeading));
+            final ToggleHeader toggleHeader = new ToggleHeader("toggle-namespace", namespace, namespaceHeading);
+            toggleHeader.setMarkupId("toggle-header-" + namespace);
+            toggleHeader.setOutputMarkupId(true);
+            item.add(toggleHeader);
 
             final WebMarkupContainer propertiesContainer = new WebMarkupContainer("propertiesContainer");
             propertiesContainer.setOutputMarkupId(true);
