@@ -40,6 +40,7 @@ import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.util.value.IValueMap;
 import org.hippoecm.addon.workflow.AbstractWorkflowDialog;
 import org.hippoecm.addon.workflow.IWorkflowInvoker;
@@ -86,7 +87,6 @@ public class FolderWorkflowPlugin extends RenderPlugin {
 
     private static Logger log = LoggerFactory.getLogger(FolderWorkflowPlugin.class);
 
-    private static final String ROOT_PATH = "/content/documents/";
 
     public FolderWorkflowPlugin(IPluginContext context, final IPluginConfig config) {
         super(context, config);
@@ -94,7 +94,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
         add(new Label("new"));
 
         add(new StdWorkflow("rename", new StringResourceModel("rename-title", this, null), context, getModel()) {
-
+            private static final long serialVersionUID = 1L;
             RenameDocumentArguments renameDocumentModel = new RenameDocumentArguments();
 
             @Override
@@ -150,6 +150,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
 
         final StdWorkflow reorderAction;
         add(reorderAction = new StdWorkflow("reorder", new StringResourceModel("reorder-folder", this, null), context, getModel()) {
+            private static final long serialVersionUID = 1L;
             public List<String> order = new LinkedList<String>();
 
             @Override
@@ -172,6 +173,8 @@ public class FolderWorkflowPlugin extends RenderPlugin {
 
         add(new StdWorkflow("delete", new StringResourceModel("delete-title", this, null), context, getModel()) {
 
+            private static final long serialVersionUID = 1L;
+
             @Override
             protected ResourceReference getIcon() {
                 return new ResourceReference(getClass(), "delete-16.png");
@@ -187,7 +190,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 }
 
                 if (folderNode != null) {
-                    final IModel folderName = new NodeTranslator(new JcrNodeModel(folderNode)).getNodeName();
+                    final IModel<String> folderName = new NodeTranslator(new JcrNodeModel(folderNode)).getNodeName();
                     try {
                         boolean deleteAllowed = true;
                         for (NodeIterator iter = folderNode.getNodes(); iter.hasNext(); ) {
@@ -201,6 +204,8 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                         }
                         StringResourceModel messageModel = new StringResourceModel(deleteAllowed ? "delete-message-extended" : "delete-message-denied",
                                 FolderWorkflowPlugin.this, null, new Object[]{folderName}) {
+
+                            private static final long serialVersionUID = 1L;
 
                             @Override
                             public void detach() {
@@ -219,6 +224,8 @@ public class FolderWorkflowPlugin extends RenderPlugin {
 
             class DeleteDialog extends AbstractWorkflowDialog {
 
+                private static final long serialVersionUID = 1L;
+
                 public DeleteDialog(IModel messageModel, IWorkflowInvoker invoker, boolean deleteAllowed) {
                     super(null, messageModel, invoker);
 
@@ -231,7 +238,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 }
 
                 @Override
-                public IModel getTitle() {
+                public IModel<String> getTitle() {
                     return new StringResourceModel("delete-title", FolderWorkflowPlugin.this, null);
                 }
 
@@ -285,6 +292,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                     }
                     list.add(new StdWorkflow<FolderWorkflow>("id", categoryLabel, iconResource, getPluginContext(), model) {
 
+                        private static final long serialVersionUID = 1L;
                         AddDocumentArguments addDocumentModel = new AddDocumentArguments();
 
                         @Override
@@ -320,9 +328,16 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                                     throw new IllegalArgumentException("You need to enter a name");
                                 }
 
-                                TreeMap<String, String> arguments = new TreeMap<String, String>();
+                                Map<String, String> arguments = new TreeMap<String, String>();
                                 arguments.put("name", nodeName);
-
+                                /**
+                                 * check if dialog has a language selected
+                                 * e.g. in cases where translated folder is created within none-translated one
+                                 */
+                                final String language = addDocumentModel.getLanguage();
+                                if (!arguments.containsKey("hippotranslation:locale") && !Strings.isEmpty(language)) {
+                                    arguments.put("hippotranslation:locale", language);
+                                }
                                 String path = workflow.add(category, addDocumentModel.getPrototype(), arguments);
                                 UserSession.get().getJcrSession().refresh(true);
                                 JcrNodeModel nodeModel = new JcrNodeModel(path);
@@ -341,8 +356,10 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 }
             }
 
-            AbstractView add;
+            AbstractView<StdWorkflow> add;
             replace(add = new AbstractView<StdWorkflow>("new", createListDataProvider(list)) {
+
+                private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void populateItem(Item<StdWorkflow> item) {
@@ -370,11 +387,14 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 new StringResourceModel("rename-title", this, null),
                 invoker,
                 new LoadableDetachableModel<StringCodec>() {
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     protected StringCodec load() {
                         return getNodeNameCodec();
                     }
-                });
+                }
+        );
     }
 
     protected Dialog newAddDocumentDialog(AddDocumentArguments addDocumentModel, String category, Set<String> prototypes, boolean translated, IWorkflowInvoker invoker) {
@@ -392,7 +412,8 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                         return getNodeNameCodec();
                     }
                 },
-                getLocaleProvider());
+                getLocaleProvider()
+        );
 
         WorkflowDescriptorModel descriptorModel = (WorkflowDescriptorModel) getDefaultModel();
         try {
