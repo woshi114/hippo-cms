@@ -118,7 +118,7 @@ public class RevisionHistory extends JcrObject {
                         Value[] paths = subject.getProperty(HippoNodeType.HIPPO_PATHS).getValues();
                         if (paths.length > 1) {
                             String handleUuid = paths[1].getString();
-                            handle = subject.getSession().getNodeByUUID(handleUuid);
+                            handle = subject.getSession().getNodeByIdentifier(handleUuid);
                         }
                     }
                 } else {
@@ -141,7 +141,7 @@ public class RevisionHistory extends JcrObject {
                         }
                     }
                     SortedMap<Calendar, RevisionEntry> versions = new TreeMap<Calendar, RevisionEntry>();
-                    VariantHistoryIterator iter = new VariantHistoryIterator(handle, Collections.EMPTY_MAP);
+                    VariantHistoryIterator iter = new VariantHistoryIterator(handle, Collections.<String, String>emptyMap());
                     while (iter.hasNext()) {
                         Version variant = iter.next();
 
@@ -155,26 +155,23 @@ public class RevisionHistory extends JcrObject {
 
                         versions.put(variant.getCreated(), new RevisionEntry(variant, iter.getHandleVersion()));
                     }
-                    int index = 0;
+                    int index = versions.size();
                     for (Map.Entry<Calendar, RevisionEntry> entry : versions.entrySet()) {
                         Set<String> labels = new TreeSet<String>();
                         Version variant = entry.getValue().document;
                         String[] versionLabels = variant.getContainingHistory().getVersionLabels(variant);
-                        for (String label : versionLabels) {
-                            labels.add(label);
-                        }
-                        list.add(new Revision(this, entry.getKey(), labels, index++, new JcrNodeModel(variant),
+                        Collections.addAll(labels, versionLabels);
+                        list.add(new Revision(this, entry.getKey(), labels, --index, new JcrNodeModel(variant),
                                 new JcrNodeModel(entry.getValue().handle)));
                     }
                 } else {
                     VersionWorkflow workflow = getWorkflow();
                     if (workflow != null) {
                         try {
-                            SortedMap<Calendar, Set<String>> versions = null;
-                            versions = workflow.list();
-                            int index = 0;
+                            SortedMap<Calendar, Set<String>> versions = workflow.list();
+                            int index = versions.size();
                             for (Map.Entry<Calendar, Set<String>> entry : versions.entrySet()) {
-                                list.add(new Revision(this, entry.getKey(), entry.getValue(), index++));
+                                list.add(new Revision(this, entry.getKey(), entry.getValue(), --index));
                             }
                         } catch (RemoteException ex) {
                             log.error(ex.getMessage(), ex);
