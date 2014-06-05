@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  */
 package org.hippoecm.frontend.plugins.xinha.htmlcleaner;
 
-import nl.hippo.htmlcleaner.HtmlCleaner;
-import nl.hippo.htmlcleaner.HtmlCleanerTemplate;
-
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.Plugin;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.richtext.IHtmlCleanerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import nl.hippo.htmlcleaner.HtmlCleaner;
+import nl.hippo.htmlcleaner.HtmlCleanerTemplate;
 
 public class HtmlCleanerPlugin extends Plugin implements IHtmlCleanerService {
 
@@ -42,7 +42,8 @@ public class HtmlCleanerPlugin extends Plugin implements IHtmlCleanerService {
         if (htmlCleanerConfig != null) {
             lenient = htmlCleanerConfig.getAsBoolean("lenient", true);
             try {
-                context.registerService(this, IHtmlCleanerService.class.getName());
+                String serviceId = config.getString(IHtmlCleanerService.SERVICE_ID, IHtmlCleanerService.class.getName());
+                context.registerService(this, serviceId);
             } catch (Exception ex) {
                 log.error("Exception whole creating HTMLCleaner template:", ex);
             }

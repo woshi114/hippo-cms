@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.IClusterable;
 import org.apache.wicket.Page;
@@ -48,10 +49,10 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.protocol.http.request.WebClientInfo;
 import org.apache.wicket.util.template.PackagedTextTemplate;
 import org.hippoecm.frontend.Home;
-import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.model.properties.JcrPropertyValueModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
+import org.hippoecm.frontend.plugins.richtext.IHtmlCleanerService;
 import org.hippoecm.frontend.plugins.richtext.RichTextArea;
 import org.hippoecm.frontend.plugins.richtext.RichTextModel;
 import org.hippoecm.frontend.plugins.standards.diff.HtmlDiffModel;
@@ -67,7 +68,7 @@ import org.hippoecm.frontend.service.render.RenderPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class  AbstractXinhaPlugin extends RenderPlugin {
+public abstract class AbstractXinhaPlugin extends RenderPlugin {
 
     private static final long serialVersionUID = 1L;
 
@@ -100,8 +101,6 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
 
     //editor behaviors
     private Map<String, IBehavior> editorPluginBehaviors;
-
-    private JcrNodeModel nodeModel;
 
     public AbstractXinhaPlugin(IPluginContext context, final IPluginConfig config) {
         super(context, config);
@@ -292,14 +291,28 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
         super.onBeforeRender();
     }
 
-    @Override
-    protected void onDetach() {
-        if (nodeModel != null) {
-            nodeModel.detach();
-        }
-        super.onDetach();
-    }
+    protected IHtmlCleanerService getHtmlCleanerOrNull() {
+        final IPluginConfig config = getPluginConfig();
+        final String serviceId = config.getString(IHtmlCleanerService.SERVICE_ID, IHtmlCleanerService.class.getName());
 
+        if (StringUtils.isBlank(serviceId)) {
+            log.info("XinhaEditor plugin '{}' does not use a server-side HTML cleaner", config.getName());
+            return null;
+        }
+
+        final IHtmlCleanerService service = getPluginContext().getService(serviceId, IHtmlCleanerService.class);
+
+        if (service != null) {
+            log.info("XinhaEditor plugin '{}' uses server-side HTML cleaner '{}'", config.getName(), serviceId);
+        } else {
+            log.warn("XinhaEditor plugin '" + config.getName() + "'"
+                    + " cannot load server-side HTML cleaner with serviceID '" + serviceId + "'."
+                    + " No server-side HTML cleaner will be used.");
+        }
+
+        return service;
+    }
+    
     class EditorManagerBehavior extends AbstractYuiBehavior {
         private static final long serialVersionUID = 1L;
 
