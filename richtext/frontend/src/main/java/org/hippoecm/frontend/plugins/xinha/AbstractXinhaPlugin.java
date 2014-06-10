@@ -89,6 +89,7 @@ public abstract class AbstractXinhaPlugin extends RenderPlugin {
 
     public static final String DISABLE_OPEN_IN_A_NEW_WINDOW_CONFIG = "open.in.new.window.disabled";
     public static final String EXTERNAL_PROTOCOLS_OVERWRITE_DEFAULT = "external.protocols";
+    public static final String CONFIG_HTML_CLEANER_SERVICE_ID = "htmlcleaner.id";
 
     private final IEditor.Mode mode;
     protected RichTextArea editor;
@@ -293,7 +294,7 @@ public abstract class AbstractXinhaPlugin extends RenderPlugin {
 
     protected IHtmlCleanerService getHtmlCleanerOrNull() {
         final IPluginConfig config = getPluginConfig();
-        final String serviceId = config.getString(IHtmlCleanerService.SERVICE_ID, IHtmlCleanerService.class.getName());
+        final String serviceId = config.getString(CONFIG_HTML_CLEANER_SERVICE_ID, IHtmlCleanerService.class.getName());
 
         if (StringUtils.isBlank(serviceId)) {
             log.info("XinhaEditor plugin '{}' does not use a server-side HTML cleaner", config.getName());
@@ -305,9 +306,8 @@ public abstract class AbstractXinhaPlugin extends RenderPlugin {
         if (service != null) {
             log.info("XinhaEditor plugin '{}' uses server-side HTML cleaner '{}'", config.getName(), serviceId);
         } else {
-            log.warn("XinhaEditor plugin '" + config.getName() + "'"
-                    + " cannot load server-side HTML cleaner with serviceID '" + serviceId + "'."
-                    + " No server-side HTML cleaner will be used.");
+            log.warn("XinhaEditor plugin '{}' cannot load server-side HTML cleaner with serviceID '{}'."
+                    + " No server-side HTML cleaner will be used.", config.getName(), serviceId);
         }
 
         return service;
