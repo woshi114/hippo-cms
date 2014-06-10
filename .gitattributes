@@ -2255,6 +2255,7 @@ richtext/resources/src/main/resources/xinha/plugins/AutoSave/lang/de.js -text
 richtext/resources/src/main/resources/xinha/plugins/AutoSave/lang/fr.js -text
 richtext/resources/src/main/resources/xinha/plugins/AutoSave/lang/it.js -text
 richtext/resources/src/main/resources/xinha/plugins/AutoSave/lang/nl.js -text
+richtext/resources/src/main/resources/xinha/plugins/CharacterMap/CharacterMap.js -text
 richtext/resources/src/main/resources/xinha/plugins/CreateExternalLink/CreateExternalLink.js svneol=native#text/plain
 richtext/resources/src/main/resources/xinha/plugins/CreateExternalLink/lang/de.js -text
 richtext/resources/src/main/resources/xinha/plugins/CreateExternalLink/lang/fr.js -text
