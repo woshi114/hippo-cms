@@ -760,10 +760,19 @@ Xinha.prototype.insertHTML = function(html)
     //If an image is selected, createRange returns a controlRangeCollection that does not support
     //pasteHTML, instead it's first item is used and the value of argument html is inserted right
     // after it.
-
+    
     this.focusEditor();
-    var sel = this.getSelection();
-    var range = this.createRange(sel);
+    
+    var range = null;
+    if (this.currentModal !== null && this.currentModal._lastRange !== null) {
+        //Fix for IE inserting data from a Modal dialog (Xinha modal, not Hippo modal) at the beginning
+        //of the editor instead of at the caret.
+        range = this.currentModal._lastRange;
+    } else {
+        var sel = this.getSelection();
+        range = this.createRange(sel);
+    }
+    
     if (typeof range.htmlText !== 'undefined') {
         range.pasteHTML(html);
     } else if (range.length > 0) {
