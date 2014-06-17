@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2014CMS7-7834 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@ import java.util.Iterator;
 
 import javax.jcr.Node;
 import javax.jcr.Property;
+import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -54,6 +56,8 @@ public class PropertyFieldPlugin extends AbstractFieldPlugin<Property, JcrProper
     private JcrNodeModel nodeModel;
     private JcrPropertyModel propertyModel;
     private int nrValues;
+    private int[] order;
+    
     private IObserver propertyObserver;
 
     public PropertyFieldPlugin(IPluginContext context, IPluginConfig config) {
@@ -94,7 +98,10 @@ public class PropertyFieldPlugin extends AbstractFieldPlugin<Property, JcrProper
     protected void subscribe(final IFieldDescriptor field) {
         if (!field.getPath().equals("*")) {
             propertyModel = newPropertyModel((JcrNodeModel) getDefaultModel());
+
+            order = getOrder();
             nrValues = propertyModel.size();
+
             getPluginContext().registerService(propertyObserver = new IObserver<JcrPropertyModel>() {
                 private static final long serialVersionUID = 1L;
 
@@ -103,12 +110,18 @@ public class PropertyFieldPlugin extends AbstractFieldPlugin<Property, JcrProper
                 }
 
                 public void onEvent(Iterator<? extends IEvent<JcrPropertyModel>> events) {
+
+                    int[] newOrder = getOrder();
+                    int newNrValues = propertyModel.size();
+
                     //Only redraw if the number of properties or their order has changed.
-                    if (propertyModel.size() != nrValues || field.isOrdered()) {
-                        nrValues = propertyModel.size();
+                    if (newNrValues != nrValues || orderHasChanged(newOrder)) {
+                        nrValues = newNrValues;
                         resetValidation();
                         redraw();
                     }
+
+                    order = newOrder;
                 }
 
             }, IObserver.class.getName());
@@ -227,8 +240,6 @@ public class PropertyFieldPlugin extends AbstractFieldPlugin<Property, JcrProper
         item.add(fragment);
     }
 
-    // privates
-
     protected Component createAddLink() {
         if (canAddItem()) {
             return new AjaxLink("add") {
@@ -243,5 +254,47 @@ public class PropertyFieldPlugin extends AbstractFieldPlugin<Property, JcrProper
         } else {
             return new Label("add").setVisible(false);
         }
+    }
+
+    // If property is multiple return an array containing the hash codes of all values, otherwise return null.
+    private int[] getOrder() {
+        Property prop = propertyModel.getProperty();
+
+        if (prop != null) {
+            try {
+                if (prop.isMultiple()) {
+                    Value[] values = prop.getValues();
+                    int[] hashCodes = new int[values.length];
+                    for (int i = 0; i < values.length; i++) {
+                        hashCodes[i] = values[i].hashCode();
+                    }
+                    return hashCodes;
+                }
+            } catch (RepositoryException e) {
+                log.warn("Failed to retrieve hashcodes of property "
+                        + propertyModel.getItemModel().getPath() + " for order comparison.", e);
+            }
+        }
+        return null;
+    }
+
+    // If two or more values at the same index are not equal, order has changed. We assume that both arrays (if not null)
+    // are of the same length. If both are null, order has not changed. If only one is null, order has changed.
+    private boolean orderHasChanged(int[] newOrder) {
+        if (order == null && newOrder == null) {
+            return false;
+        }
+
+        if (order == null || newOrder == null) {
+            return true;
+        }
+
+        int changed = 0;
+        for (int i = 0; i < order.length && changed < 2; i++) {
+            if (order[i] != newOrder[i]) {
+                changed++;
+            }
+        }
+        return changed > 1;
     }
 }
