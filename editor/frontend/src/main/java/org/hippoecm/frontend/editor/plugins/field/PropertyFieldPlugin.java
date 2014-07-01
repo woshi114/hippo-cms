@@ -21,6 +21,7 @@ import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
+import javax.jcr.ValueFormatException;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -266,7 +267,13 @@ public class PropertyFieldPlugin extends AbstractFieldPlugin<Property, JcrProper
                     Value[] values = prop.getValues();
                     int[] hashCodes = new int[values.length];
                     for (int i = 0; i < values.length; i++) {
-                        hashCodes[i] = values[i].hashCode();
+                        try {
+                            hashCodes[i] = values[i].getString().hashCode();
+                        } catch (ValueFormatException e) {
+                            log.warn("Failed to retrieve hashcode of value with index {} for property {}. " +
+                                    "Order comparison is not possible.", i, propertyModel.getItemModel().getPath());
+                            hashCodes[i] = 0;
+                        }
                     }
                     return hashCodes;
                 }
