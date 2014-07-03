@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2014 Hippo.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import org.hippoecm.frontend.model.IModelReference;
 import org.hippoecm.frontend.model.properties.JcrPropertyValueModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
-import org.hippoecm.frontend.plugins.richtext.IHtmlCleanerService;
 import org.hippoecm.frontend.plugins.richtext.RichTextModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +58,7 @@ public class XinhaPlugin extends AbstractXinhaPlugin {
     @Override
     protected IModel<String> newEditModel() {
         RichTextModel model = (RichTextModel) super.newEditModel();
-        model.setCleaner(getPluginContext().getService(IHtmlCleanerService.class.getName(), IHtmlCleanerService.class));
+        model.setCleaner(getHtmlCleanerOrNull());
         return model;
     }
 }

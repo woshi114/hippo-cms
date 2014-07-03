@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008 Hippo.
+ *  Copyright 2008-2014 Hippo.
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import org.hippoecm.frontend.model.properties.JcrPropertyModel;
 import org.hippoecm.frontend.model.properties.JcrPropertyValueModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
-import org.hippoecm.frontend.plugins.richtext.IHtmlCleanerService;
 import org.hippoecm.frontend.plugins.richtext.IImageURLProvider;
 import org.hippoecm.frontend.plugins.richtext.ILinkDecorator;
 import org.hippoecm.frontend.plugins.richtext.IRichTextImageFactory;
@@ -177,7 +176,7 @@ public class XinhaNodePlugin extends AbstractXinhaPlugin {
         IRichTextLinkFactory linkFactory = new JcrRichTextLinkFactory(nodeModel);
 
         RichTextModel model = (RichTextModel) super.newEditModel();
-        model.setCleaner(getPluginContext().getService(IHtmlCleanerService.class.getName(), IHtmlCleanerService.class));
+        model.setCleaner(getHtmlCleanerOrNull());
         model.setLinkFactory(linkFactory);
 
         IImageURLProvider urlProvider = new RichTextImageURLProvider(imageFactory, linkFactory);

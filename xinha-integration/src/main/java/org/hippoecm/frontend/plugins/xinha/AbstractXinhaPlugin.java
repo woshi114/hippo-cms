@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo.
+ *  Copyright 2008-2014 Hippo.
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.IClusterable;
 import org.apache.wicket.Page;
 import org.apache.wicket.RequestCycle;
@@ -51,6 +52,7 @@ import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.model.properties.JcrPropertyValueModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
+import org.hippoecm.frontend.plugins.richtext.IHtmlCleanerService;
 import org.hippoecm.frontend.plugins.richtext.RichTextArea;
 import org.hippoecm.frontend.plugins.richtext.RichTextModel;
 import org.hippoecm.frontend.plugins.standards.diff.HtmlDiffModel;
@@ -85,6 +87,7 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
             "xinha_init.js");
 
     public static final String DISABLE_OPEN_IN_A_NEW_WINDOW_CONFIG = "open.in.new.window.disabled";
+    public static final String CONFIG_HTML_CLEANER_SERVICE_ID = "htmlcleaner.id";
 
     private final IEditor.Mode mode;
     protected RichTextArea editor;
@@ -159,15 +162,15 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
         Fragment fragment = new Fragment(fragmentId, "view", this);
         IModel<String> model;
         switch (mode) {
-        case COMPARE:
-            model = newCompareModel();
-            break;
-        case VIEW:
-        case EDIT:
-            model = newViewModel();
-            break;
-        default:
-            throw new RuntimeException("No model available for mode " + mode);
+            case COMPARE:
+                model = newCompareModel();
+                break;
+            case VIEW:
+            case EDIT:
+                model = newViewModel();
+                break;
+            default:
+                throw new RuntimeException("No model available for mode " + mode);
         }
         fragment.add(new WebMarkupContainer("value", model) {
             private static final long serialVersionUID = 1L;
@@ -283,12 +286,24 @@ public abstract class  AbstractXinhaPlugin extends RenderPlugin {
         super.onBeforeRender();
     }
 
-    @Override
-    protected void onDetach() {
-        if (nodeModel != null) {
-            nodeModel.detach();
+    protected IHtmlCleanerService getHtmlCleanerOrNull() {
+        final IPluginConfig config = getPluginConfig();
+        final String serviceId = config.getString(CONFIG_HTML_CLEANER_SERVICE_ID, IHtmlCleanerService.class.getName());
+
+        if (StringUtils.isBlank(serviceId)) {
+            log.info("XinhaEditor plugin '{}' does not use a server-side HTML cleaner", config.getName());
+            return null;
         }
-        super.onDetach();
+        final IHtmlCleanerService service = getPluginContext().getService(serviceId, IHtmlCleanerService.class);
+
+        if (service != null) {
+            log.info("XinhaEditor plugin '{}' uses server-side HTML cleaner '{}'", config.getName(), serviceId);
+        } else {
+            log.warn("XinhaEditor plugin '{}' cannot load server-side HTML cleaner with serviceID '{}'."
+                    + " No server-side HTML cleaner will be used.", config.getName(), serviceId);
+        }
+
+        return service;
     }
 
     class EditorManagerBehavior extends AbstractYuiBehavior {

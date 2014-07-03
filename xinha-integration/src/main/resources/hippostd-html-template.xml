@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright 2007-2010 Hippo
+  Copyright 2007-2014 Hippo
 
   Licensed under the Apache License, Version 2.0 (the  "License");
   you may not use this file except in compliance with the License.
@@ -123,6 +123,7 @@
         <sv:value>imagepicker.last.visited.key</sv:value>
         <sv:value>imagepicker.last.visited.enabled</sv:value>
         <sv:value>imagepicker.last.visited.nodetypes</sv:value>
+        <sv:value>htmlcleaner.id</sv:value>
       </sv:property>
       <sv:property sv:name="linkpicker.cluster.name" sv:type="String">
         <sv:value>cms-pickers/documents</sv:value>
@@ -235,6 +236,10 @@
         <sv:property sv:name="width" sv:type="String">
           <sv:value>${width}</sv:value>
         </sv:property>
+        <sv:property sv:name="htmlcleaner.id" sv:type="String">
+          <sv:value>${htmlcleaner.id}</sv:value>
+        </sv:property>
+
         <sv:property sv:name="browser.id" sv:type="String">
           <sv:value>service.browse</sv:value>
         </sv:property>
