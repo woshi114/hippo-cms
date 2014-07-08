@@ -244,6 +244,7 @@ public class DefaultGalleryProcessor implements GalleryProcessor {
         return ret;
     }
 
+    @Override
     public Dimension getDesiredResourceDimension(Node node) throws RepositoryException {
         if(node.isNodeType("hippo:resource")) {
             try {
@@ -275,6 +276,7 @@ public class DefaultGalleryProcessor implements GalleryProcessor {
         }
     }
 
+    @Override
     public void makeImage(Node node, InputStream istream, String mimeType, String fileName) throws GalleryException,
             RepositoryException {
         Node primaryChild = null;
@@ -328,6 +330,7 @@ public class DefaultGalleryProcessor implements GalleryProcessor {
         node.setProperty(JcrConstants.JCR_MIMETYPE, mimeType);
     }
 
+    @Override
     public void validateResource(Node node, String fileName) throws GalleryException, RepositoryException {
         try {
             ResourceHelper.validateResource(node, fileName);
@@ -336,6 +339,7 @@ public class DefaultGalleryProcessor implements GalleryProcessor {
         }
     }
 
+    @Override
     public void initGalleryResource(Node node, InputStream data, String mimeType, String fileName, Calendar lastModified)
             throws GalleryException, RepositoryException {
         node.setProperty(JcrConstants.JCR_MIMETYPE, mimeType);
@@ -347,6 +351,7 @@ public class DefaultGalleryProcessor implements GalleryProcessor {
         return ResourceHelper.getValueFactory(node);
     }
 
+    @Override
     public boolean isUpscalingEnabled(Node node) throws GalleryException, RepositoryException {
         return true;
     }

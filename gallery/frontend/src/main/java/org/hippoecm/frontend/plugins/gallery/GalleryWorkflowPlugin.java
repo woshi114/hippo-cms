@@ -79,7 +79,8 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             super(context, config);
         }
 
-        public IModel getTitle() {
+        @Override
+        public IModel<String> getTitle() {
             return new StringResourceModel(GalleryWorkflowPlugin.this.getPluginConfig().getString("option.text", ""),
                     GalleryWorkflowPlugin.this, null);
         }
