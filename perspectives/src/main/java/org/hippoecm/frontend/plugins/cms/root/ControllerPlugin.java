@@ -18,6 +18,7 @@ package org.hippoecm.frontend.plugins.cms.root;
 import java.util.Map;
 
 import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 
 import org.apache.wicket.behavior.IBehavior;
 import org.apache.wicket.protocol.http.WicketURLDecoder;
@@ -33,12 +34,14 @@ import org.hippoecm.frontend.service.IController;
 import org.hippoecm.frontend.service.IEditor;
 import org.hippoecm.frontend.service.IEditorManager;
 import org.hippoecm.frontend.service.ServiceException;
+import org.hippoecm.frontend.session.UserSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ControllerPlugin extends Plugin implements IController {
 
     public static final String URL_PARAMETER_PATH = "path";
+    public static final String URL_PARAMETER_UUID = "uuid";
     public static final String URL_PARAMETER_MODE = "mode";
     public static final String URL_PARAMETER_MODE_VALUE_EDIT = "edit";
 
@@ -65,48 +68,73 @@ public class ControllerPlugin extends Plugin implements IController {
     }
 
     public void process(Map parameters) {
+        JcrNodeModel nodeModel = loadJcrNodeModel(parameters);
+        if(nodeModel != null){
+            browseTo(nodeModel);
+            setEditorMode(nodeModel, parameters);
+        }
+    }
+
+    protected JcrNodeModel loadJcrNodeModel(final Map parameters) {
         String[] urlPaths = (String[]) parameters.get(URL_PARAMETER_PATH);
         if (urlPaths != null && urlPaths.length > 0) {
-            String jcrPath = WicketURLDecoder.PATH_INSTANCE.decode(urlPaths[0]);
-            JcrNodeModel nodeModel = new JcrNodeModel(jcrPath);
+            return new JcrNodeModel(
+                    WicketURLDecoder.PATH_INSTANCE.decode(urlPaths[0]));
+        }
 
-            IPluginContext context = getPluginContext();
-            IPluginConfig config = getPluginConfig();
-            IBrowseService browseService = context.getService(config.getString("browser.id", "service.browse"),
-                    IBrowseService.class);
-            if (browseService != null) {
-                browseService.browse(nodeModel);
-            } else {
-                log.info("Could not find browse service - document " + jcrPath + " will not be selected");
+        String[] uuids = (String[]) parameters.get(URL_PARAMETER_UUID);
+        if (uuids != null && uuids.length > 0) {
+            String uuid = WicketURLDecoder.PATH_INSTANCE.decode(uuids[0]);
+            try {
+                return new JcrNodeModel(
+                        UserSession.get().getJcrSession().getNodeByIdentifier(uuid));
+
+            } catch (RepositoryException e) {
+                log.info("Could not find document with uuid: {}", uuid);
             }
+        }
 
-            if (parameters.containsKey(URL_PARAMETER_MODE)) {
-                String[] modeStr = (String[]) parameters.get(URL_PARAMETER_MODE);
-                if (modeStr != null && modeStr.length > 0) {
-                    IEditor.Mode mode;
-                    if (URL_PARAMETER_MODE_VALUE_EDIT.equals(modeStr[0])) {
-                        mode = IEditor.Mode.EDIT;
-                    } else {
-                        mode = IEditor.Mode.VIEW;
-                    }
-                    IEditorManager editorMgr = context.getService(config.getString("editor.id", "service.edit"),
-                            IEditorManager.class);
-                    if (editorMgr != null) {
-                        IEditor editor = editorMgr.getEditor(nodeModel);
-                        try {
-                            if (editor == null) {
-                                editor = editorMgr.openPreview(nodeModel);
-                            }
-                            editor.setMode(mode);
-                        } catch (EditorException e) {
-                            log.info("Could not open editor for " + jcrPath);
-                        } catch (ServiceException e) {
-                            log.info("Could not open preview for " + jcrPath);
+        return null;
+    }
+
+    protected void browseTo(final JcrNodeModel nodeModel) {
+        IBrowseService browseService = getPluginContext().getService(getPluginConfig().getString("browser.id", "service.browse"),
+                IBrowseService.class);
+        if (browseService != null) {
+            browseService.browse(nodeModel);
+        } else {
+            log.info("Could not find browse service - document " + nodeModel.getItemModel().getPath() + " will not be selected");
+        }
+    }
+
+    protected void setEditorMode(final JcrNodeModel nodeModel, final Map parameters) {
+        if (parameters.containsKey(URL_PARAMETER_MODE)) {
+            String[] modeStr = (String[]) parameters.get(URL_PARAMETER_MODE);
+            if (modeStr != null && modeStr.length > 0) {
+                IEditor.Mode mode;
+                if (URL_PARAMETER_MODE_VALUE_EDIT.equals(modeStr[0])) {
+                    mode = IEditor.Mode.EDIT;
+                } else {
+                    mode = IEditor.Mode.VIEW;
+                }
+                IEditorManager editorMgr = getPluginContext().getService(getPluginConfig().getString("editor.id", "service.edit"),
+                        IEditorManager.class);
+                if (editorMgr != null) {
+                    IEditor editor = editorMgr.getEditor(nodeModel);
+                    try {
+                        if (editor == null) {
+                            editor = editorMgr.openPreview(nodeModel);
                         }
+                        editor.setMode(mode);
+                    } catch (EditorException e) {
+                        log.info("Could not open editor for " + nodeModel.getItemModel().getPath());
+                    } catch (ServiceException e) {
+                        log.info("Could not open preview for " + nodeModel.getItemModel().getPath());
                     }
                 }
             }
         }
     }
+
 
 }

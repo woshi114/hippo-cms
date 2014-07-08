@@ -59,12 +59,14 @@
             },
 
             onUrlChange : function() {
-                var path, url;
-                path = this.getParameter('path');
-                if (Lang.isUndefined(path)) {
-                    path = "/";
+                var parameter, url;
+                if (! Lang.isUndefined(parameter = this.getParameter('path'))) {
+                    url = this.url + "&path=" + parameter;
+                } else if (! Lang.isUndefined(parameter = this.getParameter('uuid'))) {
+                    url = this.url + "&uuid=" + parameter;
+                } else {
+                    url = this.url + "&path=/";
                 }
-                url = this.url + "&path=" + path;
                 this.callback(url);
             },
 

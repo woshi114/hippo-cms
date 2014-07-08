@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.jcr.RepositoryException;
+
 import org.apache.wicket.RequestCycle;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.hippoecm.frontend.model.IModelReference;
@@ -29,25 +31,43 @@ import org.hippoecm.frontend.model.event.IObserver;
 import org.hippoecm.frontend.plugins.yui.AbstractYuiAjaxBehavior;
 import org.hippoecm.frontend.plugins.yui.IAjaxSettings;
 import org.hippoecm.frontend.plugins.yui.header.IYuiContext;
+import org.hippoecm.frontend.session.UserSession;
 import org.onehippo.yui.YuiNamespace;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PathHistoryBehavior extends AbstractYuiAjaxBehavior implements YuiNamespace, IObserver {
+
+    private static final Logger log = LoggerFactory.getLogger(PathHistoryBehavior.class);
+
+    public static final String URL_PARAMETER_PATH = "path";
+    public static final String URL_PARAMETER_UUID = "uuid";
 
     private IModelReference reference;
 
     public PathHistoryBehavior(IAjaxSettings settings, IModelReference reference) {
         super(settings);
 
-        this.reference  = reference;
+        this.reference = reference;
 
-        setPathFromRequest();
+        setReferenceModelFromRequest();
     }
 
-    private void setPathFromRequest() {
+    private void setReferenceModelFromRequest() {
         final RequestCycle requestCycle = RequestCycle.get();
-        String path = requestCycle.getRequest().getParameter("path");
+        String path = requestCycle.getRequest().getParameter(URL_PARAMETER_PATH);
         if (path != null) {
             reference.setModel(new JcrNodeModel(path));
+        } else {
+            String uuid = requestCycle.getRequest().getParameter(URL_PARAMETER_UUID);
+            if (uuid != null) {
+                try {
+                    reference.setModel(new JcrNodeModel(
+                            UserSession.get().getJcrSession().getNodeByIdentifier(uuid)));
+                } catch (RepositoryException e) {
+                    log.warn("Could not find node by uuid: {}", uuid);
+                }
+            }
         }
     }
 
@@ -66,7 +86,7 @@ public class PathHistoryBehavior extends AbstractYuiAjaxBehavior implements YuiN
 
     @Override
     protected void respond(final AjaxRequestTarget target) {
-        setPathFromRequest();
+        setReferenceModelFromRequest();
     }
 
     @Override
