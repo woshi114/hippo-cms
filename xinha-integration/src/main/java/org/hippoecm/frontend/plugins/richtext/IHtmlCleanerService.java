@@ -20,7 +20,7 @@ import org.apache.wicket.IClusterable;
 public interface IHtmlCleanerService extends IClusterable {
     final static String SVN_ID = "$Id$";
 
-    public static final String SERVICE_ID = "service.id";
+    public static final String SERVICE_ID = "htmlcleaner.id";
 
     String clean(String value) throws Exception;
 }
