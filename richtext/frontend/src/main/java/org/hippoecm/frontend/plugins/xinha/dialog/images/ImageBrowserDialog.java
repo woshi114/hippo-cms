@@ -93,6 +93,8 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
     public final static List<String> ALIGN_OPTIONS = Arrays.asList("top", "middle", "bottom", "left", "right");
     private static final String CONFIG_KEY_PREFERRED_RESOURCE_NAMES = "preferred.resource.names";
     private static final String GALLERY_TYPE_SELECTOR_ID = "galleryType";
+    private static final String EXCLUDED_IMAGE_VARIANTS = "excluded.image.variants";
+    private static final String INCLUDED_IMAGE_VARIANTS = "included.image.variants";
 
     DropDownChoice<String> type;
 
@@ -257,12 +259,10 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
             }
             TypeTranslator typeTranslator = new TypeTranslator(new JcrNodeTypeModel(tmpImageSetNode.getPrimaryNodeType()));
             NodeIterator childNodes = tmpImageSetNode.getNodes();
-            while (childNodes.hasNext()) {
-                Node childNode = childNodes.nextNode();
-                if (childNode.isNodeType("hippogallery:image")) {
-                    String childNodeName = childNode.getName();
-                    sortedEntries.add(new AbstractMap.SimpleEntry<String, String>(childNodeName, typeTranslator.getPropertyName(childNodeName).getObject()));
-                }
+            List<String> allImageVariants = getAllImageVariants(childNodes);
+            List<String> shownImageVariants = ShownImageVariantsBuilder.getAllowedList(allImageVariants, getExcludedImageVariants(), getIncludedImageVariants());
+            for (String childNodeName : shownImageVariants) {
+                sortedEntries.add(new AbstractMap.SimpleEntry<String, String>(childNodeName, typeTranslator.getPropertyName(childNodeName).getObject()));
             }
         } catch (RepositoryException repositoryException) {
             log.error("Error updating the available image variants.", repositoryException);
@@ -276,6 +276,40 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
             type.setChoices(new ArrayList<String>(nameTypeMap.keySet()));
             type.updateModel();
         }
+    }
+
+    private List<String> getAllImageVariants(final NodeIterator childNodes) throws RepositoryException {
+        List<String> allImageVariants = new ArrayList<String>();
+        while (childNodes.hasNext()) {
+            Node childNode = childNodes.nextNode();
+            if (childNode.isNodeType("hippogallery:image")) {
+                String childNodeName = childNode.getName();
+                allImageVariants.add(childNodeName);
+            }
+        }
+        return allImageVariants;
+    }
+
+
+    private List<String> getIncludedImageVariants() {
+        return getMultipleString(INCLUDED_IMAGE_VARIANTS);
+    }
+
+    private List<String> getExcludedImageVariants() {
+        return getMultipleString(EXCLUDED_IMAGE_VARIANTS);
+    }
+
+    private List<String> getMultipleString(final String key) {
+        List<String> result = new ArrayList<String>();
+        if (!getPluginConfig().containsKey(key)) {
+            return null;
+        }
+        final String values = getPluginConfig().getString(key);
+        final String[] stringArray = values.split(",");
+        for (String value : stringArray) {
+            result.add(value.trim());
+        }
+        return result;
     }
 
     @SuppressWarnings("unchecked")
