@@ -1,5 +1,5 @@
 /*
- *  Copyright 2011-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2011-2014 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -69,6 +69,8 @@ public class ImageCropEditorDialog extends AbstractDialog {
     private Dimension originalImageDimension;
     private Dimension configuredDimension;
     private Dimension thumbnailDimension;
+    final int MAX_PREVIEW_WIDTH = 200;
+    final int MAX_PREVIEW_HEIGHT = 300;
 
     private ImageCropEditorDialog() {
     }
@@ -108,8 +110,12 @@ public class ImageCropEditorDialog extends AbstractDialog {
         	configuredDimension = galleryProcessor.getDesiredResourceDimension(thumbnailImageNode);
             thumbnailDimension = handleZeroValueInDimension(originalImageDimension, configuredDimension);
 
-            imagePreviewContainer.add(new AttributeAppender("style", new Model<String>("height:" + thumbnailDimension.getHeight() + "px"), ";"));
-            imagePreviewContainer.add(new AttributeAppender("style", new Model<String>("width:" + thumbnailDimension.getWidth() + "px"), ";"));
+            final double previewCropFactor = determinePreviewScalingFactor(thumbnailDimension.getWidth(), thumbnailDimension.getHeight());
+            final double previewWidth = Math.floor(previewCropFactor * thumbnailDimension.getWidth());
+            final double previewHeight = Math.floor(previewCropFactor * thumbnailDimension.getHeight());
+
+            imagePreviewContainer.add(new AttributeAppender("style", new Model<String>("height:" + previewHeight + "px"), ";"));
+            imagePreviewContainer.add(new AttributeAppender("style", new Model<String>("width:" + previewWidth + "px"), ";"));
 
         } catch (RepositoryException e) {
             log.error("Cannot retrieve thumbnail dimensions", e);
@@ -154,6 +160,37 @@ public class ImageCropEditorDialog extends AbstractDialog {
                 new StringResourceModel("preview-description-enabled", this, null) :
                 new StringResourceModel("preview-description-disabled", this, null))
         );
+    }
+
+    /**
+     * Determine the scaling factor of the preview image, so that it fits within the max boundaries of
+     * the preview container (e.g. {@code #MAX_PREVIEW_WIDTH} by {@code #MAX_PREVIEW_HEIGHT}).
+     * @param previewWidth width of preview image
+     * @param previewHeight height of preview image
+     * @return the scaling factor of the preview image
+     */
+    private double determinePreviewScalingFactor(final double previewWidth, final double previewHeight) {
+
+        final double widthBasedScaling;
+        if(previewWidth > MAX_PREVIEW_WIDTH) {
+            widthBasedScaling = MAX_PREVIEW_WIDTH / previewWidth;
+        } else {
+            widthBasedScaling = 1D;
+        }
+
+        final double heightBasedScaling;
+
+        if(previewHeight > MAX_PREVIEW_HEIGHT) {
+            heightBasedScaling = MAX_PREVIEW_HEIGHT / previewHeight;
+        } else {
+            heightBasedScaling = 1D;
+        }
+
+        if(heightBasedScaling < widthBasedScaling) {
+            return heightBasedScaling;
+        } else {
+            return widthBasedScaling;
+        }
     }
 
     @Override
