@@ -65,7 +65,7 @@ public class PathHistoryBehavior extends AbstractYuiAjaxBehavior implements YuiN
                     reference.setModel(new JcrNodeModel(
                             UserSession.get().getJcrSession().getNodeByIdentifier(uuid)));
                 } catch (RepositoryException e) {
-                    log.warn("Could not find node by uuid: {}", uuid);
+                    log.info("Could not find node by uuid: {}", uuid);
                 }
             }
         }
