@@ -60,7 +60,7 @@ public class ImageCropSettings extends WidgetSettings {
         this.upscalingEnabled = upscalingEnabled;
         previewVisible = thumbnailWidth <= 1600;
 
-        if(configuredDimension.getHeight() == 0) {
+        if (configuredDimension.getHeight() == 0) {
             fixedDimension = FIXED_WIDTH;
         } else if (configuredDimension.getWidth() == 0) {
             fixedDimension = FIXED_HEIGHT;

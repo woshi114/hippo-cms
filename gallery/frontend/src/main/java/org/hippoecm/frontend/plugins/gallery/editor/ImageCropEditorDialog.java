@@ -62,15 +62,16 @@ import net.sf.json.JSONObject;
  */
 public class ImageCropEditorDialog extends AbstractDialog {
 
-    Logger log = LoggerFactory.getLogger(ImageCropEditorDialog.class);
+    private static final int MAX_PREVIEW_WIDTH = 200;
+    private static final int MAX_PREVIEW_HEIGHT = 300;
+
+    private static final Logger log = LoggerFactory.getLogger(ImageCropEditorDialog.class);
 
     private String region;
     private GalleryProcessor galleryProcessor;
     private Dimension originalImageDimension;
     private Dimension configuredDimension;
     private Dimension thumbnailDimension;
-    final int MAX_PREVIEW_WIDTH = 200;
-    final int MAX_PREVIEW_HEIGHT = 300;
 
     private ImageCropEditorDialog() {
     }
@@ -172,7 +173,7 @@ public class ImageCropEditorDialog extends AbstractDialog {
     private double determinePreviewScalingFactor(final double previewWidth, final double previewHeight) {
 
         final double widthBasedScaling;
-        if(previewWidth > MAX_PREVIEW_WIDTH) {
+        if (previewWidth > MAX_PREVIEW_WIDTH) {
             widthBasedScaling = MAX_PREVIEW_WIDTH / previewWidth;
         } else {
             widthBasedScaling = 1D;
@@ -180,13 +181,13 @@ public class ImageCropEditorDialog extends AbstractDialog {
 
         final double heightBasedScaling;
 
-        if(previewHeight > MAX_PREVIEW_HEIGHT) {
+        if (previewHeight > MAX_PREVIEW_HEIGHT) {
             heightBasedScaling = MAX_PREVIEW_HEIGHT / previewHeight;
         } else {
             heightBasedScaling = 1D;
         }
 
-        if(heightBasedScaling < widthBasedScaling) {
+        if (heightBasedScaling < widthBasedScaling) {
             return heightBasedScaling;
         } else {
             return widthBasedScaling;
@@ -275,11 +276,11 @@ public class ImageCropEditorDialog extends AbstractDialog {
      */
     private Dimension handleZeroValueInDimension(Dimension originalDimension, Dimension thumbnailDimension) {
         Dimension normalized = new Dimension(thumbnailDimension);
-        if(thumbnailDimension.height == 0) {            	
+        if (thumbnailDimension.height == 0) {
         	int height = (int) ((thumbnailDimension.getWidth() / originalDimension.getWidth()) * originalDimension.getHeight());             	
         	normalized.setSize(thumbnailDimension.width, height);
         }            
-        if(thumbnailDimension.width == 0) {
+        if (thumbnailDimension.width == 0) {
         	int width = (int) ((thumbnailDimension.getHeight() / originalDimension.getHeight()) * originalDimension.getWidth());
             normalized.setSize(width, thumbnailDimension.height);
         }

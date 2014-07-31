@@ -55,7 +55,7 @@ if (!YAHOO.hippo.ImageCropper) {
             this.fixedDimension = config.fixedDimension;
             this.thumbnailSizeLabelId = config.thumbnailSizeLabelId;
 
-            if(!this.upscalingEnabled) {
+            if (!this.upscalingEnabled) {
                 this.minimumWidth = this.thumbnailWidth;
                 this.minimumHeight = this.thumbnailHeight;
             }
@@ -74,7 +74,7 @@ if (!YAHOO.hippo.ImageCropper) {
 
             render: function() {
                 var scalingFactor;
-                if(this.previewVisible) {
+                if (this.previewVisible) {
                     this.previewImage = Dom.getFirstChild(this.imagePreviewContainerId);
                     this.previewContainer = Dom.get(this.imagePreviewContainerId);
 
@@ -83,8 +83,8 @@ if (!YAHOO.hippo.ImageCropper) {
                     Dom.setStyle(this.previewImage, 'left', '-' + this.initialY + 'px');
 
                     scalingFactor = this.determinePreviewScalingFactor(this.thumbnailWidth, this.thumbnailHeight)
-                    Dom.setStyle(this.previewImage, 'width',  scalingFactor * this.originalImageWidth + 'px');
-                    Dom.setStyle(this.previewImage, 'height', scalingFactor * this.originalImageHeight + 'px');
+                    Dom.setStyle(this.previewImage, 'width',  Math.floor(scalingFactor * this.originalImageWidth) + 'px');
+                    Dom.setStyle(this.previewImage, 'height', Math.floor(scalingFactor * this.originalImageHeight) + 'px');
                 }
                 this.previewLabelTemplate = Dom.get(this.thumbnailSizeLabelId).innerHTML;
 
@@ -117,16 +117,16 @@ if (!YAHOO.hippo.ImageCropper) {
                     previewImageWidth, previewImageHeight,
                     previewContainerWidth, previewContainerHeight;
 
-                if(this.fixedDimension == 'both') {
+                if (this.fixedDimension == 'both') {
                     // Since the ratio is fixed, both height and width change by the same percentage
                     targetScalingFactor = this.thumbnailWidth / coords.width;
                     previewImageWidth = this.thumbnailWidth;
                     previewImageHeight = this.thumbnailHeight;
-                } else if(this.fixedDimension == 'width') {
+                } else if (this.fixedDimension == 'width') {
                     targetScalingFactor = this.thumbnailWidth / coords.width;
                     previewImageWidth = this.thumbnailWidth;
                     previewImageHeight = Math.floor(targetScalingFactor * coords.height);
-                } else if(this.fixedDimension == 'height') {
+                } else if (this.fixedDimension == 'height') {
                     targetScalingFactor = this.thumbnailHeight / coords.height;
                     previewImageWidth = Math.floor(targetScalingFactor * coords.width);
                     previewImageHeight = this.thumbnailHeight;
@@ -134,7 +134,7 @@ if (!YAHOO.hippo.ImageCropper) {
 
                 // Check for scaling to max preview width
                 scalingFactor = this.determinePreviewScalingFactor(coords.width, coords.height);
-                if(scalingFactor < targetScalingFactor) {
+                if (scalingFactor < targetScalingFactor) {
                     previewContainerWidth = Math.floor(scalingFactor * coords.width);
                     previewContainerHeight = Math.floor(scalingFactor * coords.height);
                 } else {
@@ -169,15 +169,15 @@ if (!YAHOO.hippo.ImageCropper) {
             determinePreviewScalingFactor : function(previewWidth, previewHeight) {
                 var widthBasedScaling = 1, heightBasedScaling = 1;
 
-                if(previewWidth > this.maxPreviewWidth) {
+                if (previewWidth > this.maxPreviewWidth) {
                     widthBasedScaling = this.maxPreviewWidth / previewWidth;
                 }
 
-                if(previewHeight > this.maxPreviewHeight) {
+                if (previewHeight > this.maxPreviewHeight) {
                     heightBasedScaling = this.maxPreviewHeight / previewHeight;
                 }
 
-                if(heightBasedScaling < widthBasedScaling) {
+                if (heightBasedScaling < widthBasedScaling) {
                     return heightBasedScaling;
                 } else {
                     return widthBasedScaling;
@@ -186,7 +186,7 @@ if (!YAHOO.hippo.ImageCropper) {
 
             updateRegionInputValue : function(coords) {
                 var regionInput = Dom.get(this.regionInputId);
-                if(regionInput) {
+                if (regionInput) {
                     regionInput.value = Lang.JSON.stringify(coords);
                 }
             },
