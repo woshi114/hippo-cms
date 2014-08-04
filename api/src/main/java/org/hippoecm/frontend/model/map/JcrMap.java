@@ -438,12 +438,29 @@ public class JcrMap extends AbstractMap<String, Object> implements IHippoMap, ID
         nodeModel.detach();
     }
 
+
     private void handleRepositoryException(final RepositoryException ex) {
+        try {
+            if (!getNode().getSession().isLive()) {
+                log.error("Found session in an invalid unallowed state: not live. Return log in screen", ex);
+                if (WebApplication.exists()) {
+                    throw new RestartResponseException(WebApplication.get().getHomePage());
+                }
+            }
+        } catch (RepositoryException e) {
+            if (log.isDebugEnabled()) {
+                log.warn("Failed to check the liveness of the session.", e);
+            } else {
+                log.warn("Failed to check the liveness of the session. {}", e.toString());
+            }
+        }
+
         if (log.isDebugEnabled()) {
-            log.error(ex.toString(), ex);
+            log.warn(ex.toString(), ex);
         } else {
-            log.error(ex.toString());
+            log.warn(ex.toString());
         }
     }
+
 
 }

@@ -23,7 +23,6 @@ import javax.jcr.Item;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.PathNotFoundException;
-import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
@@ -118,6 +117,7 @@ public class JcrItemModel<T extends Item> extends LoadableDetachableModel<T> {
      * @return the absolute path
      */
     public String getPath() {
+        checkLiveJcrSession();
         Item item = getObject();
         if (item != null) {
             try {
@@ -141,6 +141,7 @@ public class JcrItemModel<T extends Item> extends LoadableDetachableModel<T> {
      * @return true when the Item exists
      */
     public boolean exists() {
+        checkLiveJcrSession();
         return getObject() != null;
     }
 
@@ -399,4 +400,8 @@ public class JcrItemModel<T extends Item> extends LoadableDetachableModel<T> {
         return hash;
     }
 
+    private void checkLiveJcrSession() {
+        // method below will throw runtime exception in case of non live session
+        UserSession.get().getJcrSession();
+    }
 }
