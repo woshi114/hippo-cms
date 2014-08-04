@@ -218,9 +218,22 @@ public class PluginUserSession extends UserSession {
         IModel<Session> sessionModel = getJcrSessionModel();
         if (sessionModel != null) {
             Session result = sessionModel.getObject();
-            if (result != null && result.isLive()) {
-                return result;
+            if (result == null) {
+                return null;
             }
+            if (!result.isLive()) {
+                log.error("Found session in an invalid unallowed state: not live. Logout PluginUserSession.");
+                logout();
+                try {
+                    // we need to trigger a repo exception to get in the stacktrace the cause which contains from where
+                    // the session was logged out
+                    result.getRootNode();
+                } catch (RepositoryException e) {
+                    // expected
+                    throw new InvalidSessionException("Invalid (non-live) session found.", e);
+                }
+            }
+            return result;
         }
         return null;
     }
