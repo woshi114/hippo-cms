@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2009-2014 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.rmi.RemoteException;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 import org.apache.wicket.Component;
@@ -48,17 +49,15 @@ import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
 import org.hippoecm.frontend.plugins.yui.upload.FileUploadException;
 import org.hippoecm.frontend.plugins.yui.upload.MultiFileUploadDialog;
 import org.hippoecm.frontend.service.IBrowseService;
-import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.frontend.translation.ILocaleProvider;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.frontend.widgets.AbstractView;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.MappingException;
 import org.hippoecm.repository.api.StringCodec;
-import org.hippoecm.repository.api.StringCodecFactory;
-import org.hippoecm.repository.api.WorkflowDescriptor;
 import org.hippoecm.repository.api.WorkflowException;
 import org.hippoecm.repository.api.WorkflowManager;
 import org.hippoecm.repository.gallery.GalleryWorkflow;
@@ -127,12 +126,12 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             InputStream is = upload.getInputStream();
 
             WorkflowManager manager = UserSession.get().getWorkflowManager();
-            HippoNode node = null;
+            HippoNode node;
             try {
                 WorkflowDescriptorModel workflowDescriptorModel = (WorkflowDescriptorModel) GalleryWorkflowPlugin.this
                         .getDefaultModel();
                 GalleryWorkflow workflow = (GalleryWorkflow) manager
-                        .getWorkflow((WorkflowDescriptor) workflowDescriptorModel.getObject());
+                        .getWorkflow(workflowDescriptorModel.getObject());
                 String nodeName = getNodeNameCodec().encode(filename);
                 String localName = getLocalizeCodec().encode(filename);
                 Document document = workflow.createGalleryItem(nodeName, type);
@@ -230,7 +229,7 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             WorkflowDescriptorModel workflowDescriptorModel = (WorkflowDescriptorModel) GalleryWorkflowPlugin.this
                     .getDefaultModel();
             GalleryWorkflow workflow = (GalleryWorkflow) manager
-                    .getWorkflow((WorkflowDescriptor) workflowDescriptorModel.getObject());
+                    .getWorkflow(workflowDescriptorModel.getObject());
             if (workflow == null) {
                 GalleryWorkflowPlugin.log.error("No gallery workflow accessible");
             } else {
@@ -244,11 +243,10 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             GalleryWorkflowPlugin.log.error(ex.getMessage(), ex);
         }
 
-        Component typeComponent = null;
+        Component typeComponent;
         if (galleryTypes != null && galleryTypes.size() > 1) {
-            DropDownChoice folderChoice;
             type = galleryTypes.get(0);
-            typeComponent = new DropDownChoice("type", new PropertyModel(this, "type"), galleryTypes,
+            typeComponent = new DropDownChoice<String>("type", new PropertyModel<String>(this, "type"), galleryTypes,
                     new TypeChoiceRenderer(this)).setNullValid(false).setRequired(true);
         } else if (galleryTypes != null && galleryTypes.size() == 1) {
             type = galleryTypes.get(0);
@@ -264,17 +262,18 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
     }
 
     protected StringCodec getLocalizeCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.display");
+        return CodecUtils.getDisplayNameCodec(getPluginContext());
     }
 
     protected StringCodec getNodeNameCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.node");
+        Node node = null;
+        try {
+            WorkflowDescriptorModel workflowDescriptorModel = (WorkflowDescriptorModel) getDefaultModel();
+            node = workflowDescriptorModel.getNode();
+        } catch (RepositoryException e) {
+            //ignore
+        }
+        return CodecUtils.getNodeNameCodec(getPluginContext(), node);
     }
 
     protected ILocaleProvider getLocaleProvider() {

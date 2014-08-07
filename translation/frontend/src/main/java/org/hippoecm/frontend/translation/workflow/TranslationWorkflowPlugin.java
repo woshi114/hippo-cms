@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -68,12 +68,12 @@ import org.hippoecm.frontend.translation.ILocaleProvider.LocaleState;
 import org.hippoecm.frontend.translation.components.document.FolderTranslation;
 import org.hippoecm.frontend.types.IFieldDescriptor;
 import org.hippoecm.frontend.types.ITypeDescriptor;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.repository.HippoStdNodeType;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.HippoWorkspace;
 import org.hippoecm.repository.api.StringCodec;
-import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.Workflow;
 import org.hippoecm.repository.api.WorkflowDescriptor;
 import org.hippoecm.repository.api.WorkflowException;
@@ -700,10 +700,7 @@ public final class TranslationWorkflowPlugin extends RenderPlugin {
     }
 
     protected StringCodec getLocalizeCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                                                                         ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.display");
+        return CodecUtils.getDisplayNameCodec(getPluginContext());
     }
 
     @Override

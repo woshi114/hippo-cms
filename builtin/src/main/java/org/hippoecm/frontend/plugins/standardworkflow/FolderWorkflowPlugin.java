@@ -38,7 +38,6 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.markup.repeater.data.ListDataProvider;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.Strings;
 import org.apache.wicket.util.value.IValueMap;
@@ -46,20 +45,20 @@ import org.hippoecm.addon.workflow.AbstractWorkflowDialog;
 import org.hippoecm.addon.workflow.IWorkflowInvoker;
 import org.hippoecm.addon.workflow.StdWorkflow;
 import org.hippoecm.addon.workflow.WorkflowDescriptorModel;
+import org.hippoecm.frontend.dialog.DialogConstants;
 import org.hippoecm.frontend.dialog.IDialogService.Dialog;
 import org.hippoecm.frontend.i18n.model.NodeTranslator;
-import org.hippoecm.frontend.model.JcrItemModel;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.service.IBrowseService;
 import org.hippoecm.frontend.service.IEditor;
 import org.hippoecm.frontend.service.IEditorManager;
-import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.frontend.service.ServiceException;
 import org.hippoecm.frontend.service.render.RenderPlugin;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.frontend.translation.ILocaleProvider;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.frontend.widgets.AbstractView;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
@@ -67,7 +66,6 @@ import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.HippoWorkspace;
 import org.hippoecm.repository.api.Localized;
 import org.hippoecm.repository.api.StringCodec;
-import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.Workflow;
 import org.hippoecm.repository.api.WorkflowDescriptor;
 import org.hippoecm.repository.api.WorkflowException;
@@ -75,7 +73,6 @@ import org.hippoecm.repository.api.WorkflowManager;
 import org.hippoecm.repository.standardworkflow.DefaultWorkflow;
 import org.hippoecm.repository.standardworkflow.EditableWorkflow;
 import org.hippoecm.repository.standardworkflow.FolderWorkflow;
-import org.hippoecm.repository.translation.HippoTranslationNodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,7 +131,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 // and there is some logic here to look up the parent.  The real solution is
                 // in the visual component to merge two workflows.
                 HippoNode node = (HippoNode) model.getNode();
-                String nodeName = getNodeNameCodec().encode(renameDocumentModel.getUriName());
+                String nodeName = getNodeNameCodec(node).encode(renameDocumentModel.getUriName());
                 String localName = getLocalizeCodec().encode(renameDocumentModel.getTargetName());
                 WorkflowManager manager = UserSession.get().getWorkflowManager();
                 DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
@@ -166,7 +163,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
             @Override
             protected void execute(WorkflowDescriptorModel model) throws Exception {
                 WorkflowManager manager = UserSession.get().getWorkflowManager();
-                FolderWorkflow workflow = (FolderWorkflow) manager.getWorkflow((WorkflowDescriptor) model.getObject());
+                FolderWorkflow workflow = (FolderWorkflow) manager.getWorkflow(model.getObject());
                 workflow.reorder(order);
             }
         });
@@ -244,7 +241,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
 
                 @Override
                 public IValueMap getProperties() {
-                    return SMALL;
+                    return DialogConstants.SMALL;
                 }
             }
 
@@ -261,7 +258,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
         });
 
         try {
-            WorkflowDescriptorModel model = getModel();
+            final WorkflowDescriptorModel model = getModel();
             List<StdWorkflow> list = new LinkedList<StdWorkflow>();
             WorkflowDescriptor descriptor = model.getObject();
             WorkflowManager manager = UserSession.get().getWorkflowManager();
@@ -271,7 +268,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 Map<String, Serializable> hints = folderWorkflow.hints();
 
                 if (hints.containsKey("reorder") && hints.get("reorder") instanceof Boolean) {
-                    reorderAction.setVisible(((Boolean) hints.get("reorder")).booleanValue());
+                    reorderAction.setVisible((Boolean) hints.get("reorder"));
                 }
 
                 final Set<String> translated = new TreeSet<String>();
@@ -322,7 +319,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                                     log.error("unknown folder type " + addDocumentModel.getPrototype());
                                     return "Unknown folder type " + addDocumentModel.getPrototype();
                                 }
-                                String nodeName = getNodeNameCodec().encode(addDocumentModel.getUriName());
+                                String nodeName = getNodeNameCodec(model.getNode()).encode(addDocumentModel.getUriName());
                                 String localName = getLocalizeCodec().encode(addDocumentModel.getTargetName());
                                 if ("".equals(nodeName)) {
                                     throw new IllegalArgumentException("You need to enter a name");
@@ -380,24 +377,24 @@ public class FolderWorkflowPlugin extends RenderPlugin {
     public WorkflowDescriptorModel getModel() {
         return (WorkflowDescriptorModel) super.getModel();
     }
+    
+    protected Dialog newRenameDocumentDialog(final RenameDocumentArguments renameDocumentModel, IWorkflowInvoker invoker) {
 
-    protected Dialog newRenameDocumentDialog(RenameDocumentArguments renameDocumentModel, IWorkflowInvoker invoker) {
+        String locale = getCodecLocale();
+        IModel<StringCodec> codecModel = CodecUtils.getNodeNameCodecModel(getPluginContext(), locale);
+
         return new RenameDocumentDialog(
                 renameDocumentModel,
                 new StringResourceModel("rename-title", this, null),
                 invoker,
-                new LoadableDetachableModel<StringCodec>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected StringCodec load() {
-                        return getNodeNameCodec();
-                    }
-                }
+                codecModel
         );
     }
 
     protected Dialog newAddDocumentDialog(AddDocumentArguments addDocumentModel, String category, Set<String> prototypes, boolean translated, IWorkflowInvoker invoker) {
+
+        String locale = getCodecLocale();
+        IModel<StringCodec> codecModel = CodecUtils.getNodeNameCodecModel(getPluginContext(), locale);
 
         AddDocumentDialog dialog = new AddDocumentDialog(
                 addDocumentModel,
@@ -406,29 +403,12 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 prototypes,
                 translated,
                 invoker,
-                new LoadableDetachableModel<StringCodec>() {
-                    @Override
-                    protected StringCodec load() {
-                        return getNodeNameCodec();
-                    }
-                },
+                codecModel,
                 getLocaleProvider()
         );
 
-        WorkflowDescriptorModel descriptorModel = (WorkflowDescriptorModel) getDefaultModel();
-        try {
-            Node node = descriptorModel.getNode();
-            if (node != null) {
-                while (node.getDepth() > 0) {
-                    if (node.isNodeType(HippoTranslationNodeType.NT_TRANSLATED)) {
-                        dialog.getLanguageField().setVisible(false);
-                        break;
-                    }
-                    node = node.getParent();
-                }
-            }
-        } catch (RepositoryException e) {
-            log.error("Could not determine visibility of language field");
+        if (locale != null) {
+            dialog.getLanguageField().setVisible(false);
         }
 
         return dialog;
@@ -469,7 +449,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                                 Document editableDocument = editableWorkflow.obtainEditableInstance();
                                 if (editableDocument != null) {
                                     session.refresh(true);
-                                    editNodeModel = new JcrNodeModel(session.getNodeByUUID(editableDocument
+                                    editNodeModel = new JcrNodeModel(session.getNodeByIdentifier(editableDocument
                                             .getIdentity()));
                                 } else {
                                     editNodeModel = null;
@@ -499,21 +479,25 @@ public class FolderWorkflowPlugin extends RenderPlugin {
     }
 
     protected StringCodec getLocalizeCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID, ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.display");
+        return CodecUtils.getDisplayNameCodec(getPluginContext());
     }
 
-    protected StringCodec getNodeNameCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID, ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.node");
+    protected StringCodec getNodeNameCodec(Node node) {
+        return CodecUtils.getNodeNameCodec(getPluginContext(), node);
     }
 
     protected ILocaleProvider getLocaleProvider() {
         return getPluginContext().getService(
                 getPluginConfig().getString(ILocaleProvider.SERVICE_ID, ILocaleProvider.class.getName()),
                 ILocaleProvider.class);
+    }
+
+    private String getCodecLocale() {
+        try {
+            return CodecUtils.getLocaleFromNode(getModel().getNode());
+        } catch (RepositoryException e) {
+            return null;
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2010-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -68,7 +70,17 @@ public class LanguageField extends WebMarkupContainer {
                 }));
         languageChoice.setNullValid(false);
         languageChoice.setRequired(true);
+        languageChoice.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(final AjaxRequestTarget target) {
+                LanguageField.this.onSelectionChanged();
+            }
+        });
         setOutputMarkupPlaceholderTag(true);
+    }
+
+    protected void onSelectionChanged() {
     }
 
 }

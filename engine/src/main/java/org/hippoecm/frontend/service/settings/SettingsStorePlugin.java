@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 package org.hippoecm.frontend.service.settings;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import org.hippoecm.frontend.service.ISettingsService;
-import org.hippoecm.frontend.service.preferences.*;
+
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.Plugin;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
+import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.repository.api.StringCodec;
 import org.hippoecm.repository.api.StringCodecFactory;
 import org.slf4j.Logger;
@@ -30,8 +29,6 @@ import org.slf4j.LoggerFactory;
 
 public class SettingsStorePlugin extends Plugin implements ISettingsService {
     private static final long serialVersionUID = 1L;
-    @SuppressWarnings("unused")
-
 
     static final Logger log = LoggerFactory.getLogger(SettingsStorePlugin.class);
 
@@ -57,7 +54,7 @@ public class SettingsStorePlugin extends Plugin implements ISettingsService {
                 } catch (IllegalAccessException ex) {
                     log.error("unable to create " + codecName, ex);
                 } catch (ClassCastException ex) {
-                    log.error("1`unable to create " + codecName, ex);
+                    log.error("unable to create " + codecName, ex);
                 } catch (ClassNotFoundException ex) {
                     log.error("unable to create " + codecName, ex);
                 }

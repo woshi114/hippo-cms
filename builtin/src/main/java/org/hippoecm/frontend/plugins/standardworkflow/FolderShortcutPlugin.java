@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -46,7 +46,6 @@ import org.hippoecm.frontend.dialog.AbstractDialog;
 import org.hippoecm.frontend.dialog.DialogConstants;
 import org.hippoecm.frontend.dialog.IDialogService;
 import org.hippoecm.frontend.i18n.types.TypeChoiceRenderer;
-import org.hippoecm.frontend.model.JcrItemModel;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.IServiceReference;
@@ -56,17 +55,16 @@ import org.hippoecm.frontend.plugins.standardworkflow.components.NameUriField;
 import org.hippoecm.frontend.service.IBrowseService;
 import org.hippoecm.frontend.service.IEditor;
 import org.hippoecm.frontend.service.IEditorManager;
-import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.frontend.service.ServiceException;
 import org.hippoecm.frontend.service.render.RenderPlugin;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.frontend.translation.ILocaleProvider;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.HippoWorkspace;
 import org.hippoecm.repository.api.MappingException;
 import org.hippoecm.repository.api.StringCodec;
-import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.Workflow;
 import org.hippoecm.repository.api.WorkflowDescriptor;
 import org.hippoecm.repository.api.WorkflowException;
@@ -173,7 +171,7 @@ public class FolderShortcutPlugin extends RenderPlugin {
                                     Session jcrSession = UserSession.get()
                                             .getJcrSession();
                                     jcrSession.refresh(true);
-                                    editNodeModel = new JcrNodeModel(jcrSession.getNodeByUUID(editableDocument
+                                    editNodeModel = new JcrNodeModel(jcrSession.getNodeByIdentifier(editableDocument
                                             .getIdentity()));
                                 } else {
                                     editNodeModel = null;
@@ -203,17 +201,7 @@ public class FolderShortcutPlugin extends RenderPlugin {
     }
 
     protected StringCodec getLocalizeCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.display");
-    }
-
-    protected StringCodec getNodeNameCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.node");
+        return CodecUtils.getDisplayNameCodec(getPluginContext());
     }
 
     protected ILocaleProvider getLocaleProvider() {
@@ -233,8 +221,8 @@ public class FolderShortcutPlugin extends RenderPlugin {
         private final IServiceReference<IEditorManager> editServiceRef;
         private Map<String, Set<String>> templates;
 
-        private final DropDownChoice prototypeChoice;
-        private final DropDownChoice templateChoice;
+        private final DropDownChoice<String> prototypeChoice;
+        private final DropDownChoice<String> templateChoice;
 
         private String optionSelectOnly = null;
         private boolean optionSelectFirst = false;
@@ -314,22 +302,23 @@ public class FolderShortcutPlugin extends RenderPlugin {
                 folder = null;
             }
 
-            add(new Label("message", new Model("")));
+            add(new Label("message", Model.of("")));
 
-            add(nameUriContainer = new NameUriField("name-url", new LoadableDetachableModel<StringCodec>() {
-                private static final long serialVersionUID = 1L;
-
+            final IModel<StringCodec> codecModel = new LoadableDetachableModel<StringCodec>() {
                 @Override
                 protected StringCodec load() {
-                    return getNodeNameCodec();
+                    //language value can change between load() calls
+                    return CodecUtils.getNodeNameCodec(getPluginContext(), language);
                 }
-            }));
+            };
+            
+            add(nameUriContainer = new NameUriField("name-url", codecModel)); 
 
             List<String> emptyList = new LinkedList<String>();
             emptyList.add("");
 
             prototypeContainer = new WebMarkupContainer("prototype");
-            prototypeContainer.add(prototypeChoice = new DropDownChoice("select", new PropertyModel(this, "prototype"),
+            prototypeContainer.add(prototypeChoice = new DropDownChoice<String>("select", new PropertyModel<String>(this, "prototype"),
                     emptyList));
             prototypeChoice.add(new AjaxFormComponentUpdatingBehavior("onchange") {
                 private static final long serialVersionUID = 1L;
@@ -364,6 +353,10 @@ public class FolderShortcutPlugin extends RenderPlugin {
                 protected void onUpdate(AjaxRequestTarget target) {
                     prototype = null;
                     evaluateChoices();
+                    // Detach the codec model to load the correct codec for the selected template
+                    codecModel.detach();
+                    // Re-encode the URI value
+                    nameUriContainer.encodeUri();
                 }
             });
             templateChoice.setNullValid(false);
@@ -372,7 +365,15 @@ public class FolderShortcutPlugin extends RenderPlugin {
             templateContainer.add(new Label("typelabel", new StringResourceModel("document-type", this, null)));
             add(templateContainer);
 
-            languageContainer = new LanguageField("language", new PropertyModel<String>(this, "language"), getLocaleProvider());
+            languageContainer = new LanguageField("language", new PropertyModel<String>(this, "language"), getLocaleProvider()) {
+                @Override
+                protected void onSelectionChanged() {
+                    // Detach the codec model to load the correct codec for the selected language
+                    codecModel.detach();
+                    // Re-encode the URI value
+                    nameUriContainer.encodeUri();
+                }
+            };
             add(languageContainer);
 
             setOkEnabled(false);
@@ -452,9 +453,15 @@ public class FolderShortcutPlugin extends RenderPlugin {
                     target.addComponent(this);
                 }
             }
+            
+            // By resetting the language the URI is re-encoded using the correct StringCodec
+            // when switching between translated and non-translated root folders
+            if (!languageVisible) {
+                language = null;
+            }
         }
 
-        public IModel getTitle() {
+        public IModel<String> getTitle() {
             return new StringResourceModel("new-document-label", this, null);
         }
 
@@ -470,8 +477,8 @@ public class FolderShortcutPlugin extends RenderPlugin {
                 if (model != null && model instanceof WorkflowDescriptorModel) {
                     Session jcrSession = UserSession.get().getJcrSession();
                     WorkflowManager manager = ((HippoWorkspace) (jcrSession.getWorkspace())).getWorkflowManager();
-                    FolderWorkflow workflow = (FolderWorkflow) manager
-                            .getWorkflow((WorkflowDescriptor) ((WorkflowDescriptorModel) model).getObject());
+                    FolderWorkflow workflow = (FolderWorkflow) manager.getWorkflow(((WorkflowDescriptorModel) model)
+                            .getObject());
                     if (prototype == null) {
                         error("You need to select a type");
                         return;
@@ -484,7 +491,7 @@ public class FolderShortcutPlugin extends RenderPlugin {
                         }
 
                         String localName = getLocalizeCodec().encode(name);
-                        String nodeName = getNodeNameCodec().encode(url);
+                        String nodeName = CodecUtils.getNodeNameCodec(getPluginContext(), language).encode(url);
 
                         TreeMap<String, String> arguments = new TreeMap<String, String>();
                         arguments.put("name", nodeName);

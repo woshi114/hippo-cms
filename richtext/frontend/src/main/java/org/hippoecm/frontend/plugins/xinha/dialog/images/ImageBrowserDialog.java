@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -68,15 +68,14 @@ import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
 import org.hippoecm.frontend.plugins.xinha.dialog.AbstractBrowserDialog;
 import org.hippoecm.frontend.plugins.xinha.services.images.XinhaImage;
-import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.frontend.session.UserSession;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.frontend.widgets.ThrottledTextFieldWidget;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.MappingException;
 import org.hippoecm.repository.api.StringCodec;
-import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.WorkflowException;
 import org.hippoecm.repository.api.WorkflowManager;
 import org.hippoecm.repository.gallery.GalleryWorkflow;
@@ -86,7 +85,6 @@ import org.slf4j.LoggerFactory;
 
 public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implements IHeaderContributor {
     private static final long serialVersionUID = 1L;
-
 
     static final Logger log = LoggerFactory.getLogger(ImageBrowserDialog.class);
 
@@ -353,7 +351,7 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
                         try {
                             //Get the selected folder from the folderReference Service
                             Node folderNode = getFolderModel().getObject();
-
+                            
                             //TODO replace shortcuts with custom workflow category(?)
                             GalleryWorkflow workflow = (GalleryWorkflow) manager.getWorkflow("gallery", folderNode);
                             String nodeName = getNodeNameCodec().encode(filename);
@@ -488,15 +486,11 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
     }
 
     private StringCodec getNodeNameCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID, ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.node");
+        return CodecUtils.getNodeNameCodec(getPluginContext(), getFolderModel().getObject());
     }
 
     private StringCodec getLocalizeCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID, ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.display");
+        return CodecUtils.getDisplayNameCodec(getPluginContext());
     }
 
     private String getGalleryType() {

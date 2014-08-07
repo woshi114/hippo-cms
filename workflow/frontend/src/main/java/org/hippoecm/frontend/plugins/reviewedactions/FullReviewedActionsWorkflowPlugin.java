@@ -45,6 +45,7 @@ import org.hippoecm.addon.workflow.AbstractWorkflowDialog;
 import org.hippoecm.addon.workflow.DestinationDialog;
 import org.hippoecm.addon.workflow.StdWorkflow;
 import org.hippoecm.addon.workflow.WorkflowDescriptorModel;
+import org.hippoecm.frontend.dialog.DialogConstants;
 import org.hippoecm.frontend.dialog.ExceptionDialog;
 import org.hippoecm.frontend.dialog.IDialogService.Dialog;
 import org.hippoecm.frontend.editor.workflow.CopyNameHelper;
@@ -69,15 +70,14 @@ import org.hippoecm.frontend.plugins.standardworkflow.RenameMessage;
 import org.hippoecm.frontend.service.IBrowseService;
 import org.hippoecm.frontend.service.IEditor;
 import org.hippoecm.frontend.service.IEditorManager;
-import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.frontend.service.render.RenderPlugin;
 import org.hippoecm.frontend.session.UserSession;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.repository.HippoStdNodeType;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.Localized;
 import org.hippoecm.repository.api.StringCodec;
-import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.Workflow;
 import org.hippoecm.repository.api.WorkflowDescriptor;
 import org.hippoecm.repository.api.WorkflowException;
@@ -400,8 +400,7 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
                 } else {
                     folderModel = new JcrNodeModel("/");
                 }
-                StringCodec codec = getNodeNameCodec();
-                String nodeName = codec.encode(name);
+                String nodeName = getNodeNameCodec().encode(name);
                 FullReviewedActionsWorkflow workflow = (FullReviewedActionsWorkflow) wf;
 
                 workflow.copy(new Document(folderModel.getNode().getIdentifier()), nodeName);
@@ -569,17 +568,17 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
     }
 
     protected StringCodec getLocalizeCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.display");
+        return CodecUtils.getDisplayNameCodec(getPluginContext());
     }
 
     protected StringCodec getNodeNameCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.node");
+        Node node = null;
+        try {
+            node = getModel().getNode();
+        } catch (RepositoryException e) {
+            //ignore
+        }
+        return CodecUtils.getNodeNameCodec(getPluginContext(), node);
     }
 
     private void hideInvalidActions() {
@@ -687,12 +686,12 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
     }
 
     public class RenameDocumentDialog extends AbstractWorkflowDialog {
-        private IModel title;
+        private IModel<String> title;
         private TextField nameComponent;
         private TextField uriComponent;
         private boolean uriModified;
 
-        public RenameDocumentDialog(StdWorkflow action, IModel title) {
+        public RenameDocumentDialog(StdWorkflow action, IModel<String> title) {
             super(null, action);
 
             this.title = title;
@@ -761,17 +760,17 @@ public class FullReviewedActionsWorkflowPlugin extends RenderPlugin {
             final RenameMessage message = new RenameMessage(cmsLocale, localizedNamesModel.getObject());
             if (message.shouldShow()) {
                 warn(message.forDocument());
-            };
+            }
         }
 
         @Override
-        public IModel getTitle() {
+        public IModel<String> getTitle() {
             return title;
         }
 
         @Override
         public IValueMap getProperties() {
-            return MEDIUM;
+            return DialogConstants.MEDIUM;
         }
     }
 }

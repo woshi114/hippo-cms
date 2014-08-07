@@ -58,14 +58,13 @@ import org.hippoecm.frontend.service.IBrowseService;
 import org.hippoecm.frontend.service.IEditor;
 import org.hippoecm.frontend.service.IEditor.Mode;
 import org.hippoecm.frontend.service.IEditorManager;
-import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.frontend.service.render.RenderPlugin;
 import org.hippoecm.frontend.session.UserSession;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.Localized;
 import org.hippoecm.repository.api.StringCodec;
-import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.Workflow;
 import org.hippoecm.repository.api.WorkflowDescriptor;
 import org.hippoecm.repository.api.WorkflowException;
@@ -169,7 +168,7 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
                     throw new WorkflowException("No name for destination given");
                 }
                 HippoNode node = (HippoNode) getModel().getNode();
-                String nodeName = getNodeNameCodec().encode(uriName);
+                String nodeName = getNodeNameCodec(node).encode(uriName);
                 String localName = getLocalizeCodec().encode(targetName);
                 if ("".equals(nodeName)) {
                     throw new IllegalArgumentException("You need to enter a name");
@@ -207,7 +206,7 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
                         createNewNodeNameForImage(nodeName);
                     } else {
                         String copyof = new StringResourceModel("copyof", DefaultWorkflowPlugin.this, null).getString();
-                        CopyNameHelper copyNameHelper = new CopyNameHelper(getNodeNameCodec(), copyof);
+                        CopyNameHelper copyNameHelper = new CopyNameHelper(getNodeNameCodec(node), copyof);
                         name = copyNameHelper.getCopyName(nodeName, destination.getNodeModel().getNode());
                     }
                 } catch (RepositoryException ex) {
@@ -281,7 +280,7 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
                 if (destination != null) {
                     folderModel = destination.getNodeModel();
                 }
-                StringCodec codec = getNodeNameCodec();
+                StringCodec codec = getNodeNameCodec(folderModel.getNode());
                 String nodeName = codec.encode(name);
 
                 DefaultWorkflow workflow = (DefaultWorkflow) wf;
@@ -412,17 +411,11 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
     }
 
     protected StringCodec getLocalizeCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.display");
+        return CodecUtils.getDisplayNameCodec(getPluginContext());
     }
 
-    protected StringCodec getNodeNameCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.node");
+    protected StringCodec getNodeNameCodec(final Node node) {
+        return CodecUtils.getNodeNameCodec(getPluginContext(), node);
     }
 
     private void browseTo(JcrNodeModel nodeModel) throws RepositoryException {
@@ -491,14 +484,23 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
     }
 
     public class RenameDocumentDialog extends AbstractWorkflowDialog {
-        private IModel title;
+        private IModel<String> title;
         private TextField nameComponent;
         private TextField uriComponent;
         private boolean uriModified;
-
-        public RenameDocumentDialog(StdWorkflow action, IModel title) {
+        
+        public RenameDocumentDialog(StdWorkflow action, IModel<String> title) {
             super(DefaultWorkflowPlugin.this.getModel(), action);
             this.title = title;
+
+            String locale = null;
+            try {
+                locale = CodecUtils.getLocaleFromNode(DefaultWorkflowPlugin.this.getModel().getNode());
+            } catch (RepositoryException e) {
+                //ignore
+            }
+            
+            final IModel<StringCodec> codecModel = CodecUtils.getNodeNameCodecModel(getPluginContext(), locale);
 
             final PropertyModel<String> nameModel = new PropertyModel<String>(action, "targetName");
             final PropertyModel<String> uriModel = new PropertyModel<String>(action, "uriName");
@@ -514,7 +516,8 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     if (!uriModified) {
-                        uriModel.setObject(getNodeNameCodec().encode(nameModel.getObject()));
+                        String uri = codecModel.getObject().encode(nameModel.getObject());
+                        uriModel.setObject(uri);
                         target.addComponent(uriComponent);
                     }
                 }
@@ -543,8 +546,9 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
                 public void onClick(AjaxRequestTarget target) {
                     uriModified = !uriModified;
                     if (!uriModified) {
-                        uriModel.setObject(Strings.isEmpty(nameModel.getObject()) ? "" : getNodeNameCodec().encode(
-                                nameModel.getObject()));
+                        StringCodec codec = codecModel.getObject();
+                        String uri = Strings.isEmpty(nameModel.getObject()) ? "" : codec.encode(nameModel.getObject());
+                        uriModel.setObject(uri);
                     } else {
                         target.focusComponent(uriComponent);
                     }
@@ -561,7 +565,7 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
         }
 
         @Override
-        public IModel getTitle() {
+        public IModel<String> getTitle() {
             return title;
         }
 

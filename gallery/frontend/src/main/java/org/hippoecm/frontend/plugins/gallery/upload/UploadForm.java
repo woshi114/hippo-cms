@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -93,7 +93,7 @@ class UploadForm extends Form {
             if (galleryTypes != null && galleryTypes.size() > 1) {
                 DropDownChoice folderChoice;
                 type = galleryTypes.get(0);
-                add(folderChoice = new DropDownChoice("type", new PropertyModel(this, "type"), galleryTypes,
+                add(folderChoice = new DropDownChoice<String>("type", new PropertyModel<String>(this, "type"), galleryTypes,
                         new TypeChoiceRenderer(this)));
                 folderChoice.setNullValid(false);
                 folderChoice.setRequired(true);
@@ -147,7 +147,7 @@ class UploadForm extends Form {
                     String nodeName = uploadDialog.getNodeNameCodec().encode(filename);
                     String localName = uploadDialog.getLocalizeCodec().encode(filename);
                     Document document = workflow.createGalleryItem(nodeName, type);
-                    node = (HippoNode) UserSession.get().getJcrSession().getNodeByUUID(
+                    node = (HippoNode) UserSession.get().getJcrSession().getNodeByIdentifier(
                             document.getIdentity());
                     DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
                     if (!node.getLocalizedName().equals(localName)) {
