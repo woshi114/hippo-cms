@@ -39,6 +39,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.hippoecm.frontend.model.JcrNodeModel;
+import org.hippoecm.frontend.session.UserSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -443,9 +444,8 @@ public class JcrMap extends AbstractMap<String, Object> implements IHippoMap, ID
         try {
             if (!getNode().getSession().isLive()) {
                 log.error("Found session in an invalid unallowed state: not live. Return log in screen", ex);
-                if (WebApplication.exists()) {
-                    throw new RestartResponseException(WebApplication.get().getHomePage());
-                }
+                // will clear http session and short circuit the request with a RestartResponseException
+                UserSession.get().logout();
             }
         } catch (RepositoryException e) {
             if (log.isDebugEnabled()) {
