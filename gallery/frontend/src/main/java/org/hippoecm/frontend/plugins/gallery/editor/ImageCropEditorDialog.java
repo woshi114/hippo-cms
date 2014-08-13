@@ -21,20 +21,23 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Calendar;
 
 import javax.imageio.ImageReader;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.MemoryCacheImageInputStream;
+import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 import org.apache.jackrabbit.JcrConstants;
+import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.HiddenField;
-import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -42,6 +45,7 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.value.IValueMap;
 import org.apache.wicket.util.value.ValueMap;
 import org.hippoecm.frontend.dialog.AbstractDialog;
+import org.hippoecm.frontend.editor.plugins.resource.ResourceHelper;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.plugins.gallery.editor.crop.ImageCropBehavior;
 import org.hippoecm.frontend.plugins.gallery.editor.crop.ImageCropSettings;
@@ -60,21 +64,19 @@ import net.sf.json.JSONObject;
  * ImageCropEditorDialog shows a modal dialog with simple image editor in it, the only operation available currently is
  * "cropping". The ImageCropEditorDialog will replace the current variant with the result of the image editing actions.
  */
-public class ImageCropEditorDialog extends AbstractDialog {
+public class ImageCropEditorDialog extends AbstractDialog<Node> {
+
+    private static final Logger log = LoggerFactory.getLogger(ImageCropEditorDialog.class);
 
     private static final int MAX_PREVIEW_WIDTH = 200;
     private static final int MAX_PREVIEW_HEIGHT = 300;
 
-    private static final Logger log = LoggerFactory.getLogger(ImageCropEditorDialog.class);
-
+    @SuppressWarnings("unused")
     private String region;
     private GalleryProcessor galleryProcessor;
     private Dimension originalImageDimension;
     private Dimension configuredDimension;
     private Dimension thumbnailDimension;
-
-    private ImageCropEditorDialog() {
-    }
 
     public ImageCropEditorDialog(IModel<Node> jcrImageNodeModel, GalleryProcessor galleryProcessor) {
         super(jcrImageNodeModel);
@@ -82,11 +84,11 @@ public class ImageCropEditorDialog extends AbstractDialog {
         this.galleryProcessor = galleryProcessor;
         Node thumbnailImageNode = jcrImageNodeModel.getObject();
 
-        HiddenField regionField = new HiddenField("region", new PropertyModel(this, "region"));
+        HiddenField<String> regionField = new HiddenField<String>("region", new PropertyModel<String>(this, "region"));
         regionField.setOutputMarkupId(true);
         add(regionField);
 
-        Image originalImage, imgPreview;
+        Component originalImage, imgPreview;
         try {
             Node originalImageNode = thumbnailImageNode.getParent().getNode(HippoGalleryNodeType.IMAGE_SET_ORIGINAL);
             originalImageDimension = new Dimension(
@@ -101,8 +103,8 @@ public class ImageCropEditorDialog extends AbstractDialog {
         } catch (RepositoryException e) {
             log.error("Cannot retrieve original image", e);
             error(e);
-            originalImage = new Image("image");
-            imgPreview = new Image("imagepreview");
+            originalImage = new EmptyPanel("image");
+            imgPreview = new EmptyPanel("imagepreview");
         }
 
         WebMarkupContainer imagePreviewContainer = new WebMarkupContainer("previewcontainer");
@@ -115,8 +117,8 @@ public class ImageCropEditorDialog extends AbstractDialog {
             final double previewWidth = Math.floor(previewCropFactor * thumbnailDimension.getWidth());
             final double previewHeight = Math.floor(previewCropFactor * thumbnailDimension.getHeight());
 
-            imagePreviewContainer.add(new AttributeAppender("style", new Model<String>("height:" + previewHeight + "px"), ";"));
-            imagePreviewContainer.add(new AttributeAppender("style", new Model<String>("width:" + previewWidth + "px"), ";"));
+            imagePreviewContainer.add(new AttributeAppender("style", Model.of("width:" + previewWidth + "px"), ";"));
+            imagePreviewContainer.add(new AttributeAppender("style", Model.of("height:" + previewHeight + "px"), ";"));
 
         } catch (RepositoryException e) {
             log.error("Cannot retrieve thumbnail dimensions", e);
@@ -152,7 +154,7 @@ public class ImageCropEditorDialog extends AbstractDialog {
         originalImage.setOutputMarkupId(true);
 
         add(originalImage);
-        imgPreview.add(new AttributeAppender("style", new Model<String>("position:absolute"), ";"));
+        imgPreview.add(new AttributeAppender("style", Model.of("position:absolute"), ";"));
         imagePreviewContainer.add(imgPreview);
         imagePreviewContainer.setVisible(cropSettings.isPreviewVisible());
         add(imagePreviewContainer);
@@ -213,7 +215,7 @@ public class ImageCropEditorDialog extends AbstractDialog {
         int left = jsonObject.getInt("left");
         int width = jsonObject.getInt("width");
         try {
-            Node originalImageNode = ((Node) getModelObject()).getParent().getNode(HippoGalleryNodeType.IMAGE_SET_ORIGINAL);
+            Node originalImageNode = getModelObject().getParent().getNode(HippoGalleryNodeType.IMAGE_SET_ORIGINAL);
             String mimeType = originalImageNode.getProperty(JcrConstants.JCR_MIMETYPE).getString();
             ImageReader reader = ImageUtils.getImageReader(mimeType);
             if (reader == null) {
@@ -223,10 +225,12 @@ public class ImageCropEditorDialog extends AbstractDialog {
             if (writer == null) {
                 throw new GalleryException("Unsupported MIME type for writing: " + mimeType);
             }
-            MemoryCacheImageInputStream imageInputStream = new MemoryCacheImageInputStream(originalImageNode.getProperty(JcrConstants.JCR_DATA).getStream());
+            
+            Binary binary = originalImageNode.getProperty(JcrConstants.JCR_DATA).getBinary();
+            MemoryCacheImageInputStream imageInputStream = new MemoryCacheImageInputStream(binary.getStream());
             reader.setInput(imageInputStream);
             BufferedImage original = reader.read(0);
-            Dimension thumbnailDimension = galleryProcessor.getDesiredResourceDimension((Node) getModelObject());
+            Dimension thumbnailDimension = galleryProcessor.getDesiredResourceDimension(getModelObject());
             Dimension dimension = handleZeroValueInDimension(new Dimension(width, height), thumbnailDimension);
             Object hints;
             boolean highQuality;
@@ -237,14 +241,15 @@ public class ImageCropEditorDialog extends AbstractDialog {
                 hints = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
                 highQuality = false;
             }
-            BufferedImage thumbnail = ImageUtils.scaleImage(original, left, top, width, height, (int) dimension.getWidth(), (int) dimension.getHeight(), hints, highQuality);
+            BufferedImage thumbnail = ImageUtils.scaleImage(original, left, top, width, height, 
+                    (int) dimension.getWidth(), (int) dimension.getHeight(), hints, highQuality);
             ByteArrayOutputStream bytes = ImageUtils.writeImage(writer, thumbnail);
 
-            Node modelObject = (Node) getModelObject();
-            modelObject.getProperty(JcrConstants.JCR_DATA).setValue(new ByteArrayInputStream(bytes.toByteArray()));
-            modelObject.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
-            modelObject.getProperty(HippoGalleryNodeType.IMAGE_WIDTH).setValue(dimension.getWidth());
-            modelObject.getProperty(HippoGalleryNodeType.IMAGE_HEIGHT).setValue(dimension.getHeight());
+            final Node cropped = getModelObject();
+            cropped.setProperty(JcrConstants.JCR_DATA, newBinaryFromBytes(cropped, bytes));
+            cropped.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
+            cropped.setProperty(HippoGalleryNodeType.IMAGE_WIDTH, dimension.getWidth());
+            cropped.setProperty(HippoGalleryNodeType.IMAGE_HEIGHT, dimension.getHeight());
 
         } catch (GalleryException ex) {
             log.error("Unable to create thumbnail image", ex);
@@ -256,6 +261,11 @@ public class ImageCropEditorDialog extends AbstractDialog {
             log.error("Unable to create thumbnail image", ex);
             error(ex);
         }
+    }
+
+    private Binary newBinaryFromBytes(final Node node, final ByteArrayOutputStream baos) throws RepositoryException {
+        InputStream is = new ByteArrayInputStream(baos.toByteArray());
+        return ResourceHelper.getValueFactory(node).createBinary(is);
     }
 
     @Override
