@@ -263,11 +263,6 @@ public class ImageCropEditorDialog extends AbstractDialog<Node> {
         }
     }
 
-    private Binary newBinaryFromBytes(final Node node, final ByteArrayOutputStream baos) throws RepositoryException {
-        InputStream is = new ByteArrayInputStream(baos.toByteArray());
-        return ResourceHelper.getValueFactory(node).createBinary(is);
-    }
-
     @Override
     protected boolean isFullscreenEnabled() {
         return true;
@@ -295,5 +290,10 @@ public class ImageCropEditorDialog extends AbstractDialog<Node> {
             normalized.setSize(width, thumbnailDimension.height);
         }
         return normalized;    	
+    }
+
+    private Binary newBinaryFromBytes(final Node node, final ByteArrayOutputStream baos) throws RepositoryException {
+        InputStream is = new ByteArrayInputStream(baos.toByteArray());
+        return ResourceHelper.getValueFactory(node).createBinary(is);
     }
 }
