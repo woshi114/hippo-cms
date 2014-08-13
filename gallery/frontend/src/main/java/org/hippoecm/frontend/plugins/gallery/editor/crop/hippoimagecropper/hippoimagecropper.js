@@ -25,11 +25,12 @@
  * @beta
  */
 
-
 YAHOO.namespace('hippo');
 
 if (!YAHOO.hippo.ImageCropper) {
     (function() {
+        "use strict";
+
         var Dom = YAHOO.util.Dom, Lang = YAHOO.lang;
 
         YAHOO.hippo.ImageCropper = function(id, config) {
@@ -64,6 +65,9 @@ if (!YAHOO.hippo.ImageCropper) {
             this.maxPreviewWidth = 200;
             this.maxPreviewHeight = 300;
 
+            var lca = Dom.getElementsByClassName('left-crop-area', 'div');
+            this.leftCropArea = lca.length === 1 ? lca[0] : null;
+
             this.cropper = null;
             this.previewImage = null;
             this.previewContainer = null;
@@ -88,13 +92,25 @@ if (!YAHOO.hippo.ImageCropper) {
                 }
                 this.previewLabelTemplate = Dom.get(this.thumbnailSizeLabelId).innerHTML;
 
+                // Call second render phase after image has loaded completely and add a timeout
+                // to force IE to behave the same all the time.
+                var img = new Image();
+                img.onload = function() {
+                    window.setTimeout(function() {this._render();}.bind(this), 10);
+                }.bind(this);
+                img.src = this.el.src;
+            },
+            
+            // this phase of the render method should only start after the image has loaded completely
+            _render: function() {
+
                 this.cropper = new YAHOO.widget.ImageCropper(this.id,
                         {
-                            keyTick:4,
+                            keyTick: 4,
                             initialXY:[this.initialX, this.initialY],
                             initHeight: this.thumbnailHeight,
                             initWidth: this.thumbnailWidth,
-                            ratio: this.fixedDimension == 'both',
+                            ratio: this.fixedDimension === 'both',
                             minWidth: this.minimumWidth,
                             minHeight: this.minimumHeight,
                             status : this.status
@@ -104,6 +120,42 @@ if (!YAHOO.hippo.ImageCropper) {
 
                 this.updateRegionInputValue(this.cropper.getCropCoords());
                 this.updatePreviewLabel(this.thumbnailWidth, this.thumbnailHeight);
+
+                if (this.leftCropArea !== null) {
+                    this.leftCropAreaRegion = Dom.getRegion(this.leftCropArea); 
+                }
+                
+                this.subscribe();
+            },
+            
+            subscribe: function() {
+                var e;
+                if (Wicket.Window.current) {
+                    e = Wicket.Window.current.event;
+                    
+                    e.afterInitScreen.subscribe(this.normalSize, this);
+                    e.afterFullScreen.subscribe(this.fullSize, this);
+                    e.resizeFullScreen.subscribe(this.fullResize, this);
+                }
+            },
+            
+            normalSize : function(type, args, me) {
+                Dom.setStyle(me.leftCropArea, 'width', me.leftCropAreaRegion.width + 'px');
+                Dom.setStyle(me.leftCropArea, 'height', me.leftCropAreaRegion.height + 'px');
+            },
+
+            // left crop area has margin 5px so subtract 10px from width&height to prevent unwanted scrollbars
+            fullSize: function(type, args, me) {
+                var dim = args[0];
+                Dom.setStyle(me.leftCropArea, 'width', (dim.w - 10) + 'px'); 
+                Dom.setStyle(me.leftCropArea, 'height', (dim.h - 10) + 'px'); 
+            },
+
+            // left crop area has margin 5px so subtract 10px from width&height to prevent unwanted scrollbars
+            fullResize: function(type, args, me) {
+                var dim = args[0];
+                Dom.setStyle(me.leftCropArea, 'width', (dim.w - 10) + 'px');
+                Dom.setStyle(me.leftCropArea, 'height', (dim.h - 10) + 'px');
             },
 
             onMove : function(e) {
@@ -117,16 +169,16 @@ if (!YAHOO.hippo.ImageCropper) {
                     previewImageWidth, previewImageHeight,
                     previewContainerWidth, previewContainerHeight;
 
-                if (this.fixedDimension == 'both') {
+                if (this.fixedDimension === 'both') {
                     // Since the ratio is fixed, both height and width change by the same percentage
                     targetScalingFactor = this.thumbnailWidth / coords.width;
                     previewImageWidth = this.thumbnailWidth;
                     previewImageHeight = this.thumbnailHeight;
-                } else if (this.fixedDimension == 'width') {
+                } else if (this.fixedDimension === 'width') {
                     targetScalingFactor = this.thumbnailWidth / coords.width;
                     previewImageWidth = this.thumbnailWidth;
                     previewImageHeight = Math.floor(targetScalingFactor * coords.height);
-                } else if (this.fixedDimension == 'height') {
+                } else if (this.fixedDimension === 'height') {
                     targetScalingFactor = this.thumbnailHeight / coords.height;
                     previewImageWidth = Math.floor(targetScalingFactor * coords.width);
                     previewImageHeight = this.thumbnailHeight;
@@ -145,7 +197,7 @@ if (!YAHOO.hippo.ImageCropper) {
 
                 this.updatePreviewLabel(previewImageWidth, previewImageHeight);
 
-                if (this.previewVisible && this.previewImage != null) {
+                if (this.previewVisible && this.previewImage !== null) {
                     this.updatePreviewImageDimensions(coords, previewContainerWidth, previewContainerHeight, scalingFactor);
                 }
             },
@@ -183,7 +235,7 @@ if (!YAHOO.hippo.ImageCropper) {
                     return widthBasedScaling;
                 }
             },
-
+            
             updateRegionInputValue : function(coords) {
                 var regionInput = Dom.get(this.regionInputId);
                 if (regionInput) {
