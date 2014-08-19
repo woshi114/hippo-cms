@@ -41,6 +41,7 @@ import org.hippoecm.frontend.Home;
 import org.hippoecm.frontend.Main;
 import org.hippoecm.frontend.NoRepositoryAvailablePage;
 import org.hippoecm.frontend.PluginApplication;
+import org.hippoecm.frontend.RepositoryUnavailableException;
 import org.hippoecm.frontend.model.JcrSessionModel;
 import org.hippoecm.frontend.model.UserCredentials;
 import org.hippoecm.frontend.observation.FacetRootsObserver;
@@ -204,7 +205,7 @@ public class PluginUserSession extends UserSession {
             session = fallbackSession;
             if (session == null) {
                 main.resetConnection();
-                throw new RestartResponseException(NoRepositoryAvailablePage.class);
+                throw new RepositoryUnavailableException("Repository is not available.");
             }
         } else if (fallbackSession != null) {
             fallbackSession.logout();
@@ -221,18 +222,16 @@ public class PluginUserSession extends UserSession {
                 return null;
             }
             if (!result.isLive()) {
-
+                log.error("Found session in an invalid unallowed state: not live. Logout PluginUserSession.");
+                logout();
                 try {
                     // we need to trigger a repo exception to get in the stacktrace the cause which contains from where
                     // the session was logged out
                     result.getRootNode();
                 } catch (RepositoryException e) {
                     // expected
-                    log.error("Found session in an invalid unallowed state: not live. Logout PluginUserSession.", e);
+                    throw new InvalidSessionException("Invalid (non-live) session found.", e);
                 }
-
-                // logout triggers already RestartResponseException
-                logout();
             }
             return result;
         }
