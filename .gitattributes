@@ -2224,8 +2224,6 @@ richtext/frontend/src/test/resources/org/hippoecm/frontend/plugins/xinha/json/Js
 richtext/frontend/src/test/resources/org/hippoecm/frontend/plugins/xinha/json/JsonParserTestDummyComponent_it.properties -text
 richtext/frontend/src/test/resources/xinhatest.cnd -text
 richtext/repository/src/main/resources/hippohtmlcleaner.cnd -text
-richtext/repository/src/main/resources/hippostd-html-template_de.xml -text
-richtext/repository/src/main/resources/hippostd-html-template_it.xml -text
 richtext/repository/src/main/resources/html-cleaner-service.xml -text
 richtext/repository/src/main/resources/system-html-template_de.xml -text
 richtext/repository/src/main/resources/system-html-template_it.xml -text
