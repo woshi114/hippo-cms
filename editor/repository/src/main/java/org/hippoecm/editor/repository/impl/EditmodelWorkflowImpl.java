@@ -37,7 +37,6 @@ import javax.jcr.nodetype.NodeTypeManager;
 import javax.jcr.nodetype.NodeTypeTemplate;
 import javax.jcr.nodetype.PropertyDefinition;
 
-import org.apache.jackrabbit.JcrConstants;
 import org.hippoecm.editor.EditorUtils;
 import org.hippoecm.editor.NamespaceValidator;
 import org.hippoecm.editor.repository.EditmodelWorkflow;
@@ -48,8 +47,12 @@ import org.hippoecm.repository.api.MappingException;
 import org.hippoecm.repository.api.WorkflowException;
 import org.hippoecm.repository.ext.InternalWorkflow;
 
+import org.hippoecm.repository.util.NodeIterable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.apache.jackrabbit.JcrConstants.NT_UNSTRUCTURED;
+import static org.hippoecm.editor.EditorNodeType.EDITOR_TEMPLATES;
 
 public class EditmodelWorkflowImpl implements EditmodelWorkflow, InternalWorkflow {
 
@@ -188,7 +191,7 @@ public class EditmodelWorkflowImpl implements EditmodelWorkflow, InternalWorkflo
                 NodeIterator nodes = subject.getNode(HippoNodeType.HIPPO_PROTOTYPES).getNodes();
                 while (nodes.hasNext()) {
                     Node child = nodes.nextNode();
-                    if (child.isNodeType(JcrConstants.NT_UNSTRUCTURED)) {
+                    if (child.isNodeType(NT_UNSTRUCTURED)) {
                         draft = child;
                     } else if (prefix != null) {
                         NodeType nt = child.getPrimaryNodeType();
@@ -207,7 +210,7 @@ public class EditmodelWorkflowImpl implements EditmodelWorkflow, InternalWorkflo
                     subject.addNode(HippoNodeType.HIPPO_PROTOTYPES, HippoNodeType.NT_PROTOTYPESET);
                 }
                 draft = subject.getNode(HippoNodeType.HIPPO_PROTOTYPES).addNode(HippoNodeType.HIPPO_PROTOTYPE,
-                        JcrConstants.NT_UNSTRUCTURED);
+                        NT_UNSTRUCTURED);
                 if (current != null) {
                     // add dynamic mixins
                     for (NodeType mixin : current.getMixinNodeTypes()) {
@@ -261,7 +264,7 @@ public class EditmodelWorkflowImpl implements EditmodelWorkflow, InternalWorkflo
                 Node prototypes = subject.getNode(HippoNodeType.HIPPO_PROTOTYPES);
                 for (NodeIterator iter = prototypes.getNodes(HippoNodeType.HIPPO_PROTOTYPE); iter.hasNext();) {
                     Node prototype = iter.nextNode();
-                    if (!prototype.isNodeType(JcrConstants.NT_UNSTRUCTURED)) {
+                    if (!prototype.isNodeType(NT_UNSTRUCTURED)) {
                         prototype.remove();
                     } else {
                         assert (prototype.isSame(draft));
@@ -328,7 +331,7 @@ public class EditmodelWorkflowImpl implements EditmodelWorkflow, InternalWorkflo
         }
 
         private boolean isValidDefiningTypeForCurrentPrototype(final Node clone, final String declaringNodeTypeName) throws RepositoryException {
-            return !JcrConstants.NT_UNSTRUCTURED.equals(declaringNodeTypeName) && !clone.isNodeType(declaringNodeTypeName);
+            return !NT_UNSTRUCTURED.equals(declaringNodeTypeName) && !clone.isNodeType(declaringNodeTypeName);
         }
 
         void revert() throws RepositoryException {
@@ -446,14 +449,29 @@ public class EditmodelWorkflowImpl implements EditmodelWorkflow, InternalWorkflo
                 Node child = nodes.nextNode();
                 if (prototype == null) {
                     prototype = child;
-                } else if (child.isNodeType(JcrConstants.NT_UNSTRUCTURED)) {
+                } else if (child.isNodeType(NT_UNSTRUCTURED)) {
                     prototype.remove();
                     prototype = child;
                 }
             }
             if (prototype != null) {
-                prototype.setPrimaryType(JcrConstants.NT_UNSTRUCTURED);
+                prototype.setPrimaryType(NT_UNSTRUCTURED);
             }
+        }
+        if (target.hasNode(EDITOR_TEMPLATES)) {
+            for (Node pluginCluster : new NodeIterable(target.getNode(EDITOR_TEMPLATES).getNodes())) {
+                if (pluginCluster.hasProperty("type")) {
+                    String type = pluginCluster.getProperty("type").getString();
+                    final int offset = type.indexOf(':');
+                    if (offset != -1) {
+                        type = type.substring(0, offset+1) + name;
+                    } else {
+                        type = name;
+                    }
+                    pluginCluster.setProperty("type", type);
+                }
+            }
+
         }
         if (target.isNodeType(HippoNodeType.NT_TRANSLATED)) {
             target.removeMixin(HippoNodeType.NT_TRANSLATED);
