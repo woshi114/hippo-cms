@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -69,15 +69,13 @@ import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
 import org.hippoecm.frontend.plugins.richtext.dialog.AbstractBrowserDialog;
 import org.hippoecm.frontend.plugins.richtext.model.RichTextEditorImageLink;
-import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.frontend.session.UserSession;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.frontend.widgets.ThrottledTextFieldWidget;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.HippoNodeType;
-import org.hippoecm.repository.api.MappingException;
 import org.hippoecm.repository.api.StringCodec;
-import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.WorkflowException;
 import org.hippoecm.repository.api.WorkflowManager;
 import org.hippoecm.repository.gallery.GalleryWorkflow;
@@ -102,7 +100,6 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
     DropDownChoice<String> type;
 
     private LinkedHashMap<String, String> nameTypeMap;
-    private IModel<RichTextEditorImageLink> imageModel;
     private boolean uploadSelected;
     private AjaxButton uploadButton;
     private Component uploadTypeSelector;
@@ -113,7 +110,6 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
 
     public ImageBrowserDialog(IPluginContext context, final IPluginConfig config, final IModel<RichTextEditorImageLink> model) {
         super(context, config, model);
-        imageModel = model;
 
         galleryTypesModel = new LoadableDetachableModel<List<String>>() {
             @Override
@@ -125,9 +121,12 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
         add(createUploadForm());
 
         if (nameTypeMap == null) {
-            nameTypeMap = new LinkedHashMap<String, String>();
+            nameTypeMap = new LinkedHashMap<>();
         }
-        type = new DropDownChoice<String>("type", new StringPropertyModel(model, RichTextEditorImageLink.TYPE), new ArrayList<String>(nameTypeMap.keySet()), new IChoiceRenderer<String>() {
+
+        List<String> typeChoices = new ArrayList<>(nameTypeMap.keySet());
+        IModel<String> typeModel = new StringPropertyModel(model, RichTextEditorImageLink.TYPE);
+        type = new DropDownChoice<>("type", typeModel, typeChoices, new IChoiceRenderer<String>() {
             private static final long serialVersionUID = 1L;
 
             public Object getDisplayValue(String object) {
@@ -151,7 +150,8 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
         type.setNullValid(false);
         add(type);
 
-        add(new ThrottledTextFieldWidget("alt", new StringPropertyModel(model, RichTextEditorImageLink.ALT)) {
+        IModel<String> altModel = new StringPropertyModel(model, RichTextEditorImageLink.ALT);
+        add(new ThrottledTextFieldWidget("alt", altModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -160,8 +160,8 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
             }
         });
 
-        DropDownChoice<String> align = new DropDownChoice<String>("align", new StringPropertyModel(model,
-                RichTextEditorImageLink.ALIGN), ALIGN_OPTIONS, new IChoiceRenderer<String>() {
+        IModel<String> alignModel = new StringPropertyModel(model, RichTextEditorImageLink.ALIGN);
+        DropDownChoice<String> align = new DropDownChoice<>("align", alignModel, ALIGN_OPTIONS, new IChoiceRenderer<String>() {
             private static final long serialVersionUID = 1L;
 
             public Object getDisplayValue(String object) {
@@ -228,26 +228,26 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
         final IPluginConfig config = getPluginConfig();
         String preferredType = config.getString(CONFIG_PREFERRED_IMAGE_VARIANT, DEFAULT_PREFERRED_IMAGE_VARIANT);
         if (nameTypeMap.containsKey(preferredType)) {
-            imageModel.getObject().setType(preferredType);
+            getModelObject().setType(preferredType);
         }
-        if (StringUtils.isBlank(imageModel.getObject().getType())) {
+        if (StringUtils.isBlank(getModelObject().getType())) {
             log.warn("Unknown preferred image variant: '" + preferredType + "'. "
                     + "Set the property '" + CONFIG_PREFERRED_IMAGE_VARIANT + "' to one of the available variants: " + nameTypeMap.keySet());
             if (nameTypeMap.size() > 0) {
                 String firstType = nameTypeMap.keySet().iterator().next();
-                imageModel.getObject().setType(firstType);
+                getModelObject().setType(firstType);
             }
         }
     }
 
     private void setTypeChoices(final Node imageSetNode) {
         if (nameTypeMap == null) {
-            nameTypeMap = new LinkedHashMap<String, String>();
+            nameTypeMap = new LinkedHashMap<>();
         } else {
             nameTypeMap.clear();
         }
 
-        Set<Map.Entry<String, String>> sortedEntries = new TreeSet<Map.Entry<String, String>>(new Comparator<Map.Entry<String, String>>() {
+        Set<Map.Entry<String, String>> sortedEntries = new TreeSet<>(new Comparator<Map.Entry<String, String>>() {
             @Override
             public int compare(final Map.Entry<String, String> o1, final Map.Entry<String, String> o2) {
                 return (o1.getValue() == null || o2.getValue() == null) ? -1 : o1.getValue().compareTo(o2.getValue());
@@ -259,12 +259,15 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
             if (tmpImageSetNode.isNodeType(HippoNodeType.NT_HANDLE)) {
                 tmpImageSetNode = tmpImageSetNode.getNode(tmpImageSetNode.getName());
             }
-            TypeTranslator typeTranslator = new TypeTranslator(new JcrNodeTypeModel(tmpImageSetNode.getPrimaryNodeType()));
+            JcrNodeTypeModel typeModel = new JcrNodeTypeModel(tmpImageSetNode.getPrimaryNodeType());
+            TypeTranslator typeTranslator = new TypeTranslator(typeModel);
             NodeIterator childNodes = tmpImageSetNode.getNodes();
             List<String> allImageVariants = getAllImageVariants(childNodes);
-            List<String> shownImageVariants = ShownImageVariantsBuilder.getAllowedList(allImageVariants, getExcludedImageVariants(), getIncludedImageVariants());
+            List<String> shownImageVariants = ShownImageVariantsBuilder.getAllowedList(allImageVariants, 
+                    getExcludedImageVariants(), getIncludedImageVariants());
             for (String childNodeName : shownImageVariants) {
-                sortedEntries.add(new AbstractMap.SimpleEntry<String, String>(childNodeName, typeTranslator.getPropertyName(childNodeName).getObject()));
+                sortedEntries.add(new AbstractMap.SimpleEntry<>(childNodeName, 
+                        typeTranslator.getPropertyName(childNodeName).getObject()));
             }
         } catch (RepositoryException repositoryException) {
             log.error("Error updating the available image variants.", repositoryException);
@@ -275,13 +278,13 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
         }
 
         if (type != null) {
-            type.setChoices(new ArrayList<String>(nameTypeMap.keySet()));
+            type.setChoices(new ArrayList<>(nameTypeMap.keySet()));
             type.updateModel();
         }
     }
 
     private List<String> getAllImageVariants(final NodeIterator childNodes) throws RepositoryException {
-        List<String> allImageVariants = new ArrayList<String>();
+        List<String> allImageVariants = new ArrayList<>();
         while (childNodes.hasNext()) {
             Node childNode = childNodes.nextNode();
             if (childNode.isNodeType("hippogallery:image")) {
@@ -359,7 +362,7 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
 
                             //TODO replace shortcuts with custom workflow category(?)
                             GalleryWorkflow workflow = (GalleryWorkflow) manager.getWorkflow("gallery", folderNode);
-                            String nodeName = getNodeNameCodec().encode(filename);
+                            String nodeName = getNodeNameCodec(folderNode).encode(filename);
                             String localName = getLocalizeCodec().encode(filename);
                             Document document = workflow.createGalleryItem(nodeName, getGalleryType());
                             node = (HippoNode) UserSession.get().getJcrSession().getNodeByIdentifier(document.getIdentity());
@@ -367,13 +370,7 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
                             if (!node.getLocalizedName().equals(localName)) {
                                 defaultWorkflow.localizeName(localName);
                             }
-                        } catch (WorkflowException ex) {
-                            log.error(ex.getMessage());
-                            error(ex);
-                        } catch (MappingException ex) {
-                            log.error(ex.getMessage());
-                            error(ex);
-                        } catch (RepositoryException ex) {
+                        } catch (WorkflowException | RepositoryException ex) {
                             log.error(ex.getMessage());
                             error(ex);
                         }
@@ -389,11 +386,7 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
                                 try {
                                     DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
                                     defaultWorkflow.delete();
-                                } catch (WorkflowException e) {
-                                    log.error(e.getMessage());
-                                } catch (MappingException e) {
-                                    log.error(e.getMessage());
-                                } catch (RepositoryException e) {
+                                } catch (WorkflowException | RepositoryException e) {
                                     log.error(e.getMessage());
                                 }
                                 try {
@@ -436,8 +429,8 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
         HttpServletRequest httpServletReq = (HttpServletRequest) RequestCycle.get().getRequest().getContainerRequest();
         String ua = httpServletReq.getHeader("User-Agent");
         if (ua.contains("Macintosh")) {
-            uploadField.add(new AttributeAppender("class", true, new Model<String>("browse-button-osx"), " "));
-            uploadButton.add(new AttributeAppender("class", true, new Model<String>("upload-button-osx"), " "));
+            uploadField.add(new AttributeAppender("class", new Model<>("browse-button-osx"), " "));
+            uploadButton.add(new AttributeAppender("class", new Model<>("upload-button-osx"), " "));
         }
 
         return uploadForm;
@@ -497,16 +490,12 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
         return new DefaultGalleryProcessor();
     }
 
-    private StringCodec getNodeNameCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID, ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.node");
+    private StringCodec getNodeNameCodec(Node node) {
+        return CodecUtils.getNodeNameCodec(getPluginContext(), node);
     }
 
     private StringCodec getLocalizeCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID, ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.display");
+        return CodecUtils.getDisplayNameCodec(getPluginContext());
     }
 
     private String getGalleryType() {
@@ -551,7 +540,7 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
      * @return list of supported type names for the current folder.
      */
     private List<String> loadGalleryTypes() {
-        List<String> types = new ArrayList<String>();
+        List<String> types = new ArrayList<>();
         WorkflowManager manager = UserSession.get().getWorkflowManager();
 
         try {

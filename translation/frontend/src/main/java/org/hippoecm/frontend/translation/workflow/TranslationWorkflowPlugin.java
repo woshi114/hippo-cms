@@ -66,12 +66,12 @@ import org.hippoecm.frontend.translation.ILocaleProvider.LocaleState;
 import org.hippoecm.frontend.translation.components.document.FolderTranslation;
 import org.hippoecm.frontend.types.IFieldDescriptor;
 import org.hippoecm.frontend.types.ITypeDescriptor;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.repository.HippoStdNodeType;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.HippoWorkspace;
 import org.hippoecm.repository.api.StringCodec;
-import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.Workflow;
 import org.hippoecm.repository.api.WorkflowDescriptor;
 import org.hippoecm.repository.api.WorkflowException;
@@ -323,9 +323,9 @@ public final class TranslationWorkflowPlugin extends RenderPlugin {
                 if (autoTranslateContent) {
                     Workflow translateWorkflow = manager.getWorkflow("translate", translatedVariant);
                     if (translateWorkflow instanceof TranslateWorkflow) {
-                        Set<String> plainTextFields = new TreeSet<String>();
-                        Set<String> richTextFields = new TreeSet<String>();
-                        Set<String> allTextFields = new TreeSet<String>();
+                        Set<String> plainTextFields = new TreeSet<>();
+                        Set<String> richTextFields = new TreeSet<>();
+                        Set<String> allTextFields = new TreeSet<>();
                         String primaryNodeTypeName = session.getNodeByIdentifier(
                                 translatedVariant.getIdentity()).getPrimaryNodeType().getName();
                         collectFields(null, primaryNodeTypeName, plainTextFields, richTextFields);
@@ -698,10 +698,7 @@ public final class TranslationWorkflowPlugin extends RenderPlugin {
     }
 
     protected StringCodec getLocalizeCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                                                                         ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.display");
+        return CodecUtils.getDisplayNameCodec(getPluginContext());
     }
 
     @Override

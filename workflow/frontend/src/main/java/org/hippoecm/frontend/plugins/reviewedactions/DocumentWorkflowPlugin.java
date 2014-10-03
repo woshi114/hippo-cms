@@ -23,11 +23,13 @@ import java.util.Map;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
+import org.apache.wicket.util.string.Strings;
 import org.hippoecm.addon.workflow.DestinationDialog;
 import org.hippoecm.addon.workflow.StdWorkflow;
 import org.hippoecm.addon.workflow.WorkflowDescriptorModel;
@@ -42,6 +44,7 @@ import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.reviewedactions.dialogs.HistoryDialog;
 import org.hippoecm.frontend.session.UserSession;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.Localized;
@@ -96,8 +99,10 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
             @Override
             protected IDialogService.Dialog createRequestDialog() {
+                String locale = null;
                 try {
                     final HippoNode node = getModelNode();
+                    locale = CodecUtils.getLocaleFromNodeAndAncestors(node);
                     uriName = node.getName();
                     targetName = getLocalizedNameForSession(node);
                     localizedNames = node.getLocalizedNames();
@@ -105,14 +110,15 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
                     uriName = targetName = "";
                     localizedNames = Collections.emptyMap();
                 }
+
+                IModel<StringCodec> codecModel = CodecUtils.getNodeNameCodecModel(context, locale);
                 return new RenameDocumentDialog(this,
                         new StringResourceModel("rename-title", DocumentWorkflowPlugin.this, null),
-                        context);
+                        codecModel);
             }
 
             private HippoNode getModelNode() throws RepositoryException {
-                final WorkflowDescriptorModel model = (WorkflowDescriptorModel) getDefaultModel();
-                return (HippoNode) model.getNode();
+                return (HippoNode) getModel().getNode();
             }
 
             private String getLocalizedNameForSession(final HippoNode node) throws RepositoryException {
@@ -123,15 +129,21 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
             @Override
             protected String execute(Workflow wf) throws Exception {
-                if (targetName == null || targetName.trim().equals("")) {
-                    throw new WorkflowException("No name for destination given");
+                if (Strings.isEmpty(targetName)) {
+                    throw new WorkflowException("No name given for document node");
                 }
+                if (Strings.isEmpty(uriName)) {
+                    throw new WorkflowException("No URL name given for document node");
+                }
+
                 final HippoNode node = getModelNode();
-                String nodeName = getNodeNameCodec().encode(uriName);
+                String nodeName = getNodeNameCodec(node).encode(uriName);
                 String localName = getLocalizeCodec().encode(targetName);
-                if ("".equals(nodeName)) {
+
+                if (Strings.isEmpty(nodeName)) {
                     throw new IllegalArgumentException("You need to enter a name");
                 }
+
                 WorkflowManager manager = UserSession.get().getWorkflowManager();
                 DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
                 if (!((WorkflowDescriptorModel) getDefaultModel()).getNode().getName().equals(nodeName)) {
@@ -165,11 +177,23 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
             @Override
             protected IDialogService.Dialog createRequestDialog() {
                 destination = new NodeModelWrapper(getFolder()) {};
-                CopyNameHelper copyNameHelper = new CopyNameHelper(getNodeNameCodec(), new StringResourceModel(
-                        "copyof", DocumentWorkflowPlugin.this, null).getString());
+                
                 try {
-                    name = copyNameHelper.getCopyName(((HippoNode) ((WorkflowDescriptorModel) getDefaultModel())
-                            .getNode()).getLocalizedName(), destination.getNodeModel().getNode());
+                    IModel<StringCodec> codec = new AbstractReadOnlyModel<StringCodec>() {
+                        @Override
+                        public StringCodec getObject() {
+                            try {
+                                return getNodeNameCodec(getModelNode(), getFolder().getNode());
+                            } catch (RepositoryException e) {
+                                return getNodeNameCodec(getFolder().getNode());
+                            }
+                        }
+                    };
+
+                    final CopyNameHelper copyNameHelper = new CopyNameHelper(codec,
+                            new StringResourceModel("copyof", DocumentWorkflowPlugin.this, null).getString());
+                    name = copyNameHelper.getCopyName(getModelNode().getLocalizedName(), 
+                            destination.getNodeModel().getNode());
                 } catch (RepositoryException ex) {
                     return new ExceptionDialog(ex);
                 }
@@ -196,18 +220,15 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
             @Override
             protected String execute(Workflow wf) throws Exception {
-                JcrNodeModel folderModel;
-                if (destination != null) {
-                    folderModel = destination.getNodeModel();
-                } else {
-                    folderModel = new JcrNodeModel("/");
-                }
-                StringCodec codec = getNodeNameCodec();
-                String nodeName = codec.encode(name);
-                DocumentWorkflow workflow = (DocumentWorkflow) wf;
+                Node folder = destination != null ? destination.getNodeModel().getNode() : new JcrNodeModel("/").getNode();
+                Node document = getModel().getNode();
 
-                workflow.copy(new Document(folderModel.getNode()), nodeName);
-                JcrNodeModel resultModel = new JcrNodeModel(folderModel.getItemModel().getPath() + "/" + nodeName);
+                String nodeName = getNodeNameCodec(document, folder).encode(name);
+
+                DocumentWorkflow workflow = (DocumentWorkflow) wf;
+                workflow.copy(new Document(folder), nodeName);
+
+                JcrNodeModel resultModel = new JcrNodeModel(folder.getPath() + "/" + nodeName);
                 Node result = resultModel.getNode();
 
                 WorkflowManager manager = UserSession.get().getWorkflowManager();
@@ -217,6 +238,11 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
                 browseTo(resultModel);
                 return null;
             }
+
+            private HippoNode getModelNode() throws RepositoryException {
+                return (HippoNode) getModel().getNode();
+            }
+
         });
 
         add(moveAction = new StdWorkflow("move", new StringResourceModel("move-label", this, null), context, getModel()) {
@@ -247,8 +273,7 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
             @Override
             protected IDialogService.Dialog createRequestDialog() {
-                destination = new NodeModelWrapper(getFolder()) {
-                };
+                destination = new NodeModelWrapper(getFolder()) {};
                 return new DestinationDialog(new StringResourceModel("move-title",
                         DocumentWorkflowPlugin.this, null), null, null, destination,
                         getPluginContext(), getPluginConfig()) {
@@ -266,14 +291,15 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
             @Override
             protected String execute(Workflow wf) throws Exception {
-                JcrNodeModel folderModel = new JcrNodeModel("/");
-                if (destination != null) {
-                    folderModel = destination.getNodeModel();
-                }
-                String nodeName = getModel().getNode().getName();
+                Node folder = destination != null ? destination.getNodeModel().getObject() 
+                        : new JcrNodeModel("/").getNode();  
+                Node document = getModel().getNode();
+
+                String nodeName = getNodeNameCodec(document, folder).encode(document.getName());
+                
                 DocumentWorkflow workflow = (DocumentWorkflow) wf;
-                workflow.move(new Document(folderModel.getNode()), nodeName);
-                browseTo(new JcrNodeModel(folderModel.getItemModel().getPath() + "/" + nodeName));
+                workflow.move(new Document(folder), nodeName);
+                browseTo(new JcrNodeModel(folder.getPath() + "/" + nodeName));
                 return null;
             }
         });
@@ -422,6 +448,16 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
         hideOrDisable(info, "copy", copyAction);
         hideOrDisable(info, "listVersions", historyAction);
+    }
+
+    /**
+     * Helper method for fetching a StringCodec for a document. If document has a locale, use it to find a fitting 
+     * {@link StringCodec}, otherwise search the destination tree for a locale and use that to find a fitting 
+     * {@link StringCodec}.
+     */
+    private StringCodec getNodeNameCodec(final Node document, final Node destination) {
+        String locale = CodecUtils.getLocaleFromDocumentOrFolder(document, destination);
+        return CodecUtils.getNodeNameCodec(getPluginContext(), locale);
     }
 
     private static boolean isWritePermissionGranted(IModel<Node> model) {

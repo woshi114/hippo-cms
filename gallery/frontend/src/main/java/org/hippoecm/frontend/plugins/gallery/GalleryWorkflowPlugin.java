@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2009-2014 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.rmi.RemoteException;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 import org.apache.wicket.Component;
@@ -49,15 +50,14 @@ import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
 import org.hippoecm.frontend.plugins.yui.upload.FileUploadException;
 import org.hippoecm.frontend.plugins.yui.upload.MultiFileUploadDialog;
 import org.hippoecm.frontend.service.IBrowseService;
-import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.frontend.translation.ILocaleProvider;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.frontend.widgets.AbstractView;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.StringCodec;
-import org.hippoecm.repository.api.StringCodecFactory;
 import org.hippoecm.repository.api.WorkflowException;
 import org.hippoecm.repository.api.WorkflowManager;
 import org.hippoecm.repository.gallery.GalleryWorkflow;
@@ -67,7 +67,6 @@ import org.slf4j.LoggerFactory;
 
 public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWorkflow> {
     private static final long serialVersionUID = 1L;
-
 
     private static final Logger log = LoggerFactory.getLogger(GalleryWorkflowPlugin.class);
 
@@ -121,8 +120,8 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
 
     private void createGalleryItem(FileUpload upload) throws GalleryException {
         try {
-            String filename = upload.getClientFileName();
-            String mimetype = upload.getContentType();
+            String fileName = upload.getClientFileName();
+            String mimeType = upload.getContentType();
             InputStream is = upload.getInputStream();
 
             WorkflowManager manager = UserSession.get().getWorkflowManager();
@@ -130,10 +129,12 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             try {
                 WorkflowDescriptorModel workflowDescriptorModel = (WorkflowDescriptorModel) GalleryWorkflowPlugin.this
                         .getDefaultModel();
+                
                 GalleryWorkflow workflow = (GalleryWorkflow) manager
                         .getWorkflow(workflowDescriptorModel.getObject());
-                String nodeName = getNodeNameCodec().encode(filename);
-                String localName = getLocalizeCodec().encode(filename);
+                
+                String nodeName = getNodeNameCodec(workflowDescriptorModel.getNode()).encode(fileName);
+                String localName = getLocalizeCodec().encode(fileName);
                 Document document = workflow.createGalleryItem(nodeName, type);
                 node = (HippoNode) UserSession.get().getJcrSession()
                         .getNodeByIdentifier(document.getIdentity());
@@ -150,13 +151,13 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             }
 
             try {
-                getGalleryProcessor().makeImage(node, is, mimetype, filename);
+                getGalleryProcessor().makeImage(node, is, mimeType, fileName);
                 node.getSession().save();
                 newItems.add(node.getPath());
             } catch (Exception ex) {
                 remove(manager, node);
                 final StringResourceModel messageModel = new StringResourceModel("upload-failed-named-label",
-                        GalleryWorkflowPlugin.this, null, null, filename);
+                        GalleryWorkflowPlugin.this, null, null, fileName);
                 throw new GalleryException(messageModel.getString(), ex);
             }
         } catch (IOException ex) {
@@ -200,7 +201,7 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
     }
 
     protected IDataProvider<StdWorkflow> createListDataProvider() {
-        List<StdWorkflow> list = new LinkedList<StdWorkflow>();
+        List<StdWorkflow> list = new LinkedList<>();
         list.add(0, new WorkflowAction("add", new StringResourceModel(getPluginConfig()
                 .getString("option.label", "add"), this, null, "Add")) {
             private static final long serialVersionUID = 1L;
@@ -237,7 +238,7 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
         Component typeComponent;
         if (galleryTypes != null && galleryTypes.size() > 1) {
             type = galleryTypes.get(0);
-            typeComponent = new DropDownChoice("type", new PropertyModel(this, "type"), galleryTypes,
+            typeComponent = new DropDownChoice<>("type", new PropertyModel<String>(this, "type"), galleryTypes,
                     new TypeChoiceRenderer(this)).setNullValid(false).setRequired(true);
         } else if (galleryTypes != null && galleryTypes.size() == 1) {
             type = galleryTypes.get(0);
@@ -253,17 +254,11 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
     }
 
     protected StringCodec getLocalizeCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.display");
+        return CodecUtils.getDisplayNameCodec(getPluginContext());
     }
 
-    protected StringCodec getNodeNameCodec() {
-        ISettingsService settingsService = getPluginContext().getService(ISettingsService.SERVICE_ID,
-                ISettingsService.class);
-        StringCodecFactory stringCodecFactory = settingsService.getStringCodecFactory();
-        return stringCodecFactory.getStringCodec("encoding.node");
+    protected StringCodec getNodeNameCodec(final Node node) {
+        return CodecUtils.getNodeNameCodec(getPluginContext(), node);
     }
 
     protected ILocaleProvider getLocaleProvider() {
