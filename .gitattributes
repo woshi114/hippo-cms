@@ -3109,7 +3109,7 @@ workflow/repository/src/main/resources/admin-workflowmenu.xml -text
 workflow/repository/src/main/resources/editing-reviewedactions-workflows.xml svneol=native#text/plain
 workflow/repository/src/main/resources/hippoecm-extension.xml -text
 workflow/repository/src/main/resources/hippostd-queries-translation.xml svneol=native#text/plain
-workflow/repository/src/main/resources/hippostd-queries-translation_de-fix.xml -text
+workflow/repository/src/main/resources/hippostd-queries-translation_de-fix79.xml -text
 workflow/repository/src/main/resources/hippostd-queries-translation_de.xml -text
 workflow/repository/src/main/resources/hippostd-queries-translation_it.xml -text
 workflow/repository/src/main/resources/namespace-hippostd-addendum-hippostdpubwf_de.xml -text
