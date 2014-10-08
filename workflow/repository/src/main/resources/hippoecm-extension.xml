@@ -83,7 +83,7 @@
       <sv:value>hippostd-queries-translation_de-fix79.xml</sv:value>
     </sv:property>
     <sv:property sv:name="hippo:contentroot" sv:type="String">
-      <sv:value>/hippo:configuration/hippo:queries/hippo:templates/new-translated-folder</sv:value>
+      <sv:value>/hippo:configuration/hippo:queries/hippo:templates</sv:value>
     </sv:property>
     <sv:property sv:name="hippo:sequence" sv:type="Double">
       <sv:value>14.14</sv:value>
