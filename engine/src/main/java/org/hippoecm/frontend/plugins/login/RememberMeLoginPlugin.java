@@ -33,6 +33,8 @@ import javax.servlet.http.Cookie;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.jackrabbit.util.ISO9075;
+import org.apache.jackrabbit.util.Text;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.PageParameters;
 import org.apache.wicket.RestartResponseException;
@@ -512,8 +514,12 @@ public class RememberMeLoginPlugin extends LoginPlugin {
 
         statement.append("//element");
         statement.append("(*, ").append(HippoNodeType.NT_USER).append(")");
-        statement.append('[').append("fn:name() = ").append("'").append(NodeNameCodec.encode(userId, true)).append("'").append(']');
-
+        // triple escaping and encoding, like in org.hippoecm.frontend.plugins.cms.admin.users.User.userExists()
+        statement.append(Text.escapeIllegalJcr10Chars(ISO9075.encode(NodeNameCodec.encode(userId, true))));
+        statement.append("'").append(']');
+        if (log.isDebugEnabled()) {
+            log.debug("Trying to retrieving information of user: '{}' with query '{}'", userId, statement.toString());
+        }
         try {
             Query q = session.getWorkspace().getQueryManager().createQuery(statement.toString(), Query.XPATH);
             QueryResult result = q.execute();
@@ -526,7 +532,8 @@ public class RememberMeLoginPlugin extends LoginPlugin {
             log.info("Could not retrieve information of user: '{}'", userId);
 
             if (log.isDebugEnabled()) {
-                log.debug("Error happened while retrieving information of user: '" + userId + "'", rex);
+                log.debug("Error happened while retrieving information of user: '{} " + userId + "' with query '" +
+                        statement.toString() + "'", rex);
             }
 
             throw rex;
