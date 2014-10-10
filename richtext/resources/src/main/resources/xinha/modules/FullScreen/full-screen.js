@@ -19,14 +19,14 @@ function FullScreen(editor, args) {
 }
 
 FullScreen._pluginInfo = {
-    name         : "FullScreen",
-    version      : "1.0",
-    developer    : "a.bogaart@1hippo.com",
-    developer_url: "http://www.onehippo.com/",
-    c_owner      : "OneHippo",
-    license      : "al2",
-    sponsor      : "OneHippo",
-    sponsor_url  : "http://www.onehippo.com/"
+  name     : "FullScreen",
+  version  : "1.0",
+  developer: "James Sleeman",
+  developer_url: "http://www.gogo.co.nz/",
+  c_owner      : "Gogo Internet Services",
+  license      : "htmlArea",
+  sponsor      : "Gogo Internet Services",
+  sponsor_url  : "http://www.gogo.co.nz/"
 };
 
 FullScreen.prototype._lc = function(string) {
