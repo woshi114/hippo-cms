@@ -561,77 +561,25 @@ jquery/src/main/resources/org/onehippo/cms7/jquery/plugins/jquery.class.js
     OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ------------------------------------------------------------------------------------------------------------------------
-richtext/resources/xinha/iconsets/Classic/**
-richtext/resources/xinha/iconsets/Crystal/**
-richtext/resources/xinha/iconsets/Tango/**
-richtext/resources/xinha/images/*.gif
-richtext/resources/xinha/images/*.png
-richtext/resources/xinha/images/de/**
-richtext/resources/xinha/images/fr/**
-richtext/resources/xinha/lang/**
-richtext/resources/xinha/modules/AboutBox/**
-richtext/resources/xinha/modules/ColorPicker/**
-richtext/resources/xinha/modules/Dialogs/**
-richtext/resources/xinha/modules/FullScreen/**
-richtext/resources/xinha/modules/Gecko/**
-richtext/resources/xinha/modules/GetHtml/**
-richtext/resources/xinha/modules/InlineStyler/**
-richtext/resources/xinha/modules/InsertImage/**
-richtext/resources/xinha/modules/InsertTable/**
-richtext/resources/xinha/modules/InternetExplorer/**
-richtext/resources/xinha/modules/Opera/**
-richtext/resources/xinha/modules/WebKit/**
-richtext/resources/xinha/plugins/Abbreviation/**
-richtext/resources/xinha/plugins/CharacterMap/**
-richtext/resources/xinha/plugins/CharCounter/**
-richtext/resources/xinha/plugins/ContextMenu/**
-richtext/resources/xinha/plugins/CSS/**
-richtext/resources/xinha/plugins/CSSPicker/**
-richtext/resources/xinha/plugins/DefinitionList/**
-richtext/resources/xinha/plugins/DynamicCSS/**
-richtext/resources/xinha/plugins/EditTag/**
-richtext/resources/xinha/plugins/FindReplace/**
-richtext/resources/xinha/plugins/FormOperations/**
-richtext/resources/xinha/plugins/Forms/**
-richtext/resources/xinha/plugins/FullPage/**
-richtext/resources/xinha/plugins/GenericPlugin/**
-richtext/resources/xinha/plugins/GetHtml/**
-richtext/resources/xinha/plugins/HorizontalRule/**
-richtext/resources/xinha/plugins/HtmlEntities/**
-richtext/resources/xinha/plugins/InsertAnchor/**
-richtext/resources/xinha/plugins/InsertImage/**
-richtext/resources/xinha/plugins/InsertPagebreak/**
-richtext/resources/xinha/plugins/InsertSmiley/**
-richtext/resources/xinha/plugins/InsertSnippet/**
-richtext/resources/xinha/plugins/InsertSnippet2/**
-richtext/resources/xinha/plugins/InsertWords/**
-richtext/resources/xinha/plugins/LangMarks/**
-richtext/resources/xinha/plugins/Linker/**
-richtext/resources/xinha/plugins/ListType/**
-richtext/resources/xinha/plugins/PasteText/**
-richtext/resources/xinha/plugins/QuickTag/**
-richtext/resources/xinha/plugins/SaveOnBlur/**
-richtext/resources/xinha/plugins/SaveSubmit/**
-richtext/resources/xinha/plugins/SetId/**
-richtext/resources/xinha/plugins/SmartReplace/**
-richtext/resources/xinha/plugins/SpellChecker/**
-richtext/resources/xinha/plugins/StateChange/**
-richtext/resources/xinha/plugins/Stylist/Stylist.js
-richtext/resources/xinha/plugins/Stylist/lang/**
-richtext/resources/xinha/plugins/SuperClean/**
-richtext/resources/xinha/plugins/TableOperations/**
-richtext/resources/xinha/plugins/UnFormat/**
-richtext/resources/xinha/plugins/WysiwygWrap/**
-richtext/resources/xinha/popups/**
-richtext/resources/xinha/skins/blue-look/**
-richtext/resources/xinha/skins/blue-metallic/**
-richtext/resources/xinha/skins/green-look/**
-richtext/resources/xinha/skins/inditreuse/**
-richtext/resources/xinha/skins/silva/**
-richtext/resources/xinha/skins/titan/**
-richtext/resources/xinha/skins/xp-blue/**
-richtext/resources/xinha/skins/xp-green/**
-richtext/resources/xinha/XinhaCore.js
+richtext/resources/src/main/resources/xinha/modules/FullScreen/full-screen.js
+richtext/resources/src/main/resources/xinha/modules/Gecko/paraHandlerBest.js
+richtext/resources/src/main/resources/xinha/modules/GetHtml/TransformInnerHTML.js
+richtext/resources/src/main/resources/xinha/modules/InlineStyler/InlineStyler.js
+richtext/resources/src/main/resources/xinha/modules/InsertTable/dialog.html
+richtext/resources/src/main/resources/xinha/modules/InsertTable/insert_table.js
+richtext/resources/src/main/resources/xinha/modules/InternetExplorer/InternetExplorer.js
+richtext/resources/src/main/resources/xinha/modules/WebKit/WebKit.js
+richtext/resources/src/main/resources/xinha/plugins/CharacterMap/CharacterMap.js
+richtext/resources/src/main/resources/xinha/plugins/InsertAnchor/InsertAnchor.js
+richtext/resources/src/main/resources/xinha/plugins/Stylist/Stylist.js
+richtext/resources/src/main/resources/xinha/plugins/TableOperations/lang/de.js
+richtext/resources/src/main/resources/xinha/plugins/TableOperations/lang/fr.js
+richtext/resources/src/main/resources/xinha/plugins/TableOperations/lang/it.js
+richtext/resources/src/main/resources/xinha/plugins/TableOperations/lang/nl.js
+richtext/resources/src/main/resources/xinha/plugins/TableOperations/popups/dialogTable.html
+richtext/resources/src/main/resources/xinha/plugins/UnFormat/UnFormat.js
+richtext/resources/src/main/resources/xinha/popups/blank.html
+richtext/resources/src/main/resources/xinha/XinhaCore.js
 
     htmlArea License (based on BSD license)
     Copyright (c) 2002-2004, interactivetools.com, inc.
@@ -665,7 +613,7 @@ richtext/resources/xinha/XinhaCore.js
     POSSIBILITY OF SUCH DAMAGE.
 
 ------------------------------------------------------------------------------------------------------------------------
-richtext/resources/src/main/resources/richtext/resources/xinha/plugins/IndentOutdent/IndentOutdent.js
+richtext/resources/src/main/resources/xinha/plugins/IndentOutdent/IndentOutdent.js
 
     Copyright (c) 2005-2013, The Dojo Foundation
     All rights reserved.
@@ -694,7 +642,7 @@ richtext/resources/src/main/resources/richtext/resources/xinha/plugins/IndentOut
     OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ------------------------------------------------------------------------------------------------------------------------
-richtext/resources/src/main/resources/richtext/resources/xinha/plugins/Stylist/rangy-core-min.js
+richtext/resources/src/main/resources/xinha/plugins/Stylist/rangy-core-min.js
 
     The MIT License (MIT)
 
