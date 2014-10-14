@@ -29,7 +29,6 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class RichTextProcessorTest {
 
@@ -75,17 +74,28 @@ public class RichTextProcessorTest {
     }
 
     @Test
-    public void mailtoLinksAreExternalLinks() {
-        String text = "<a href=\"mailto:info@onehippo.com\">link</a>";
+    public void testExternalLinks() {
+        assertExternalLink("/absolute/url/path");
+        assertExternalLink("#anchor");
+        assertExternalLink("mailto:info@onehippo.com");
+        assertExternalLink("callto:skypename");
+        assertExternalLink("about:blank");
+        assertExternalLink("tel:+310205224466");
+        assertExternalLink("funky+scheme-1.0:funkyvalue");
+        assertExternalLink("a:value-of-scheme-with-one-letter");
+    }
+
+    private void assertExternalLink(final String hrefValue) {
+        String text = "<a href=\"" + hrefValue + "\">external link</a>";
 
         final ILinkDecorator linkDecorator = EasyMock.createMock(ILinkDecorator.class);
-        expect(linkDecorator.externalLink(eq("mailto:info@onehippo.com"))).andReturn("href=\"mailto:processed\"");
+        expect(linkDecorator.externalLink(eq(hrefValue))).andReturn("href=\"" + hrefValue + "\"");
 
         replay(linkDecorator);
 
         String processed = RichTextProcessor.decorateLinkHrefs(text, linkDecorator);
 
-        assertEquals("<a href=\"mailto:processed\">link</a>", processed);
+        assertEquals("<a href=\"" + hrefValue + "\">external link</a>", processed);
         verify(linkDecorator);
     }
 
