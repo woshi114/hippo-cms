@@ -19,9 +19,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,10 +27,7 @@ import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -45,20 +39,14 @@ import org.apache.wicket.util.time.Duration;
 import org.apache.wicket.util.value.IValueMap;
 import org.hippoecm.addon.workflow.AbstractWorkflowDialog;
 import org.hippoecm.addon.workflow.IWorkflowInvoker;
-import org.hippoecm.addon.workflow.WorkflowDescriptorModel;
 import org.hippoecm.frontend.dialog.DialogConstants;
 import org.hippoecm.frontend.i18n.types.SortedTypeChoiceRenderer;
 import org.hippoecm.frontend.plugins.standards.list.resolvers.CssClassAppender;
 import org.hippoecm.frontend.plugins.standardworkflow.components.LanguageField;
 import org.hippoecm.frontend.translation.ILocaleProvider;
 import org.hippoecm.repository.api.StringCodec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AddDocumentDialog extends AbstractWorkflowDialog<AddDocumentArguments> {
-
-    private static Logger log = LoggerFactory.getLogger(AddDocumentDialog.class);
-
     private IModel<String> title;
     private TextField nameComponent;
     private TextField uriComponent;
@@ -66,7 +54,7 @@ public class AddDocumentDialog extends AbstractWorkflowDialog<AddDocumentArgumen
     private LanguageField languageField;
     private final IModel<StringCodec> nodeNameCodecModel;
 
-    public AddDocumentDialog(AddDocumentArguments addDocumentModel, IModel<String> title, String category, Set<String> prototypes, boolean translated, final IWorkflowInvoker invoker, IModel<StringCodec> nodeNameCodec, ILocaleProvider localeProvider, final WorkflowDescriptorModel workflowDescriptorModel) {
+    public AddDocumentDialog(AddDocumentArguments addDocumentModel, IModel<String> title, String category, Set<String> prototypes, boolean translated, final IWorkflowInvoker invoker, IModel<StringCodec> nodeNameCodec, ILocaleProvider localeProvider) {
         super(Model.of(addDocumentModel), invoker);
         this.title = title;
         this.nodeNameCodecModel = nodeNameCodec;
@@ -197,28 +185,6 @@ public class AddDocumentDialog extends AbstractWorkflowDialog<AddDocumentArgumen
             languageField.setVisible(false);
         }
         add(languageField);
-
-
-        add(new IFormValidator() {
-            @Override
-            public FormComponent<?>[] getDependentFormComponents() {
-                return new FormComponent<?>[] { uriComponent };
-            }
-
-            @Override
-            public void validate(final Form<?> form) {
-                String finalNodeName = uriComponent.getValue().toLowerCase();
-                try {
-                    Node embeddingNode = workflowDescriptorModel.getNode();
-                    if (embeddingNode.hasNode(finalNodeName)) {
-                        error(getString("sns-node-exists"));
-                    }
-                } catch (RepositoryException e) {
-                    log.error("Error obtaining parent node", e);
-                    error(getString("Error obtaining parent node"));
-                }
-            }
-        });
     }
 
     @Override

@@ -387,8 +387,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 renameDocumentModel,
                 new StringResourceModel("rename-title", this, null),
                 invoker,
-                codecModel,
-                this.getModel()
+                codecModel
         );
     }
 
@@ -405,8 +404,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 translated,
                 invoker,
                 codecModel,
-                getLocaleProvider(),
-                this.getModel()
+                getLocaleProvider()
         );
 
         if (locale != null) {
