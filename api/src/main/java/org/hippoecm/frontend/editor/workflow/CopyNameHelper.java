@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.hippoecm.repository.api.StringCodec;
 
@@ -30,6 +31,10 @@ public class CopyNameHelper {
     private final Pattern othercopies;
     private final IModel<StringCodec> codecModel;
     private final String copyOf;
+
+    public CopyNameHelper(StringCodec codec, String copyOf) {
+        this(createModel(codec), copyOf);
+    }
 
     public CopyNameHelper(IModel<StringCodec> codecModel, String copyOf) {
         this.codecModel = codecModel;
@@ -70,4 +75,14 @@ public class CopyNameHelper {
         }
         return name;
     }
+
+    private static IModel<StringCodec> createModel(final StringCodec codec) {
+        return new AbstractReadOnlyModel<StringCodec>() {
+            @Override
+            public StringCodec getObject() {
+                return codec;
+            }
+        };
+    }
+
 }

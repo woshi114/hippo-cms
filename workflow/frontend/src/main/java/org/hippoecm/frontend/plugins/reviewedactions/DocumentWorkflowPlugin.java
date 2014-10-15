@@ -291,12 +291,11 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
             @Override
             protected String execute(Workflow wf) throws Exception {
+                Node document = getModel().getNode();
                 Node folder = destination != null ? destination.getNodeModel().getObject() 
                         : new JcrNodeModel("/").getNode();  
-                Node document = getModel().getNode();
 
-                String nodeName = getNodeNameCodec(document, folder).encode(document.getName());
-                
+                String nodeName = document.getName();
                 DocumentWorkflow workflow = (DocumentWorkflow) wf;
                 workflow.move(new Document(folder), nodeName);
                 browseTo(new JcrNodeModel(folder.getPath() + "/" + nodeName));
