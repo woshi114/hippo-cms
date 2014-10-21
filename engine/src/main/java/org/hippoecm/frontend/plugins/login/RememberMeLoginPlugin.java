@@ -68,6 +68,7 @@ import org.hippoecm.frontend.model.UserCredentials;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.session.LoginException;
+import org.hippoecm.frontend.session.PermissionChecker;
 import org.hippoecm.frontend.session.PluginUserSession;
 import org.hippoecm.frontend.util.AclChecker;
 import org.hippoecm.frontend.util.WebApplicationHelper;
@@ -344,8 +345,17 @@ public class RememberMeLoginPlugin extends LoginPlugin {
                     }
                 }
 
-                userSession.login(new UserCredentials(new SimpleCredentials(username, password.toCharArray())));
-                AclChecker.checkAccess(getPluginConfig(), userSession.getJcrSession(), PluginApplication.get().getPluginApplicationName());
+                userSession.loginWithPermissionChecker(new UserCredentials(new SimpleCredentials(username, password.toCharArray())), new PermissionChecker() {
+                    @Override
+                    public void checkPermission(final Session session) throws AccessControlException, LoginException {
+                        try {
+                            AclChecker.checkAccess(getPluginConfig(), session, PluginApplication.get().getPluginApplicationName());
+                        } catch (RepositoryException e) {
+                            throw new LoginException(LoginException.CAUSE.REPOSITORY_ERROR);
+                        }
+                    }
+                });
+
             } catch (LoginException le) {
                 success = false;
                 loginExceptionPageParameters = buildPageParameters(le.getLoginExceptionCause());
@@ -354,17 +364,6 @@ public class RememberMeLoginPlugin extends LoginPlugin {
                 // Invalidate the current obtained JCR session and create an anonymous one
                 userSession.login();
                 loginExceptionPageParameters = buildPageParameters(LoginException.CAUSE.ACCESS_DENIED);
-            } catch (RepositoryException re) {
-                success = false;
-                // Invalidate the current obtained JCR session and create an anonymous one
-                userSession.login();
-                if (log.isDebugEnabled()) {
-                    log.warn("Repository error while trying to access the "
-                            + PluginApplication.get().getPluginApplicationName() + " application with user '" + username
-                            + "'", re);
-                }
-
-                loginExceptionPageParameters = buildPageParameters(LoginException.CAUSE.REPOSITORY_ERROR);
             }
 
             if (success) {

@@ -276,7 +276,15 @@ public class PluginUserSession extends UserSession {
     }
 
     public void login(UserCredentials credentials) throws LoginException {
-        login(credentials, null);
+        loginWithPermissionChecker(credentials, null);
+    }
+
+    /**
+     * @deprecated temporary work-around to check application permissions in user session, 7.10 uses a different mechanism
+     */
+    @Deprecated
+    public void loginWithPermissionChecker(UserCredentials credentials, PermissionChecker permissionChecker) throws LoginException {
+        login(credentials, null, permissionChecker);
 
         IApplicationFactory factory = getApplicationFactory();
         final IPluginConfigService application = factory.getApplication(getApplicationName());
@@ -302,9 +310,28 @@ public class PluginUserSession extends UserSession {
 
     @Deprecated
     public void login(UserCredentials credentials, LoadableDetachableModel<Session> sessionModel) throws LoginException {
+        login(credentials, sessionModel, null);
+    }
+
+    private void login(UserCredentials credentials, LoadableDetachableModel<Session> sessionModel, PermissionChecker permissionChecker) throws LoginException {
         if (sessionModel == null) {
             sessionModel = new JcrSessionModel(credentials);
         }
+        Session jcrSession = null;
+        if (sessionModel instanceof JcrSessionModel) {
+            try {
+                jcrSession = ((JcrSessionModel) sessionModel).getSessionObject();
+            } catch (javax.jcr.LoginException ex) {
+                handleLoginException(ex);
+            }
+        } else {
+            jcrSession = sessionModel.getObject();
+        }
+
+        if (permissionChecker != null) {
+            permissionChecker.checkPermission(jcrSession);
+        }
+
         classLoader.detach();
         workflowManager.detach();
         facetRootsObserver = null;
@@ -325,22 +352,13 @@ public class PluginUserSession extends UserSession {
             oldModel.detach();
         }
 
-        if (sessionModel instanceof JcrSessionModel) {
-            try {
-                ((JcrSessionModel) sessionModel).getSessionObject();
-            } catch (javax.jcr.LoginException ex) {
-                handleLoginException(ex);
-            }
-        } else {
-            sessionModel.getObject();
-        }
-
         if (credentials == null) {
             pageId = 0;
         } else {
             pageId = 1;
         }
     }
+
 
     public void logout() {
         classLoader.detach();
