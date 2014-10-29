@@ -139,7 +139,7 @@
       <sv:value>style</sv:value>
     </sv:property>
   </sv:node>
-  <sv:node sv:name="h6" esv:merge="skip" esv:location="h6">
+  <sv:node sv:name="h6" esv:merge="skip" esv:location="hr">
     <sv:property sv:name="jcr:primaryType" sv:type="Name">
       <sv:value>frontend:pluginconfig</sv:value>
     </sv:property>
