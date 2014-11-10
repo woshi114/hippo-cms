@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2010-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@ public class LongPropertyComparator extends PropertyComparator {
     @Override
     protected int compare(Property p1, Property p2) {
         try {
-            Long l1 = p1.getLong();
-            Long l2 = p2.getLong();
+            Long l1 = p1 == null ? 0 : p1.getLong();
+            Long l2 = p2 == null ? 0 : p2.getLong();
             return l1.compareTo(l2);
         } catch (RepositoryException e) {
         }
