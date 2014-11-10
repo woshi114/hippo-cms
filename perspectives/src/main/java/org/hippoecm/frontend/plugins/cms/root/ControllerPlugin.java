@@ -31,7 +31,7 @@ import org.hippoecm.frontend.service.IEditorManager;
 public class ControllerPlugin extends Plugin implements IController {
 
     private static final long serialVersionUID = 1L;
-    private PathInUrlController controller;
+    private ParameterInUrlController controller;
 
     public ControllerPlugin(IPluginContext context, IPluginConfig config) {
         super(context, config);
@@ -49,7 +49,7 @@ public class ControllerPlugin extends Plugin implements IController {
             IBrowseService browseService = context.getService(config.getString("browser.id", "service.browse"), IBrowseService.class);
             IEditorManager editorMgr = context.getService(config.getString("editor.id", "service.edit"), IEditorManager.class);
 
-            controller = new PathInUrlController(modelReference, browseService, editorMgr);
+            controller = new ParameterInUrlController(modelReference, browseService, editorMgr);
             context.registerService(controller, IObserver.class.getName());
             context.registerService(controller, Behavior.class.getName());
         }

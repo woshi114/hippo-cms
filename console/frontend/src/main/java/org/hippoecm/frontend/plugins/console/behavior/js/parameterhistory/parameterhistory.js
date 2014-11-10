@@ -18,14 +18,14 @@
 
     window.Hippo = window.Hippo || {};
 
-    if (!Hippo.PathHistory) {
+    if (!Hippo.ParameterHistory) {
 
         var Lang = YAHOO.lang,
-            PathHistoryImpl = function () {
+            ParameterHistoryImpl = function () {
             this.initialized = false;
         };
 
-        PathHistoryImpl.prototype = {
+        ParameterHistoryImpl.prototype = {
 
             init: function (callback) {
                 if (this.initialized) {
@@ -70,7 +70,7 @@
             }
         };
 
-        Hippo.PathHistory = new PathHistoryImpl();
+        Hippo.ParameterHistory = new ParameterHistoryImpl();
     }
 
 }());
