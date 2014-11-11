@@ -17,6 +17,10 @@ package org.hippoecm.frontend.plugins.yui.flash;
 
 import org.apache.wicket.util.io.IClusterable;
 
+/**
+ * @deprecated File-upload using Flash is deprecated since version 2.26.11
+ */
+@Deprecated
 public class FlashVersion implements IClusterable {
     int major = 0;
     int minor = 0;

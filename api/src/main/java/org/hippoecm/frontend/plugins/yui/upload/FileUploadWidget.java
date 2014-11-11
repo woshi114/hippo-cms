@@ -65,7 +65,9 @@ public class FileUploadWidget extends Panel {
     private FileUploadValidationService validator;
     private List<Violation> violations;
 
+    @Deprecated
     private final static FlashVersion VALID_FLASH = new FlashVersion(9, 0, 45);
+    @Deprecated
     private FlashVersion detectedFlash;
 
     public FileUploadWidget(String id, FileUploadWidgetSettings settings) {
@@ -127,7 +129,7 @@ public class FileUploadWidget extends Panel {
         if (isFlashUpload()) {
             renderFlashUpload();
         } else {
-            renderJavascriptUpload();
+        renderJavascriptUpload();
         }
     }
 
@@ -149,6 +151,7 @@ public class FileUploadWidget extends Panel {
     }
 
 
+    @Deprecated
     protected void renderFlashUpload() {
         AjaxMultiFileUploadSettings ajaxSettings = new AjaxMultiFileUploadSettings();
         ajaxSettings.setFileExtensions(settings.getFileExtensions());
@@ -179,10 +182,14 @@ public class FileUploadWidget extends Panel {
     }
 
     /**
-     * Detect if flash is installed and if the correct version of the flash plugin is found.
+     * @deprecated File-upload using Flash is deprecated since version 2.26.11
      *
+     * <p>
+     * Detect if flash is installed and if the correct version of the flash plugin is found.
+     * </p>
      * @return <code>true</code> if flash and the correct version is detected, <code>false</code> otherwise
      */
+    @Deprecated
     public boolean isFlashUpload() {
         return detectedFlash != null && detectedFlash.isValid(VALID_FLASH);
     }

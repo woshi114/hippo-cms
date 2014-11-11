@@ -50,6 +50,7 @@ public abstract class AjaxMultiFileUploadComponent extends Panel {
 
     private static final Logger log = LoggerFactory.getLogger(AjaxMultiFileUploadComponent.class);
 
+    @Deprecated
     private final ResourceReference flashResource = new PackageResourceReference(AjaxMultiFileUploadComponent.class, "res/uploader.swf");
 
     private class UploadBehavior extends AbstractAjaxBehavior {
