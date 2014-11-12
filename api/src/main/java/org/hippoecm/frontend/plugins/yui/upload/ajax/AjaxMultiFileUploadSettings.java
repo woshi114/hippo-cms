@@ -22,7 +22,6 @@ import org.hippoecm.frontend.plugins.yui.AjaxSettings;
 
 public class AjaxMultiFileUploadSettings extends AjaxSettings {
 
-    @Deprecated
     //URL of the Flash file
     private String flashUrl;
 
@@ -100,20 +99,10 @@ public class AjaxMultiFileUploadSettings extends AjaxSettings {
         this.uploadUrl = uploadUrl;
     }
 
-    /**
-     * @deprecated File-upload using Flash is deprecated since version 2.26.11
-     * @return
-     */
-    @Deprecated
     public String getFlashUrl() {
         return flashUrl;
     }
 
-    /**
-     * @deprecated File-upload using Flash is deprecated since version 2.26.11
-     * @param flashUrl
-     */
-    @Deprecated
     public void setFlashUrl(String flashUrl) {
         this.flashUrl = flashUrl;
     }

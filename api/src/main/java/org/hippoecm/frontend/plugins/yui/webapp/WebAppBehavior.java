@@ -71,7 +71,6 @@ public class WebAppBehavior extends Behavior implements IYuiManager {
     YuiHeaderCache headerContributor;
     YuiContext helper;
 
-    @Deprecated
     FlashVersion flash;
 
     public WebAppBehavior(WebAppSettings settings) {
@@ -119,20 +118,10 @@ public class WebAppBehavior extends Behavior implements IYuiManager {
         return new YuiContext(headerContributor);
     }
 
-    /**
-     * @deprecated File-upload using Flash is deprecated since version 2.26.11
-     * @return
-     */
-    @Deprecated
     public FlashVersion getFlash() {
         return flash;
     }
 
-    /**
-     * @deprecated File-upload using Flash is deprecated since version 2.26.11
-     * @param flash
-     */
-    @Deprecated
     public void setFlash(FlashVersion flash) {
         this.flash = flash;
     }

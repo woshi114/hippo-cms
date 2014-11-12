@@ -27,10 +27,6 @@ import org.hippoecm.frontend.plugins.yui.header.IYuiContext;
 import org.hippoecm.frontend.plugins.yui.header.templates.DynamicTextTemplate;
 import org.hippoecm.frontend.plugins.yui.javascript.AjaxSettings;
 
-/**
- * @deprecated File-upload using Flash is deprecated since version 2.26.11
- */
-@Deprecated
 public abstract class ProbeFlashBehavior extends AbstractYuiAjaxBehavior {
 
     private final PackageTextTemplate PROBE_FLASH_TEMPLATE = new PackageTextTemplate(ProbeFlashBehavior.class, "probe_flash.js");

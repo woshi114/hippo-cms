@@ -39,7 +39,6 @@ import org.hippoecm.frontend.plugin.config.IPluginConfig;
  */
 public class FileUploadWidgetSettings implements IClusterable {
 
-    @Deprecated
     public static final String FILEUPLOAD_FLASH_ENABLED_SETTING = "fileupload.flashEnabled";
     public static final String FILEUPLOAD_MAX_ITEMS_SETTING = "fileupload.maxItems";
     public static final String FILEUPLOAD_AUTOUPLOAD_SETTING = "fileupload.autoUpload";
@@ -65,7 +64,6 @@ public class FileUploadWidgetSettings implements IClusterable {
     private boolean hideBrowseDuringUpload;
     private String buttonWidth;
     private String buttonHeight;
-    @Deprecated
     private boolean flashUploadEnabled = true;
     private boolean alwaysShowLabel;
     private boolean useMultipleAttr = false;
@@ -143,11 +141,8 @@ public class FileUploadWidgetSettings implements IClusterable {
 
     /**
      * Indicates if the upload widget should use Flash.
-     * <br/>
-     * @deprecated File-upload using Flash is deprecated since version 2.26.11
      * @return <code>true</code> if flash should be used, <code>false</code> otherwise
      */
-    @Deprecated
     public boolean isFlashUploadEnabled() {
         return flashUploadEnabled;
     }
@@ -155,11 +150,9 @@ public class FileUploadWidgetSettings implements IClusterable {
     /**
      * If set to <code>true</code> (default) the upload plugin will use flash for file uploads, otherwise it will use a
      * plain Javascript upload.
-     * <br/>
-     * @deprecated File-upload using Flash is deprecated since version 2.26.11
+     *
      * @param flashUploadEnabled boolean indicating if flash should be used for file uploads.
      */
-    @Deprecated
     public void setFlashUploadEnabled(boolean flashUploadEnabled) {
         this.flashUploadEnabled = flashUploadEnabled;
     }
