@@ -327,6 +327,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
 
                                 Map<String, String> arguments = new TreeMap<String, String>();
                                 arguments.put("name", nodeName);
+                                arguments.put("localName", localName);
                                 /**
                                  * check if dialog has a language selected
                                  * e.g. in cases where translated folder is created within none-translated one
