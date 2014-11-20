@@ -307,6 +307,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
 
                                 TreeMap<String, String> arguments = new TreeMap<>();
                                 arguments.put("name", nodeName);
+                                arguments.put("localName", localName);
 
                                 String path = workflow.add(category, addDocumentModel.getPrototype(), arguments);
                                 UserSession.get().getJcrSession().refresh(true);
