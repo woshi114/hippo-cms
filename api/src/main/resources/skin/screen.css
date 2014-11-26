@@ -1235,7 +1235,7 @@ table.hippo-window-form {
   display: block;
   float: left;
   width: auto;
-  max-width:112px;
+  max-width:120px;
 }
 
 .hippo-picker-navigation-breadcrumbs li em,
