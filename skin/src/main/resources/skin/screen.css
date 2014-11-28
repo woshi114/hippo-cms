@@ -1315,6 +1315,13 @@ body .hippo-picker-properties div.text-input input {
   height: 181px;
 }
 
+
+/* Revision History */
+.hippo-history-documents .hippo-list-documents{
+  height: 184px;
+  scroll: auto;
+}
+
 /* Wizard */
 /* ================================================ */
 .hippo-wizard {
