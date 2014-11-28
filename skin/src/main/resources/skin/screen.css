@@ -1319,7 +1319,7 @@ body .hippo-picker-properties div.text-input input {
 /* Revision History */
 .hippo-history-documents .hippo-list-documents{
   height: 184px;
-  scroll: auto;
+  overflow: auto;
 }
 
 /* Wizard */
