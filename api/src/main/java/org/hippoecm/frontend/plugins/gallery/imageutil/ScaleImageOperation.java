@@ -146,43 +146,35 @@ public class ScaleImageOperation extends AbstractImageOperation {
             final int originalHeight = reader.getHeight(0);
             final double resizeRatio = calculateResizeRatio(originalWidth, originalHeight, width, height);
 
-            if (resizeRatio == 1.0d || (resizeRatio >= 1.0d && !upscaling)) {
-                // return the original image data as-is by reading the temporary file, which is deleted when the
-                // stream is closed
-                log.debug("Using the original image of {}x{} as-is", originalWidth, originalHeight);
-                deleteTmpFile = false;
-                scaledData = new FileInputStream(tmpFile) {
-                    @Override
-                    public void close() throws IOException {
-                        super.close();
-                        log.debug("Deleting temporary file {}", tmpFile);
-                        tmpFile.delete();
-                    }
-                };
-                scaledWidth = originalWidth;
-                scaledHeight = originalHeight;
+            // scale the image
+            int targetWidth;
+            int targetHeight;
+
+            if (resizeRatio > 1.0d && !upscaling) {
+                targetWidth = originalWidth;
+                targetHeight = originalHeight;
             } else {
                 // scale the image
-                int targetWidth = (int)Math.max(originalWidth * resizeRatio, 1);
-                int targetHeight = (int)Math.max(originalHeight * resizeRatio, 1);
-
-                if (log.isDebugEnabled()) {
-                    log.debug("Resizing image of {}x{} to {}x{}", new Object[]{originalWidth, originalHeight, targetWidth, targetHeight});
-                }
-
-                BufferedImage scaledImage;
-
-                synchronized(scalingLock) {
-                    BufferedImage originalImage = reader.read(0);
-                    scaledImage = ImageUtils.scaleImage(originalImage, targetWidth, targetHeight, strategy);
-                }                
-
-                scaledWidth = scaledImage.getWidth();
-                scaledHeight = scaledImage.getHeight();
-
-                ByteArrayOutputStream scaledOutputStream = ImageUtils.writeImage(writer, scaledImage, compressionQuality);
-                scaledData = new ByteArrayInputStream(scaledOutputStream.toByteArray());
+                targetWidth = (int) Math.max(originalWidth * resizeRatio, 1);
+                targetHeight = (int) Math.max(originalHeight * resizeRatio, 1);
             }
+            if (log.isDebugEnabled()) {
+                log.debug("Resizing image of {}x{} to {}x{}", new Object[]{originalWidth, originalHeight, targetWidth, targetHeight});
+            }
+
+            BufferedImage scaledImage;
+
+            synchronized(scalingLock) {
+                BufferedImage originalImage = reader.read(0);
+                scaledImage = ImageUtils.scaleImage(originalImage, targetWidth, targetHeight, strategy);
+            }
+
+            scaledWidth = scaledImage.getWidth();
+            scaledHeight = scaledImage.getHeight();
+
+            ByteArrayOutputStream scaledOutputStream = ImageUtils.writeImage(writer, scaledImage, compressionQuality);
+            scaledData = new ByteArrayInputStream(scaledOutputStream.toByteArray());
+
         } finally {
             if (imageInputStream != null) {
                 imageInputStream.close();
