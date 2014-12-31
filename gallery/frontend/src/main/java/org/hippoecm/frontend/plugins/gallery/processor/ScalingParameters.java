@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ public class ScalingParameters implements Serializable {
     private final int width;
     private final int height;
     private final boolean upscaling;
+    private final boolean alwaysCompress;
     private final ImageUtils.ScalingStrategy strategy;
     private final float compressionQuality;
 
@@ -42,7 +43,7 @@ public class ScalingParameters implements Serializable {
      * @param upscaling whether to do upscaling of images that are smaller than the bounding box
      */
     public ScalingParameters(int width, int height, boolean upscaling) {
-        this(width, height, upscaling, ImageUtils.ScalingStrategy.QUALITY, 1f);
+        this(width, height, upscaling, ImageUtils.ScalingStrategy.QUALITY, 1f, false);
     }
 
     /**
@@ -55,7 +56,7 @@ public class ScalingParameters implements Serializable {
      * @param strategy the scaling strategy to use
      */
     public ScalingParameters(int width, int height, boolean upscaling, ImageUtils.ScalingStrategy strategy) {
-        this(width, height, upscaling, strategy, 1f);
+        this(width, height, upscaling, strategy, 1f, false);
     }
 
     /**
@@ -69,9 +70,25 @@ public class ScalingParameters implements Serializable {
      * @param compressionQuality compression quality
      */
     public ScalingParameters(int width, int height, boolean upscaling, ImageUtils.ScalingStrategy strategy, float compressionQuality) {
+        this(width, height, upscaling, strategy, compressionQuality, false);
+    }
+
+    /**
+     * Creates a set of scaling parameters: the width and height of the bounding box, and whether to do upscaling. A
+     * width or height of 0 or less means 'unspecified'.
+     *
+     * @param width     the width of the bounding box
+     * @param height    the height of the bounding box
+     * @param upscaling whether to do upscaling of images that are smaller than the bounding box
+     * @param strategy  the scaling strategy to use
+     * @param compressionQuality compression quality
+     * @param alwaysCompress always compress image, even if original image can be used
+     */
+    public ScalingParameters(int width, int height, boolean upscaling, ImageUtils.ScalingStrategy strategy, float compressionQuality, boolean alwaysCompress) {
         this.width = width;
         this.height = height;
         this.upscaling = upscaling;
+        this.alwaysCompress = alwaysCompress;
         this.strategy = strategy;
         this.compressionQuality = compressionQuality;
     }
@@ -98,6 +115,13 @@ public class ScalingParameters implements Serializable {
     }
 
     /**
+     * @return whether images that are smaller or the same size as the specified bounding box should still be compressed.
+     */
+    public boolean getAlwaysCompress(){
+        return alwaysCompress;
+    }
+
+    /**
      * @return the scaling strategy to use
      */
     public ImageUtils.ScalingStrategy getStrategy() {
@@ -115,7 +139,7 @@ public class ScalingParameters implements Serializable {
 
         final ScalingParameters other = (ScalingParameters) o;
 
-        return width == other.width && height == other.height && upscaling == other.upscaling && strategy == other.strategy;
+        return width == other.width && height == other.height && upscaling == other.upscaling && strategy == other.strategy && alwaysCompress == other.alwaysCompress;
     }
 
     public float getCompressionQuality() {
@@ -129,7 +153,7 @@ public class ScalingParameters implements Serializable {
 
     @Override
     public String toString() {
-        return width + "x" + height + ",upscaling=" + upscaling + ",strategy=" + strategy.name() + ",compression=" + compressionQuality;
+        return width + "x" + height + ",upscaling=" + upscaling + ",strategy=" + strategy.name() + ",compression=" + compressionQuality + ",alwaysCompress=" + alwaysCompress;
     }
 
 }

@@ -27,6 +27,7 @@ import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -120,6 +121,51 @@ public class ScaleImageOperationTest {
     }
 
     @Test
+    public void doNotUseOriginalDataWhenNoBoundingBoxIsGivenAndCompressionIsOn() throws GalleryException, IOException {
+        InputStream data = getClass().getResourceAsStream("/test-380x428.jpg");
+        ScaleImageOperation scaleOp = new ScaleImageOperation(0, 0, false, ImageUtils.ScalingStrategy.SPEED, 1f, true);
+        scaleOp.execute(data, "image/jpeg");
+        checkImageDimensions(scaleOp, "image/jpeg", 380, 428);
+
+        // redo scaling to check the data itself
+        data = getClass().getResourceAsStream("/test-380x428.jpg");
+        scaleOp = new ScaleImageOperation(0, 0, false, ImageUtils.ScalingStrategy.SPEED, 1f, true);
+        scaleOp.execute(data, "image/jpeg");
+        InputStream original = getClass().getResourceAsStream("/test-380x428.jpg");
+        assertFalse("Original image data should not be used as-is", IOUtils.contentEquals(original, scaleOp.getScaledData()));
+    }
+
+    @Test
+    public void doNotUseOriginalDataWhenBoundingBoxMatchesOriginalDimensionsAndCompressionIsOn() throws GalleryException, IOException {
+        InputStream data = getClass().getResourceAsStream("/test-380x428.jpg");
+        ScaleImageOperation scaleOp = new ScaleImageOperation(380, 428, false, ImageUtils.ScalingStrategy.SPEED, 1f, true);
+        scaleOp.execute(data, "image/jpeg");
+        checkImageDimensions(scaleOp, "image/jpeg", 380, 428);
+
+        // redo scaling to check the data itself
+        data = getClass().getResourceAsStream("/test-380x428.jpg");
+        scaleOp = new ScaleImageOperation(380, 428, false, ImageUtils.ScalingStrategy.SPEED, 1f, true);
+        scaleOp.execute(data, "image/jpeg");
+        InputStream original = getClass().getResourceAsStream("/test-380x428.jpg");
+        assertFalse("Original image data should not be used as-is", IOUtils.contentEquals(original, scaleOp.getScaledData()));
+    }
+
+    @Test
+    public void doNotUseOriginalDataWhenScalingUpAndUpscalingIsDisabledAndCompressionIsOn() throws GalleryException, IOException {
+        InputStream data = getClass().getResourceAsStream("/test-380x428.jpg");
+        ScaleImageOperation scaleOp = new ScaleImageOperation(500, 500, false, ImageUtils.ScalingStrategy.SPEED, 1f, true);
+        scaleOp.execute(data, "image/jpeg");
+        checkImageDimensions(scaleOp, "image/jpeg", 380, 428);
+
+        // redo scaling to check the data itself
+        data = getClass().getResourceAsStream("/test-380x428.jpg");
+        scaleOp = new ScaleImageOperation(500, 500, false, ImageUtils.ScalingStrategy.SPEED, 1f, true);
+        scaleOp.execute(data, "image/jpeg");
+        InputStream original = getClass().getResourceAsStream("/test-380x428.jpg");
+        assertFalse("Original image data should not be used as-is", IOUtils.contentEquals(original, scaleOp.getScaledData()));
+    }
+
+     @Test
     public void ensureMinimumWidthOfOne() throws GalleryException, IOException {
         InputStream data = getClass().getResourceAsStream("/test-1x5000.png");
         ScaleImageOperation scaleOp = new ScaleImageOperation(60, 60, true, ImageUtils.ScalingStrategy.SPEED);

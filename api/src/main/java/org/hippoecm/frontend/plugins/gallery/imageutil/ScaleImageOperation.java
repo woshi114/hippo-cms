@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2014 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ public class ScaleImageOperation extends AbstractImageOperation {
     private final int width;
     private final int height;
     private final boolean upscaling;
+    private final boolean alwaysCompress;
     private final ImageUtils.ScalingStrategy strategy;
     private InputStream scaledData;
     private int scaledWidth;
@@ -74,7 +75,7 @@ public class ScaleImageOperation extends AbstractImageOperation {
      * @param upscaling whether to enlarge images that are smaller than the bounding box
      */
     public ScaleImageOperation(int width, int height, boolean upscaling) {
-        this(width, height, upscaling, ImageUtils.ScalingStrategy.QUALITY);
+        this(width, height, upscaling, ImageUtils.ScalingStrategy.QUALITY, 1f, false);
     }
 
     /**
@@ -87,7 +88,7 @@ public class ScaleImageOperation extends AbstractImageOperation {
      *                 these two, etc.)
      */
     public ScaleImageOperation(int width, int height, boolean upscaling, ImageUtils.ScalingStrategy strategy) {
-        this(width, height, upscaling, strategy, 1f);
+        this(width, height, upscaling, strategy, 1f, false);
     }
 
     /**
@@ -102,11 +103,28 @@ public class ScaleImageOperation extends AbstractImageOperation {
      *                           scaled image data.
      */
     public ScaleImageOperation(int width, int height, boolean upscaling, ImageUtils.ScalingStrategy strategy, float compressionQuality) {
+        this(width, height, upscaling, strategy, compressionQuality, false);
+    }
+
+    /**
+     * Creates a image scaling operation, defined by the bounding box of a certain width and height.
+     *
+     * @param width     the width of the bounding box in pixels
+     * @param height    the height of the bounding box in pixels
+     * @param upscaling whether to enlarge images that are smaller than the bounding box
+     * @param strategy  the strategy to use for scaling the image (e.g. optimize for speed, quality, a trade-off between
+     *                  these two, etc.)
+     * @param compressionQuality a float between 0 and 1 indicating the compression quality to use for writing the
+     *                           scaled image data.
+     * @param alwaysCompress always compress image, even if original image can be used
+     */
+    public ScaleImageOperation(int width, int height, boolean upscaling, ImageUtils.ScalingStrategy strategy, float compressionQuality, boolean alwaysCompress){
         this.width = width;
         this.height = height;
         this.upscaling = upscaling;
         this.strategy = strategy;
         this.compressionQuality = compressionQuality;
+        this.alwaysCompress = alwaysCompress;
     }
 
     /**
@@ -146,35 +164,52 @@ public class ScaleImageOperation extends AbstractImageOperation {
             final int originalHeight = reader.getHeight(0);
             final double resizeRatio = calculateResizeRatio(originalWidth, originalHeight, width, height);
 
-            // scale the image
-            int targetWidth;
-            int targetHeight;
-
-            if (resizeRatio > 1.0d && !upscaling) {
-                targetWidth = originalWidth;
-                targetHeight = originalHeight;
+            if (!alwaysCompress && (resizeRatio == 1.0d || (resizeRatio >= 1.0d && !upscaling))) {
+                // return the original image data as-is by reading the temporary file, which is deleted when the
+                // stream is closed
+                log.debug("Using the original image of {}x{} as-is", originalWidth, originalHeight);
+                deleteTmpFile = false;
+                scaledData = new FileInputStream(tmpFile) {
+                    @Override
+                    public void close() throws IOException {
+                        super.close();
+                        log.debug("Deleting temporary file {}", tmpFile);
+                        tmpFile.delete();
+                    }
+                };
+                scaledWidth = originalWidth;
+                scaledHeight = originalHeight;
             } else {
-                // scale the image
-                targetWidth = (int) Math.max(originalWidth * resizeRatio, 1);
-                targetHeight = (int) Math.max(originalHeight * resizeRatio, 1);
+                int targetWidth;
+                int targetHeight;
+
+                if (resizeRatio >= 1.0d && !upscaling) {
+                    targetWidth = originalWidth;
+                    targetHeight = originalHeight;
+                } else {
+                    // scale the image
+                    targetWidth = (int) Math.max(originalWidth * resizeRatio, 1);
+                    targetHeight = (int) Math.max(originalHeight * resizeRatio, 1);
+                }
+
+                if (log.isDebugEnabled()) {
+                    log.debug("Resizing image of {}x{} to {}x{}", new Object[]{originalWidth, originalHeight, targetWidth, targetHeight});
+                }
+
+                BufferedImage scaledImage;
+
+                synchronized(scalingLock) {
+                    BufferedImage originalImage = reader.read(0);
+                    scaledImage = ImageUtils.scaleImage(originalImage, targetWidth, targetHeight, strategy);
+                }
+
+                scaledWidth = scaledImage.getWidth();
+                scaledHeight = scaledImage.getHeight();
+
+                ByteArrayOutputStream scaledOutputStream = ImageUtils.writeImage(writer, scaledImage, compressionQuality);
+                scaledData = new ByteArrayInputStream(scaledOutputStream.toByteArray());
+
             }
-            if (log.isDebugEnabled()) {
-                log.debug("Resizing image of {}x{} to {}x{}", new Object[]{originalWidth, originalHeight, targetWidth, targetHeight});
-            }
-
-            BufferedImage scaledImage;
-
-            synchronized(scalingLock) {
-                BufferedImage originalImage = reader.read(0);
-                scaledImage = ImageUtils.scaleImage(originalImage, targetWidth, targetHeight, strategy);
-            }
-
-            scaledWidth = scaledImage.getWidth();
-            scaledHeight = scaledImage.getHeight();
-
-            ByteArrayOutputStream scaledOutputStream = ImageUtils.writeImage(writer, scaledImage, compressionQuality);
-            scaledData = new ByteArrayInputStream(scaledOutputStream.toByteArray());
-
         } finally {
             if (imageInputStream != null) {
                 imageInputStream.close();
