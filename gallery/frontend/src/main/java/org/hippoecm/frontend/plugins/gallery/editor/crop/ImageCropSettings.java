@@ -23,9 +23,12 @@ import org.hippoecm.frontend.plugins.yui.widget.WidgetSettings;
 
 public class ImageCropSettings extends WidgetSettings {
 
-    private static final String FIXED_BOTH = "both";
-    private static final String FIXED_WIDTH = "width";
-    private static final String FIXED_HEIGHT = "height";
+    private static final int MAX_PREVIEW_RESOLUTION = 1600;
+
+    static final String FIXED_NONE = "";
+    static final String FIXED_BOTH = "both";
+    static final String FIXED_WIDTH = "width";
+    static final String FIXED_HEIGHT = "height";
 
     private String regionInputId;
     private String imagePreviewContainerId;
@@ -34,7 +37,7 @@ public class ImageCropSettings extends WidgetSettings {
     private int initialY = 10;
     private int minimumWidth = 16;
     private int minimumHeight = 16;
-    
+
     private int originalWidth;
     private int originalHeight;
     private int thumbnailWidth;
@@ -44,41 +47,43 @@ public class ImageCropSettings extends WidgetSettings {
     private boolean previewVisible;
     private boolean status;
 
-    private String fixedDimension = FIXED_BOTH;
+    private String fixedDimension = FIXED_NONE;
     private String thumbnailSizeLabelId = "";
 
     public ImageCropSettings(String regionInputId, String imagePreviewContainerId, Dimension originalImageDimension,
                              Dimension configuredDimension, Dimension thumbnailDimension, boolean upscalingEnabled) {
         this.regionInputId = regionInputId;
         this.imagePreviewContainerId = imagePreviewContainerId;
-        
+
         this.originalWidth = (int) originalImageDimension.getWidth();
         this.originalHeight = (int) originalImageDimension.getHeight();
         this.thumbnailWidth = (int) thumbnailDimension.getWidth();
         this.thumbnailHeight = (int) thumbnailDimension.getHeight();
         
         this.upscalingEnabled = upscalingEnabled;
-        previewVisible = thumbnailWidth <= 1600;
+        previewVisible = thumbnailWidth <= MAX_PREVIEW_RESOLUTION;
 
-        if (configuredDimension.getHeight() == 0) {
+        if (configuredDimension.getHeight() > 0 && configuredDimension.getWidth() > 0) {
+            fixedDimension = FIXED_BOTH;
+            if (!upscalingEnabled) {
+                this.minimumHeight = (int) configuredDimension.getHeight();
+                this.minimumWidth = (int) configuredDimension.getWidth();
+            }
+        } else if(configuredDimension.getWidth() > 0 && configuredDimension.getHeight() == 0) {
             fixedDimension = FIXED_WIDTH;
-        } else if (configuredDimension.getWidth() == 0) {
+            if (!upscalingEnabled) {
+                this.minimumWidth = (int) configuredDimension.getWidth();
+            }
+        } else if (configuredDimension.getHeight() > 0 && configuredDimension.getWidth() == 0) {
             fixedDimension = FIXED_HEIGHT;
+            if (!upscalingEnabled) {
+                this.minimumHeight = (int) configuredDimension.getHeight();
+            }
         }
     }
 
     public ImageCropSettings(String regionInputId, String imagePreviewContainerId, Dimension originalImageDimension,
-                             Dimension configuredDimension, Dimension thumbnailDimension, Dimension minimumDimension, 
-                             boolean upscalingEnabled) {
-        this(regionInputId, imagePreviewContainerId, originalImageDimension, 
-                configuredDimension, thumbnailDimension, upscalingEnabled);
-        
-        minimumWidth = (int) minimumDimension.getWidth();
-        minimumHeight = (int) minimumDimension.getHeight();
-    }
-    
-    public ImageCropSettings(String regionInputId, String imagePreviewContainerId, Dimension originalImageDimension,
-                             Dimension configuredDimension, Dimension thumbnailDimension, boolean upscalingEnabled, 
+                             Dimension configuredDimension, Dimension thumbnailDimension, boolean upscalingEnabled,
                              String thumbnailSizeLabelId) {
     	this(regionInputId, imagePreviewContainerId, originalImageDimension, configuredDimension, thumbnailDimension, 
                 upscalingEnabled);
