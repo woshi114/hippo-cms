@@ -514,6 +514,7 @@ public class RememberMeLoginPlugin extends LoginPlugin {
 
         statement.append("//element");
         statement.append("(*, ").append(HippoNodeType.NT_USER).append(")");
+        statement.append('[').append("fn:name() = ").append("'");
         // triple escaping and encoding, like in org.hippoecm.frontend.plugins.cms.admin.users.User.userExists()
         statement.append(Text.escapeIllegalJcr10Chars(ISO9075.encode(NodeNameCodec.encode(userId, true))));
         statement.append("'").append(']');
@@ -543,8 +544,7 @@ public class RememberMeLoginPlugin extends LoginPlugin {
     }
 
     private String sanitize(final String userId) {
-        //CMS7-8349 - if the userId contains one or more spaces the query against the repository will not find the node
-        return userId.trim().replaceAll(" ", "_x0020_");
+        return userId.trim();
     }
 
     private void handleLoginFailure(PageParameters loginExceptionPageParameters, PluginUserSession userSession) {
