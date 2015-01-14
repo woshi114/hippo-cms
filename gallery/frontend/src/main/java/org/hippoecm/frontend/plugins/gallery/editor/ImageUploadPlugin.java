@@ -23,8 +23,11 @@ import javax.jcr.RepositoryException;
 
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
+import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.value.IValueMap;
 import org.hippoecm.frontend.behaviors.EventStoppingBehavior;
+import org.hippoecm.frontend.editor.plugins.upload.FileUploadViolationException;
+import org.hippoecm.frontend.editor.plugins.upload.SingleFileUploadWidget;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
@@ -32,8 +35,6 @@ import org.hippoecm.frontend.plugins.gallery.imageutil.ImageBinary;
 import org.hippoecm.frontend.plugins.gallery.model.DefaultGalleryProcessor;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
-import org.hippoecm.frontend.plugins.yui.upload.FileUploadWidget;
-import org.hippoecm.frontend.plugins.yui.upload.FileUploadWidgetSettings;
 import org.hippoecm.frontend.plugins.yui.upload.validation.FileUploadValidationService;
 import org.hippoecm.frontend.service.render.RenderPlugin;
 import org.slf4j.Logger;
@@ -41,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Plugin for uploading images. The plugin can be configured by setting configuration options found in the {@link
- * FileUploadWidgetSettings}.
+ * org.hippoecm.frontend.editor.plugins.upload.FileUploadWidgetSettings}.
  */
 public class ImageUploadPlugin extends RenderPlugin {
 
@@ -65,26 +66,33 @@ public class ImageUploadPlugin extends RenderPlugin {
     private class FileUploadForm extends Form {
         private static final long serialVersionUID = 1L;
 
-        private FileUploadWidget widget;
+        private SingleFileUploadWidget widget;
 
         public FileUploadForm(String name) {
             super(name);
+            setMultiPart(true);
 
             String serviceId = getPluginConfig().getString(FileUploadValidationService.VALIDATE_ID, "service.gallery.image.validation");
             FileUploadValidationService validator = getPluginContext().getService(serviceId, FileUploadValidationService.class);
-            FileUploadWidgetSettings settings = new FileUploadWidgetSettings(getPluginConfig());
 
-            add(widget = new FileUploadWidget("multifile", settings, validator) {
+            add(widget = new SingleFileUploadWidget("fileUploadPanel", getPluginConfig(), validator) {
                 @Override
                 protected void onFileUpload(FileUpload fileUpload) {
                     handleUpload(fileUpload);
                 }
             });
+            setMaxSize(Bytes.bytes(widget.getSettings().getMaxFileSize()));
         }
 
         @Override
         protected void onSubmit() {
-            widget.onFinishHtmlUpload();
+            try {
+                widget.onSubmit();
+            } catch (FileUploadViolationException e) {
+                for(String errMsg : e.getViolationMessages()){
+                    error(errMsg);
+                }
+            }
         }
 
     }

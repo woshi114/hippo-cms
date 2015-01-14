@@ -26,16 +26,17 @@ import org.apache.jackrabbit.JcrConstants;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.value.IValueMap;
 import org.apache.wicket.util.value.ValueMap;
 import org.hippoecm.frontend.behaviors.EventStoppingBehavior;
 import org.hippoecm.frontend.dialog.DialogConstants;
 import org.hippoecm.frontend.dialog.ExceptionDialog;
+import org.hippoecm.frontend.editor.plugins.upload.FileUploadViolationException;
+import org.hippoecm.frontend.editor.plugins.upload.SingleFileUploadWidget;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
-import org.hippoecm.frontend.plugins.yui.upload.FileUploadWidget;
-import org.hippoecm.frontend.plugins.yui.upload.FileUploadWidgetSettings;
 import org.hippoecm.frontend.plugins.yui.upload.validation.FileUploadValidationService;
 import org.hippoecm.frontend.service.render.RenderPlugin;
 import org.slf4j.Logger;
@@ -75,28 +76,35 @@ public class ResourceUploadPlugin extends RenderPlugin {
     private class FileUploadForm extends Form {
         private static final long serialVersionUID = 1L;
 
-        private FileUploadWidget widget;
+        private SingleFileUploadWidget widget;
 
         public FileUploadForm(String name) {
             super(name);
+            setMultiPart(true);
 
             String serviceId = getPluginConfig().getString(FileUploadValidationService.VALIDATE_ID, "service.gallery.asset.validation");
             FileUploadValidationService validator = getPluginContext().getService(serviceId, FileUploadValidationService.class);
-            FileUploadWidgetSettings settings = new FileUploadWidgetSettings(getPluginConfig());
 
-            add(widget = new FileUploadWidget("multifile", settings, validator) {
 
+            add(widget = new SingleFileUploadWidget("fileUploadPanel", getPluginConfig() ,validator) {
                 @Override
                 protected void onFileUpload(FileUpload fileUpload) {
                     handleUpload(fileUpload);
                 }
-
             });
+
+            setMaxSize(Bytes.bytes(widget.getSettings().getMaxFileSize()));
         }
 
         @Override
         protected void onSubmit() {
-            widget.onFinishHtmlUpload();
+            try {
+                widget.onSubmit();
+            } catch (FileUploadViolationException e) {
+                for(String errMsg : e.getViolationMessages()){
+                    error(errMsg);
+                }
+            }
         }
     }
 
