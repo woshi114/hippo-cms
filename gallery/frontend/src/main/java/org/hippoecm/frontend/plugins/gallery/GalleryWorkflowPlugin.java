@@ -129,10 +129,10 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             try {
                 WorkflowDescriptorModel workflowDescriptorModel = (WorkflowDescriptorModel) GalleryWorkflowPlugin.this
                         .getDefaultModel();
-                
+
                 GalleryWorkflow workflow = (GalleryWorkflow) manager
                         .getWorkflow(workflowDescriptorModel.getObject());
-                
+
                 String nodeName = getNodeNameCodec(workflowDescriptorModel.getNode()).encode(fileName);
                 String localName = getLocalizeCodec().encode(fileName);
                 Document document = workflow.createGalleryItem(nodeName, type);
@@ -153,6 +153,7 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             try {
                 getGalleryProcessor().makeImage(node, is, mimeType, fileName);
                 node.getSession().save();
+                onGalleryItemCreation(node);
                 newItems.add(node.getPath());
             } catch (Exception ex) {
                 remove(manager, node);
@@ -165,6 +166,8 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             throw new GalleryException(new StringResourceModel("upload-failed-label", GalleryWorkflowPlugin.this, null).getString());
         }
     }
+
+    protected void onGalleryItemCreation(Node node) {}
 
     private void remove(final WorkflowManager manager, final HippoNode node) {
         try {
@@ -248,9 +251,13 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             typeComponent = new Label("type", "default").setVisible(false);
         }
 
-        UploadDialog dialog = new UploadDialog(getPluginContext(), getPluginConfig());
+        UploadDialog dialog = newUploadDialog();
         dialog.add(typeComponent);
         return dialog;
+    }
+
+    protected UploadDialog newUploadDialog() {
+        return new UploadDialog(getPluginContext(), getPluginConfig());
     }
 
     protected StringCodec getLocalizeCodec() {

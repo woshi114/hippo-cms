@@ -1,12 +1,12 @@
 /*
  *  Copyright 2009-2014 Hippo B.V. (http://www.onehippo.com)
- * 
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -220,7 +220,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
 
                         public DeleteDialog(IModel messageModel, IWorkflowInvoker invoker, boolean deleteAllowed) {
                             super(null, messageModel, invoker);
-    
+
                             if (deleteAllowed) {
                                 setFocusOnOk();
                             } else {
@@ -228,12 +228,12 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                                 setFocusOnCancel();
                             }
                         }
-    
+
                         @Override
                         public IModel<String> getTitle() {
                             return new StringResourceModel("delete-title", FolderWorkflowPlugin.this, null);
                         }
-    
+
                         @Override
                         public IValueMap getProperties() {
                             return DialogConstants.SMALL;
@@ -274,7 +274,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
 
                         @Override
                         protected Dialog createRequestDialog() {
-                            return newAddDocumentDialog(
+                            return createAddDocumentDialog(
                                     addDocumentModel,
                                     category,
                                     prototypes.get(category),
@@ -310,6 +310,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                                 arguments.put("localName", localName);
 
                                 String path = workflow.add(category, addDocumentModel.getPrototype(), arguments);
+                                onWorkflowAdded(path);
                                 UserSession.get().getJcrSession().refresh(true);
                                 JcrNodeModel nodeModel = new JcrNodeModel(path);
                                 if (!nodeName.equals(localName)) {
@@ -340,6 +341,8 @@ public class FolderWorkflowPlugin extends RenderPlugin {
         }
     }
 
+    protected void onWorkflowAdded(String path) {}
+
     private boolean isActionAvailable(final String action, final Map<String, Serializable> hints) {
         return hints.containsKey(action) && hints.get(action) instanceof Boolean && (Boolean) hints.get(action);
     }
@@ -362,27 +365,18 @@ public class FolderWorkflowPlugin extends RenderPlugin {
         );
     }
 
-    protected Dialog newAddDocumentDialog(AddDocumentArguments addDocumentModel, String category, Set<String> prototypes, boolean translated, IWorkflowInvoker invoker) {
-
-        String locale = getCodecLocale();
-        IModel<StringCodec> codecModel = CodecUtils.getNodeNameCodecModel(getPluginContext(), locale);
-
-        AddDocumentDialog dialog = new AddDocumentDialog(
+    protected Dialog createAddDocumentDialog(AddDocumentArguments addDocumentModel, String category, Set<String> prototypes, boolean translated, IWorkflowInvoker invoker) {
+        final String locale = getCodecLocale();
+        return new AddDocumentDialog(
                 addDocumentModel,
                 new StringResourceModel(category, this, null),
                 category,
                 prototypes,
-                translated,
+                translated && locale != null,
                 invoker,
-                codecModel,
+                CodecUtils.getNodeNameCodecModel(getPluginContext(), locale),
                 getLocaleProvider()
         );
-
-        if (locale != null) {
-            dialog.getLanguageField().setVisible(false);
-        }
-
-        return dialog;
     }
 
     protected IDataProvider<StdWorkflow> createListDataProvider(List<StdWorkflow> list) {
