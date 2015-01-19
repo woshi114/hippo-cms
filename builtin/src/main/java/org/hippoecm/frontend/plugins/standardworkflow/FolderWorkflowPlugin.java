@@ -461,7 +461,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 ILocaleProvider.class);
     }
 
-    private String getCodecLocale() {
+    protected String getCodecLocale() {
         try {
             return CodecUtils.getLocaleFromNode(getModel().getNode());
         } catch (RepositoryException e) {
