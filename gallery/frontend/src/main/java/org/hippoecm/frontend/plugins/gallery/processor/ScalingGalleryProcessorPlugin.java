@@ -23,13 +23,14 @@ import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.Plugin;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.gallery.imageutil.ImageUtils;
+import org.hippoecm.frontend.plugins.gallery.imageutil.ScalingParameters;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * <p>
- * Registers a {@link ScalingGalleryProcessor} and initializes the {@link ScalingParameters} for each scaled image.
+ * Registers a {@link ScalingGalleryProcessor} and initializes the {@link org.hippoecm.frontend.plugins.gallery.imageutil.ScalingParameters} for each scaled image.
  * Configuration of the scaling parameters of each image is done in a child node of type frontend:plugconfig with
  * a name equal to the node name of the image. Each node can contain integer properties for the width and height, and
  * a boolean property for the upscaling setting. It is also possible to configured the scaling strategy to use in

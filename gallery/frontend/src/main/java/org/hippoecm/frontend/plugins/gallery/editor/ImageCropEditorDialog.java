@@ -1,5 +1,5 @@
 /*
- *  Copyright 2011-2014 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2011-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -50,6 +50,8 @@ import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.plugins.gallery.editor.crop.ImageCropBehavior;
 import org.hippoecm.frontend.plugins.gallery.editor.crop.ImageCropSettings;
 import org.hippoecm.frontend.plugins.gallery.imageutil.ImageUtils;
+import org.hippoecm.frontend.plugins.gallery.imageutil.ScaleImageOperation;
+import org.hippoecm.frontend.plugins.gallery.imageutil.ScalingParameters;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
 import org.hippoecm.frontend.plugins.standards.image.JcrImage;
@@ -77,6 +79,7 @@ public class ImageCropEditorDialog extends AbstractDialog<Node> {
     private Dimension originalImageDimension;
     private Dimension configuredDimension;
     private Dimension thumbnailDimension;
+    private float compressionQuality;
 
     public ImageCropEditorDialog(IModel<Node> jcrImageNodeModel, GalleryProcessor galleryProcessor) {
         super(jcrImageNodeModel);
@@ -157,6 +160,13 @@ public class ImageCropEditorDialog extends AbstractDialog<Node> {
                 new StringResourceModel("preview-description-enabled", this, null) :
                 new StringResourceModel("preview-description-disabled", this, null))
         );
+
+        compressionQuality = 1.0f;
+        try{
+            compressionQuality = galleryProcessor.getScalingParametersMap().get(thumbnailImageNode.getName()).getCompressionQuality();
+        } catch (RepositoryException e) {
+            log.info("Cannot retrieve compression quality.", e);
+    }
     }
 
     /**
@@ -237,10 +247,27 @@ public class ImageCropEditorDialog extends AbstractDialog<Node> {
             }
             BufferedImage thumbnail = ImageUtils.scaleImage(original, left, top, width, height, 
                     (int) dimension.getWidth(), (int) dimension.getHeight(), hints, highQuality);
-            ByteArrayOutputStream bytes = ImageUtils.writeImage(writer, thumbnail);
+            ByteArrayOutputStream bytes = ImageUtils.writeImage(writer, thumbnail, compressionQuality);
+
+            //CMS7-8544 Keep the scaling of the image when cropping, to avoid a resulting image with bigger size than the original
+            InputStream stored = new ByteArrayInputStream(bytes.toByteArray());
+            final ScalingParameters parameters = galleryProcessor.getScalingParametersMap().get(getModelObject().getName());
+            if (parameters != null) {
+                try {
+                    final ScaleImageOperation scaleOperation = new ScaleImageOperation(parameters.getWidth(), parameters.getHeight(),
+                            parameters.getUpscaling(), parameters.getStrategy(), parameters.getCompressionQuality());
+                    scaleOperation.execute(stored, mimeType);
+                    stored = scaleOperation.getScaledData();
+                } catch (GalleryException e) {
+                    log.warn("Scaling failed, using original image instead", e);
+                }
+            } else {
+                log.debug("No scaling parameters specified for {}, using original image", galleryProcessor.getScalingParametersMap().get(getModelObject().getName()));
+            }
+
 
             final Node cropped = getModelObject();
-            cropped.setProperty(JcrConstants.JCR_DATA, newBinaryFromBytes(cropped, bytes));
+            cropped.setProperty(JcrConstants.JCR_DATA, ResourceHelper.getValueFactory(cropped).createBinary(stored));//newBinaryFromBytes(cropped, bytes));
             cropped.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
             cropped.setProperty(HippoGalleryNodeType.IMAGE_WIDTH, dimension.getWidth());
             cropped.setProperty(HippoGalleryNodeType.IMAGE_HEIGHT, dimension.getHeight());
