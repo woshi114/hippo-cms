@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -74,7 +74,6 @@ import org.hippoecm.frontend.widgets.ThrottledTextFieldWidget;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.HippoNodeType;
-import org.hippoecm.repository.api.MappingException;
 import org.hippoecm.repository.api.StringCodec;
 import org.hippoecm.repository.api.WorkflowException;
 import org.hippoecm.repository.api.WorkflowManager;
@@ -343,19 +342,19 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
                         String filename = upload.getClientFileName();
                         String mimetype;
 
-
                         mimetype = upload.getContentType();
                         InputStream istream = upload.getInputStream();
                         WorkflowManager manager = UserSession.get().getWorkflowManager();
                         HippoNode node = null;
+                        String localName = null;
                         try {
                             //Get the selected folder from the folderReference Service
                             Node folderNode = getFolderModel().getObject();
                             
                             //TODO replace shortcuts with custom workflow category(?)
-                            GalleryWorkflow workflow = (GalleryWorkflow) manager.getWorkflow("gallery", folderNode);
                             String nodeName = getNodeNameCodec().encode(filename);
-                            String localName = getLocalizeCodec().encode(filename);
+                            localName = getLocalizeCodec().encode(filename);
+                            GalleryWorkflow workflow = (GalleryWorkflow) manager.getWorkflow("gallery", folderNode);
                             Document document = workflow.createGalleryItem(nodeName, getGalleryType());
                             node = (HippoNode) UserSession.get().getJcrSession().getNodeByIdentifier(document.getIdentity());
                             DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
@@ -364,13 +363,10 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
                             }
                         } catch (WorkflowException ex) {
                             log.error(ex.getMessage());
-                            error(ex);
-                        } catch (MappingException ex) {
-                            log.error(ex.getMessage());
-                            error(ex);
+                            error(getExceptionTranslation(ex, localName).getObject());
                         } catch (RepositoryException ex) {
                             log.error(ex.getMessage());
-                            error(ex);
+                            error(getExceptionTranslation(ex, localName).getObject());
                         }
                         if (node != null) {
                             try {
@@ -380,13 +376,11 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
                                 target.addComponent(uploadField);
                             } catch (RepositoryException ex) {
                                 log.error(ex.getMessage());
-                                error(ex);
+                                error(getExceptionTranslation(ex));
                                 try {
                                     DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
                                     defaultWorkflow.delete();
                                 } catch (WorkflowException e) {
-                                    log.error(e.getMessage());
-                                } catch (MappingException e) {
                                     log.error(e.getMessage());
                                 } catch (RepositoryException e) {
                                     log.error(e.getMessage());
@@ -398,7 +392,7 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<XinhaImage> implem
                                 }
                             } catch (GalleryException ex) {
                                 log.error(ex.getMessage());
-                                error(ex);
+                                error(getExceptionTranslation(ex));
                             }
                         }
                     } catch (IOException ex) {

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.hippoecm.frontend.plugins.xinha.dialog;
 
 import javax.jcr.Node;
 
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.value.IValueMap;
 import org.apache.wicket.util.value.ValueMap;
@@ -70,8 +71,14 @@ public abstract class AbstractBrowserDialog<T extends DocumentLink> extends Abst
         add(controller.create("content"));
     }
 
-    protected void onModelSelected(IModel<Node> model) {
+    @Override
+    protected FeedbackPanel newFeedbackPanel(final String id) {
+        return new FeedbackPanel(id) {{
+            setOutputMarkupId(true);
+        }};
+    }
 
+    protected void onModelSelected(IModel<Node> model) {
     }
 
     protected IModel<Node> getFolderModel() {
