@@ -451,4 +451,14 @@ public class TextSearchTest extends PluginTest {
                 (query.toString()).equals(expectedQuery));
     }
 
+    @Test
+    public void queryWordsWithApostrophe(){
+        TextSearchBuilder tsb = new TextSearchBuilder();
+        // set wildcards to true
+        tsb.setWildcardSearch(true);
+        tsb.setText(" doesn't  ");
+        StringBuilder query = tsb.getQueryStringBuilder();
+        String expectedQuery = "//element(*, hippo:document)" +
+                "[(hippo:paths = 'cafebabe-cafe-babe-cafe-babecafebabe') and jcr:contains(.,'doesn''t')] order by @jcr:score descending";
+    }
 }
