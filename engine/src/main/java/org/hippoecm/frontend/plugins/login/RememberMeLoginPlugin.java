@@ -127,23 +127,25 @@ public class RememberMeLoginPlugin extends LoginPlugin {
     @Override
     protected void onInitialize() {
         if (!PageExpiredErrorPage.class.isInstance(getPage())) {
-            // Check for remember me cookie
-            if ((WebApplicationHelper.retrieveWebRequest().getCookie(REMEMBERME_COOKIE_NAME) != null)
-                    && (WebApplicationHelper.retrieveWebRequest().getCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME) != null)
-                    && (WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
-                            .getAttribute(HAL_REQUEST_ATTRIBUTE_NAME) == null)) {
+            final PluginUserSession userSession = (PluginUserSession) getSession();
+            if (!userSession.isLoggedInUser()) {
+                // Check for remember me cookie
+                if ((WebApplicationHelper.retrieveWebRequest().getCookie(REMEMBERME_COOKIE_NAME) != null)
+                        && (WebApplicationHelper.retrieveWebRequest().getCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME) != null)
+                        && (WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
+                        .getAttribute(HAL_REQUEST_ATTRIBUTE_NAME) == null)) {
 
-                WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
-                        .setAttribute(HAL_REQUEST_ATTRIBUTE_NAME, true);
-                try {
-                    tryToAutoLoginWithRememberMe();
-                } finally {
                     WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
-                            .removeAttribute(HAL_REQUEST_ATTRIBUTE_NAME);
+                            .setAttribute(HAL_REQUEST_ATTRIBUTE_NAME, true);
+                    try {
+                        tryToAutoLoginWithRememberMe();
+                    } finally {
+                        WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
+                                .removeAttribute(HAL_REQUEST_ATTRIBUTE_NAME);
+                    }
                 }
             }
         }
-
         super.onInitialize();
     }
 
