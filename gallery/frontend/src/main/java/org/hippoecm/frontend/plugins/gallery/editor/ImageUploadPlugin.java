@@ -26,8 +26,8 @@ import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.value.IValueMap;
 import org.hippoecm.frontend.behaviors.EventStoppingBehavior;
-import org.hippoecm.frontend.editor.plugins.upload.FileUploadViolationException;
-import org.hippoecm.frontend.editor.plugins.upload.SingleFileUploadWidget;
+import org.hippoecm.frontend.plugins.upload.FileUploadViolationException;
+import org.hippoecm.frontend.plugins.upload.SingleFileUploadWidget;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Plugin for uploading images. The plugin can be configured by setting configuration options found in the {@link
- * org.hippoecm.frontend.editor.plugins.upload.FileUploadWidgetSettings}.
+ * org.hippoecm.frontend.plugins.upload.FileUploadWidgetSettings}.
  */
 public class ImageUploadPlugin extends RenderPlugin {
 

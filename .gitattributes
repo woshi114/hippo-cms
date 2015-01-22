@@ -352,15 +352,16 @@ api/src/main/java/org/hippoecm/frontend/plugins/standards/tree/FolderTreeNode.ja
 api/src/main/java/org/hippoecm/frontend/plugins/standards/tree/icon/AbstractJcrTreeNodeIconProvider.java svneol=native#text/plain
 api/src/main/java/org/hippoecm/frontend/plugins/standards/tree/icon/DefaultTreeNodeIconProvider.java svneol=native#text/plain
 api/src/main/java/org/hippoecm/frontend/plugins/standards/tree/icon/ITreeNodeIconProvider.java svneol=native#text/plain
-api/src/main/java/org/hippoecm/frontend/plugins/standards/upload/JarExpander.java -text
-api/src/main/java/org/hippoecm/frontend/plugins/standards/upload/UploadPlugin.html -text svneol=unset#text/plain
-api/src/main/java/org/hippoecm/frontend/plugins/standards/upload/UploadPlugin.java -text svneol=unset#text/plain
 api/src/main/java/org/hippoecm/frontend/plugins/standards/util/ByteSizeFormatter.java -text svneol=unset#text/plain
 api/src/main/java/org/hippoecm/frontend/plugins/standards/wizard/AjaxWizard.html -text svneol=unset#text/plain
 api/src/main/java/org/hippoecm/frontend/plugins/standards/wizard/AjaxWizard.java -text svneol=unset#text/plain
 api/src/main/java/org/hippoecm/frontend/plugins/standards/wizard/AjaxWizardButton.java -text svneol=unset#text/plain
 api/src/main/java/org/hippoecm/frontend/plugins/standards/wizard/AjaxWizardButtonBar.html -text svneol=unset#text/plain
 api/src/main/java/org/hippoecm/frontend/plugins/standards/wizard/AjaxWizardButtonBar.java -text svneol=unset#text/plain
+api/src/main/java/org/hippoecm/frontend/plugins/upload/JarExpander.java -text
+api/src/main/java/org/hippoecm/frontend/plugins/upload/UploadPlugin.html -text svneol=unset#text/plain
+api/src/main/java/org/hippoecm/frontend/plugins/upload/UploadPlugin.java -text svneol=unset#text/plain
+api/src/main/java/org/hippoecm/frontend/plugins/upload/jquery/img/loading.gif -text
 api/src/main/java/org/hippoecm/frontend/plugins/yui/AjaxSettings.java -text
 api/src/main/java/org/hippoecm/frontend/plugins/yui/HippoNamespace.java -text svneol=unset#text/plain
 api/src/main/java/org/hippoecm/frontend/plugins/yui/YuiPluginHelper.java svneol=native#text/plain

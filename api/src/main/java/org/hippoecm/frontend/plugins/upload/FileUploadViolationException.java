@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.hippoecm.frontend.editor.plugins.upload;
+package org.hippoecm.frontend.plugins.upload;
 
 import java.util.ArrayList;
 import java.util.Collections;
