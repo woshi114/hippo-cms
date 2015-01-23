@@ -166,6 +166,9 @@
           <sv:property sv:name="fileupload.flashEnabled" sv:type="String">
             <sv:value>false</sv:value>
           </sv:property>
+          <sv:property sv:name="fileupload.jsMultiSelectionsEnabled" sv:type="String">
+            <sv:value>false</sv:value>
+          </sv:property>
           <sv:property sv:name="fileupload.clearAfterUpload" sv:type="String">
             <sv:value>true</sv:value>
           </sv:property>

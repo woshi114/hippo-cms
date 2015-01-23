@@ -38,10 +38,6 @@ public class FileUploadWidgetSettings implements IClusterable {
     private String[] allowedExtensions;
 
     public FileUploadWidgetSettings(final IPluginConfig pluginConfig, final FileUploadValidationService validator) {
-        loadConfig(pluginConfig, validator);
-    }
-
-    public void loadConfig(final IPluginConfig pluginConfig, final FileUploadValidationService validator) {
         this.allowedExtensions = validator.getAllowedExtensions();
         this.maxFileSize = validator.getMaxFileSize().bytes();
 

@@ -22,6 +22,7 @@ import org.hippoecm.frontend.plugin.config.IPluginConfig;
  * Settings for file uploads. Currently allowed configurable settings are:
  * <ul>
  *     <li>fileupload.flashEnabled = <code>true</code> for flash or <code>false</code> for javascript upload</li>
+ *     <li>fileupload.jsMultiSelectionsEnabled = <code>true</code> for jquery multi-selection file upload</li>
  *     <li>fileupload.maxItems = maximum allowed file uploads at the same time</li>
  *     <li>fileupload.allowedExtensions = allowed upload file extensions</li>
  *     <li>fileupload.autoUpload = if <code>true</code> the plugin will automatically upload the files</li>
@@ -40,6 +41,8 @@ import org.hippoecm.frontend.plugin.config.IPluginConfig;
 public class FileUploadWidgetSettings implements IClusterable {
 
     public static final String FILEUPLOAD_FLASH_ENABLED_SETTING = "fileupload.flashEnabled";
+    private static final String FILEUPLOAD_JSMULTISELECTIONS_ENABLED_SETTING = "fileupload.jsMultiSelectionsEnabled";
+
     public static final String FILEUPLOAD_MAX_ITEMS_SETTING = "fileupload.maxItems";
     public static final String FILEUPLOAD_AUTOUPLOAD_SETTING = "fileupload.autoUpload";
     public static final String FILEUPLOAD_ALLOWED_EXTENSIONS_SETTING = "fileupload.allowedExtensions";
@@ -65,6 +68,7 @@ public class FileUploadWidgetSettings implements IClusterable {
     private String buttonWidth;
     private String buttonHeight;
     private boolean flashUploadEnabled = true;
+    private boolean jsMultiSelectionsEnabled = false;
     private boolean alwaysShowLabel;
     private boolean useMultipleAttr = false;
 
@@ -147,6 +151,24 @@ public class FileUploadWidgetSettings implements IClusterable {
         return flashUploadEnabled;
     }
 
+
+    /**
+     * If {@link #isFlashUploadEnabled()} is
+     * <code>TRUE</code>, this method decides if either the following dialogs is used:
+     * <ul>
+     *     <li><code>TRUE</code>: use the jquery multi-file upload in {@link org.hippoecm.frontend.plugins.upload.jquery.JQueryFileUploadDialog}
+     *     is used
+     *     </li>
+     *     <li><code>FALSE</code>: use the single file selection upload in {@link MultiFileUploadDialog}
+     *     </li>
+     * </ul>
+     *
+     * @return
+     */
+    public boolean isJSMultiSelectionsEnabled() {
+        return jsMultiSelectionsEnabled;
+    }
+
     /**
      * If set to <code>true</code> (default) the upload plugin will use flash for file uploads, otherwise it will use a
      * plain Javascript upload.
@@ -185,6 +207,9 @@ public class FileUploadWidgetSettings implements IClusterable {
 
         if (pluginConfig.containsKey(FILEUPLOAD_FLASH_ENABLED_SETTING)) {
             this.flashUploadEnabled = pluginConfig.getAsBoolean(FILEUPLOAD_FLASH_ENABLED_SETTING);
+        }
+        if (pluginConfig.containsKey(FILEUPLOAD_JSMULTISELECTIONS_ENABLED_SETTING)) {
+            this.jsMultiSelectionsEnabled = pluginConfig.getAsBoolean(FILEUPLOAD_JSMULTISELECTIONS_ENABLED_SETTING);
         }
 
         if (pluginConfig.containsKey(FILEUPLOAD_MAX_ITEMS_SETTING)) {

@@ -1971,6 +1971,9 @@ gallery/frontend/src/main/java/org/hippoecm/frontend/plugins/gallery/GalleryShor
 gallery/frontend/src/main/java/org/hippoecm/frontend/plugins/gallery/GalleryShortcutPlugin_de.properties -text
 gallery/frontend/src/main/java/org/hippoecm/frontend/plugins/gallery/GalleryShortcutPlugin_fr.properties -text
 gallery/frontend/src/main/java/org/hippoecm/frontend/plugins/gallery/GalleryShortcutPlugin_it.properties -text
+gallery/frontend/src/main/java/org/hippoecm/frontend/plugins/gallery/GalleryWorkflowPlugin$JQueryUploadDialog_de.properties -text
+gallery/frontend/src/main/java/org/hippoecm/frontend/plugins/gallery/GalleryWorkflowPlugin$JQueryUploadDialog_fr.properties -text
+gallery/frontend/src/main/java/org/hippoecm/frontend/plugins/gallery/GalleryWorkflowPlugin$JQueryUploadDialog_it.properties -text
 gallery/frontend/src/main/java/org/hippoecm/frontend/plugins/gallery/GalleryWorkflowPlugin$UploadDialog_de.properties -text
 gallery/frontend/src/main/java/org/hippoecm/frontend/plugins/gallery/GalleryWorkflowPlugin$UploadDialog_fr.properties -text
 gallery/frontend/src/main/java/org/hippoecm/frontend/plugins/gallery/GalleryWorkflowPlugin$UploadDialog_it.properties -text

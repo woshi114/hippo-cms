@@ -39,6 +39,7 @@ import org.apache.wicket.request.resource.ResourceReference;
 import org.hippoecm.addon.workflow.CompatibilityWorkflowPlugin;
 import org.hippoecm.addon.workflow.StdWorkflow;
 import org.hippoecm.addon.workflow.WorkflowDescriptorModel;
+import org.hippoecm.frontend.dialog.AbstractDialog;
 import org.hippoecm.frontend.dialog.IDialogService.Dialog;
 import org.hippoecm.frontend.plugins.upload.jquery.JQueryFileUploadDialog;
 import org.hippoecm.frontend.i18n.types.TypeChoiceRenderer;
@@ -48,6 +49,9 @@ import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.gallery.model.DefaultGalleryProcessor;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
+import org.hippoecm.frontend.plugins.yui.upload.FileUploadException;
+import org.hippoecm.frontend.plugins.yui.upload.FileUploadWidgetSettings;
+import org.hippoecm.frontend.plugins.yui.upload.MultiFileUploadDialog;
 import org.hippoecm.frontend.service.IBrowseService;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.frontend.translation.ILocaleProvider;
@@ -69,10 +73,45 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
 
     private static final Logger log = LoggerFactory.getLogger(GalleryWorkflowPlugin.class);
 
-    public class UploadDialog extends JQueryFileUploadDialog {
+    /**
+     * The dialog for either flash-based file-upload or single selection javascript file-upload
+     */
+    public class UploadDialog extends MultiFileUploadDialog {
         private static final long serialVersionUID = 1L;
 
-        protected UploadDialog(final IPluginContext pluginContext, final IPluginConfig pluginConfig) {
+        public UploadDialog(IPluginContext context, IPluginConfig config) {
+            super(context, config);
+        }
+
+        @Override
+        public IModel<String> getTitle() {
+            return new StringResourceModel(GalleryWorkflowPlugin.this.getPluginConfig().getString("option.text", ""),
+                    GalleryWorkflowPlugin.this, null);
+        }
+
+        @Override
+        protected void handleUploadItem(FileUpload upload) throws FileUploadException {
+            try {
+                createGalleryItem(upload);
+            } catch (GalleryException e) {
+                throw new FileUploadException("Error while creating gallery item", e);
+            }
+        }
+
+        @Override
+        protected void onOk() {
+            super.onOk();
+            afterUploadItems();
+        }
+    }
+
+    /**
+     * The dialog for javascript jQuery multi selection files upload
+     */
+    public class JQueryUploadDialog extends JQueryFileUploadDialog {
+        private static final long serialVersionUID = 1L;
+
+        protected JQueryUploadDialog(final IPluginContext pluginContext, final IPluginConfig pluginConfig) {
             super(pluginContext, pluginConfig);
         }
 
@@ -249,7 +288,19 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             typeComponent = new Label("type", "default").setVisible(false);
         }
 
-        UploadDialog dialog = new UploadDialog(getPluginContext(), getPluginConfig());
+        final IPluginConfig pluginConfig = getPluginConfig();
+        final FileUploadWidgetSettings settings = new FileUploadWidgetSettings(pluginConfig);
+
+        final AbstractDialog dialog;
+        if (!settings.isFlashUploadEnabled() && settings.isJSMultiSelectionsEnabled()){
+            // use the new jquery multi-selection file upload dialog, for IE10+ and modern FF, Chrome.
+            dialog = new JQueryUploadDialog(getPluginContext(), pluginConfig);
+        } else {
+            // use the old file-upload approach, including the flash-based and the single-selection file
+            // that is compatible with IE8, IE9
+            dialog = new UploadDialog(getPluginContext(), pluginConfig);
+        }
+
         dialog.add(typeComponent);
         return dialog;
     }
