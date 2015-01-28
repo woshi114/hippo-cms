@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.wicket.Application;
-import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
 import org.apache.wicket.behavior.IBehaviorListener;
@@ -33,6 +32,7 @@ import org.apache.wicket.protocol.http.servlet.MultipartServletWebRequestImpl;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.IRequestCycle;
 import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.Url;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.WebResponse;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -134,9 +134,9 @@ public abstract class AjaxMultiFileUploadComponent extends Panel {
 
     @Override
     protected void onBeforeRender() {
-        String sessionId = Session.get().getId();
-        String uploadUrl = ";jsessionid=" + sessionId + urlFor(uploadBehavior, IBehaviorListener.INTERFACE, new PageParameters()).toString();
-        settings.setUploadUrl(uploadUrl);
+        CharSequence uploadUrl = urlFor(uploadBehavior, IBehaviorListener.INTERFACE, new PageParameters());
+        String absoluteUploadUrl = RequestCycle.get().getUrlRenderer().renderFullUrl(Url.parse(uploadUrl));
+        settings.setUploadUrl(absoluteUploadUrl);
         super.onBeforeRender();
     }
 
