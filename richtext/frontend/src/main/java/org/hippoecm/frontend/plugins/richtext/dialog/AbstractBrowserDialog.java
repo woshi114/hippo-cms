@@ -18,6 +18,7 @@ package org.hippoecm.frontend.plugins.richtext.dialog;
 
 import javax.jcr.Node;
 
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.value.IValueMap;
 import org.apache.wicket.util.value.ValueMap;
@@ -63,6 +64,13 @@ public abstract class AbstractBrowserDialog<T extends RichTextEditorDocumentLink
         };
 
         add(controller.create("content"));
+    }
+
+    @Override
+    protected FeedbackPanel newFeedbackPanel(final String id) {
+        return new FeedbackPanel(id) {{
+            setOutputMarkupId(true);
+        }};
     }
 
     protected void onModelSelected(IModel<Node> model) {

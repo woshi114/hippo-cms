@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -67,10 +67,16 @@ import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.gallery.model.DefaultGalleryProcessor;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
+import org.hippoecm.frontend.plugins.upload.FileUploadViolationException;
 import org.hippoecm.frontend.plugins.richtext.dialog.AbstractBrowserDialog;
 import org.hippoecm.frontend.plugins.richtext.model.RichTextEditorImageLink;
+import org.hippoecm.frontend.plugins.yui.upload.validation.DefaultUploadValidationService;
+import org.hippoecm.frontend.plugins.yui.upload.validation.FileUploadValidationService;
 import org.hippoecm.frontend.session.UserSession;
+import org.hippoecm.frontend.validation.IValidationResult;
+import org.hippoecm.frontend.validation.ValidationException;
 import org.hippoecm.frontend.util.CodecUtils;
+import org.hippoecm.frontend.validation.Violation;
 import org.hippoecm.frontend.widgets.ThrottledTextFieldWidget;
 import org.hippoecm.repository.api.Document;
 import org.hippoecm.repository.api.HippoNode;
@@ -96,6 +102,7 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
     private static final String INCLUDED_IMAGE_VARIANTS = "included.image.variants";
 
     public final static List<String> ALIGN_OPTIONS = Arrays.asList("top", "middle", "bottom", "left", "right");
+    private final FileUploadValidationService validator;
 
     DropDownChoice<String> type;
 
@@ -117,6 +124,7 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
                 return loadGalleryTypes();
             }
         };
+        validator = loadFileUploadValidationService();
 
         add(createUploadForm());
 
@@ -187,6 +195,17 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
         add(align);
 
         checkState();
+    }
+
+    private FileUploadValidationService loadFileUploadValidationService() {
+        String serviceId = getPluginConfig().getString(FileUploadValidationService.VALIDATE_ID, "service.gallery.image.validation");
+        FileUploadValidationService validator = getPluginContext().getService(serviceId, FileUploadValidationService.class);
+        if (validator == null) {
+            validator = new DefaultUploadValidationService();
+            log.warn("Cannot load image validation service configured at 'service.gallery.image.validation', using the default service '{}'",
+                    validator.getClass().getName());
+        }
+        return validator;
     }
 
     protected void onModelSelected(IModel<Node> model) {
@@ -348,63 +367,81 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
                 final FileUpload upload = uploadField.getFileUpload();
                 if (upload != null) {
                     try {
-                        String filename = upload.getClientFileName();
-                        String mimetype;
+                        ImageBrowserDialog.this.validate(upload);
+                        createGalleryItem(target, upload);
+                    } catch (FileUploadViolationException e) {
+                        final String localName = getLocalizeCodec().encode(upload.getClientFileName());
+                        List<String> errors = e.getViolationMessages();
+                        final String errorMessage = StringUtils.join(errors, ";");
+                        String errMsg = getExceptionTranslation(e, localName, errorMessage).getObject();
+                        log.warn(errMsg);
+                        ImageBrowserDialog.this.error(errMsg);
 
-
-                        mimetype = upload.getContentType();
-                        InputStream istream = upload.getInputStream();
-                        WorkflowManager manager = UserSession.get().getWorkflowManager();
-                        HippoNode node = null;
-                        try {
-                            //Get the selected folder from the folderReference Service
-                            Node folderNode = getFolderModel().getObject();
-
-                            //TODO replace shortcuts with custom workflow category(?)
-                            GalleryWorkflow workflow = (GalleryWorkflow) manager.getWorkflow("gallery", folderNode);
-                            String nodeName = getNodeNameCodec(folderNode).encode(filename);
-                            String localName = getLocalizeCodec().encode(filename);
-                            Document document = workflow.createGalleryItem(nodeName, getGalleryType());
-                            node = (HippoNode) UserSession.get().getJcrSession().getNodeByIdentifier(document.getIdentity());
-                            DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
-                            if (!node.getLocalizedName().equals(localName)) {
-                                defaultWorkflow.localizeName(localName);
-                            }
-                        } catch (WorkflowException | RepositoryException ex) {
-                            log.error(ex.getMessage());
-                            error(ex);
+                        if (log.isDebugEnabled()) {
+                            log.error("Failed to validate uploading file '{}': {}", localName, errorMessage);
                         }
-                        if (node != null) {
-                            try {
-                                getGalleryProcessor().makeImage(node, istream, mimetype, filename);
-                                node.getSession().save();
-                                uploadField.setModel(null);
-                                target.add(uploadField);
-                            } catch (RepositoryException ex) {
-                                log.error(ex.getMessage());
-                                error(ex);
-                                try {
-                                    DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
-                                    defaultWorkflow.delete();
-                                } catch (WorkflowException | RepositoryException e) {
-                                    log.error(e.getMessage());
-                                }
-                                try {
-                                    node.getSession().refresh(false);
-                                } catch (RepositoryException e) {
-                                    // deliberate ignore
-                                }
-                            } catch (GalleryException ex) {
-                                log.error(ex.getMessage());
-                                error(ex);
-                            }
-                        }
-                    } catch (IOException ex) {
-                        log.info("upload of image truncated");
-                        error("Unable to read the uploaded image");
                     }
                 } else {
                     error("Please select a file to upload");
+                }
+            }
+
+            private void createGalleryItem(final AjaxRequestTarget target, final FileUpload upload) {
+                try {
+                    String filename = upload.getClientFileName();
+                    String mimetype;
+
+                    mimetype = upload.getContentType();
+                    InputStream istream = upload.getInputStream();
+                    WorkflowManager manager = UserSession.get().getWorkflowManager();
+                    HippoNode node = null;
+                    String localName = null;
+                    try {
+                        //Get the selected folder from the folderReference Service
+                        Node folderNode = getFolderModel().getObject();
+
+                        //TODO replace shortcuts with custom workflow category(?)
+                        String nodeName = getNodeNameCodec(folderNode).encode(filename);
+                        localName = getLocalizeCodec().encode(filename);
+                        GalleryWorkflow workflow = (GalleryWorkflow) manager.getWorkflow("gallery", folderNode);
+                        Document document = workflow.createGalleryItem(nodeName, getGalleryType());
+                        node = (HippoNode) UserSession.get().getJcrSession().getNodeByIdentifier(document.getIdentity());
+                        DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
+                        if (!node.getLocalizedName().equals(localName)) {
+                            defaultWorkflow.localizeName(localName);
+                        }
+                    } catch (WorkflowException | RepositoryException ex) {
+                        log.error(ex.getMessage());
+                        error(getExceptionTranslation(ex, localName).getObject());
+                    }
+                    if (node != null) {
+                        try {
+                            getGalleryProcessor().makeImage(node, istream, mimetype, filename);
+                            node.getSession().save();
+                            uploadField.setModel(null);
+                            target.add(uploadField);
+                        } catch (RepositoryException ex) {
+                            log.error(ex.getMessage());
+                            error(getExceptionTranslation(ex));
+                            try {
+                                DefaultWorkflow defaultWorkflow = (DefaultWorkflow) manager.getWorkflow("core", node);
+                                defaultWorkflow.delete();
+                            } catch (WorkflowException | RepositoryException e) {
+                                log.error(e.getMessage());
+                            }
+                            try {
+                                node.getSession().refresh(false);
+                            } catch (RepositoryException e) {
+                                // deliberate ignore
+                            }
+                        } catch (GalleryException ex) {
+                            log.error(ex.getMessage());
+                            error(getExceptionTranslation(ex));
+                        }
+                    }
+                } catch (IOException ex) {
+                    log.info("upload of image truncated");
+                    error("Unable to read the uploaded image");
                 }
             }
         };
@@ -434,6 +471,24 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
         }
 
         return uploadForm;
+    }
+
+    private void validate(final FileUpload upload) throws FileUploadViolationException {
+        try {
+            validator.validate(upload);
+        } catch (ValidationException e) {
+            log.error("Error while validating upload", e);
+            throw new FileUploadViolationException("Error while validating upload " + e.getMessage());
+        }
+
+        IValidationResult result = validator.getValidationResult();
+        if (!result.isValid()){
+            List<String> errors = new ArrayList<>();
+            for(Violation violation : result.getViolations()){
+                errors.add(violation.getMessage().getObject());
+            }
+            throw new FileUploadViolationException(errors);
+        }
     }
 
     @Override
