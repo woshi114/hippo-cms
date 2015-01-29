@@ -43,7 +43,8 @@ import javax.jcr.nodetype.NodeDefinition;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.wicket.util.io.IOUtils;
-import org.hippoecm.frontend.editor.plugins.resource.ResourceException;
+import org.hippoecm.frontend.editor.plugins.resource.InvalidMimeTypeException;
+import org.hippoecm.frontend.editor.plugins.resource.MimeTypeHelper;
 import org.hippoecm.frontend.editor.plugins.resource.ResourceHelper;
 import org.hippoecm.frontend.model.JcrHelper;
 import org.hippoecm.frontend.plugins.gallery.imageutil.ScalingParameters;
@@ -97,7 +98,7 @@ public class DefaultGalleryProcessor implements GalleryProcessor {
             throw new IllegalArgumentException("We cannot create a thumbnail for a NULL input stream");
         }
 
-        mimeType = ResourceHelper.sanitizeMimeType(mimeType);
+        mimeType = MimeTypeHelper.sanitizeMimeType(mimeType);
 
         ImageReader reader = null;
         ImageWriter writer = null;
@@ -292,12 +293,11 @@ public class DefaultGalleryProcessor implements GalleryProcessor {
             Node primaryChild = (Node) item;
             if (primaryChild.isNodeType("hippo:resource")) {
                 ResourceHelper.setDefaultResourceProperties(primaryChild, mimeType, istream);
-                if (mimeType.equals(ResourceHelper.MIME_TYPE_PDF)) {
+                if (MimeTypeHelper.isPdfMimeType(mimeType)) {
                     InputStream dataInputStream = primaryChild.getProperty(JcrConstants.JCR_DATA).getBinary().getStream();
                     ResourceHelper.handlePdfAndSetHippoTextProperty(primaryChild,dataInputStream);
                 }
             }
-            validateResource(primaryChild, fileName);
             for (NodeDefinition childDef : node.getPrimaryNodeType().getChildNodeDefinitions()) {
                 if (childDef.getDefaultPrimaryType() != null
                         && childDef.getDefaultPrimaryType().isNodeType("hippo:resource")) {
@@ -334,11 +334,16 @@ public class DefaultGalleryProcessor implements GalleryProcessor {
         node.setProperty(JcrConstants.JCR_MIMETYPE, mimeType);
     }
 
+    /**
+     * @deprecated As version 2.26.13, the resource validation is moved to
+     * {@link org.hippoecm.frontend.plugins.yui.upload.validation.DefaultUploadValidationService}
+     */
+    @Deprecated
     @Override
     public void validateResource(Node node, String fileName) throws GalleryException, RepositoryException {
         try {
             ResourceHelper.validateResource(node, fileName);
-        } catch (ResourceException e) {
+        } catch (InvalidMimeTypeException e) {
             throw new GalleryException("Invalid resource: " + fileName, e);
         }
     }

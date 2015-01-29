@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2013 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2012-2015 Hippo B.V. (http://www.onehippo.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 
 package org.hippoecm.frontend.plugins.yui.upload.validation;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,6 +29,9 @@ import org.apache.wicket.settings.IApplicationSettings;
 import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.value.IValueMap;
 import org.apache.wicket.util.value.ValueMap;
+import org.hippoecm.frontend.editor.plugins.resource.InvalidMimeTypeException;
+import org.hippoecm.frontend.editor.plugins.resource.MimeTypeHelper;
+import org.hippoecm.frontend.editor.plugins.resource.ResourceException;
 import org.hippoecm.frontend.validation.IValidationResult;
 import org.hippoecm.frontend.validation.ValidationException;
 import org.hippoecm.frontend.validation.ValidationResult;
@@ -79,6 +84,13 @@ public class DefaultUploadValidationService implements FileUploadValidationServi
             @Override
             public void validate(FileUpload upload) {
                 validateMaxFileSize(upload);
+            }
+        });
+
+        addValidator(new Validator() {
+            @Override
+            public void validate(final FileUpload upload) {
+                validateMimeType(upload);
             }
         });
     }
@@ -149,6 +161,20 @@ public class DefaultUploadValidationService implements FileUploadValidationServi
                 log.debug("File '{}' has size {} which is too big. The maximum size allowed is {}",
                           new Object[]{upload.getClientFileName(), fileSize.toString(), maxFileSize.toString()});
             }
+        }
+    }
+
+    private void validateMimeType(final FileUpload upload) {
+        String mimeType = upload.getContentType();
+        try (InputStream is = upload.getInputStream()){
+            MimeTypeHelper.validateMimeType(is, mimeType);
+        } catch (InvalidMimeTypeException e) {
+            addViolation("file.validation.mime.invalid", upload.getClientFileName(), mimeType);
+            if (log.isDebugEnabled()) {
+                log.debug("Invalid MIME type for " + upload.getClientFileName(), e);
+            }
+        } catch (IOException e) {
+            log.error("Failed to get input stream from the uploaded file:" + upload.getClientFileName(), e);
         }
     }
 

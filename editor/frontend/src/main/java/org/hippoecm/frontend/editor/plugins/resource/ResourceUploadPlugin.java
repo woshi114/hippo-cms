@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -21,17 +21,11 @@ import java.io.InputStream;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
-import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.lang.Bytes;
-import org.apache.wicket.util.value.IValueMap;
-import org.apache.wicket.util.value.ValueMap;
 import org.hippoecm.frontend.behaviors.EventStoppingBehavior;
-import org.hippoecm.frontend.dialog.DialogConstants;
-import org.hippoecm.frontend.dialog.ExceptionDialog;
 import org.hippoecm.frontend.plugins.upload.FileUploadViolationException;
 import org.hippoecm.frontend.plugins.upload.SingleFileUploadWidget;
 import org.hippoecm.frontend.model.JcrNodeModel;
@@ -53,16 +47,8 @@ public class ResourceUploadPlugin extends RenderPlugin {
 
     static final Logger log = LoggerFactory.getLogger(ResourceUploadPlugin.class);
 
-    private IValueMap types;
-
     public ResourceUploadPlugin(IPluginContext context, IPluginConfig config) {
         super(context, config);
-
-        // if the types config is not set, all extensions are allowed
-        String typesConfig = config.getString("types");
-        if (typesConfig != null) {
-            types = new ValueMap(typesConfig);
-        }
 
         FileUploadForm form = new FileUploadForm("form");
         add(form);
@@ -114,45 +100,25 @@ public class ResourceUploadPlugin extends RenderPlugin {
      * @param upload the {@link FileUpload} containing the upload information
      */
     private void handleUpload(FileUpload upload) {
+
         String fileName = upload.getClientFileName();
         String mimeType = upload.getContentType();
 
-        String extension = fileName.substring(fileName.lastIndexOf('.') + 1);
+        JcrNodeModel nodeModel = (JcrNodeModel) ResourceUploadPlugin.this.getDefaultModel();
+        Node node = nodeModel.getNode();
+        try {
+            ResourceHelper.setDefaultResourceProperties(node, mimeType, upload.getInputStream(), fileName);
 
-        // check if obligatory types/file extensions are set and matched
-        if (types != null && types.getString(extension.toLowerCase()) == null) {
-            String extensions = StringUtils.join(types.keySet().toArray(), ", ");
-            getDialogService().show(
-                    new ExceptionDialog(new StringResourceModel("unrecognized", ResourceUploadPlugin.this,
-                            null, null, extension, extensions).getString()) {
-                        public IValueMap getProperties() {
-                            return DialogConstants.SMALL;
-                        }
-
-                    });
-            log.warn("Unrecognised file type");
-        } else {
-            JcrNodeModel nodeModel = (JcrNodeModel) ResourceUploadPlugin.this.getDefaultModel();
-            Node node = nodeModel.getNode();
-            try {
-                ResourceHelper.setDefaultResourceProperties(node, mimeType, upload.getInputStream(), fileName);
-
-                if (extension.toLowerCase().equals("pdf")) {
-                    InputStream inputStream = node.getProperty(JcrConstants.JCR_DATA).getBinary().getStream();
-                    ResourceHelper.handlePdfAndSetHippoTextProperty(node, inputStream);
-                }
-
-                ResourceHelper.validateResource(node, fileName);
-            } catch (RepositoryException ex) {
-                error(ex);
-                log.error(ex.getMessage());
-            } catch (IOException ex) {
-                // FIXME: report back to user
-                log.error(ex.getMessage());
-            } catch (ResourceException ex) {
-                error(ex);
-                log.error(ex.getMessage());
+            if (MimeTypeHelper.isPdfMimeType(mimeType)) {
+                InputStream inputStream = node.getProperty(JcrConstants.JCR_DATA).getBinary().getStream();
+                ResourceHelper.handlePdfAndSetHippoTextProperty(node, inputStream);
             }
+        } catch (RepositoryException ex) {
+            error(ex);
+            log.error(ex.getMessage());
+        } catch (IOException ex) {
+            // FIXME: report back to user
+            log.error(ex.getMessage());
         }
     }
 

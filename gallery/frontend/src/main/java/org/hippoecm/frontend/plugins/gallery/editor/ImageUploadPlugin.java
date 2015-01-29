@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -113,7 +113,6 @@ public class ImageUploadPlugin extends RenderPlugin {
         try {
             ImageBinary image = new ImageBinary(node, upload.getInputStream(), fileName, mimeType);
             processor.initGalleryResource(node, image.getStream(), image.getMimeType(), image.getFileName(), Calendar.getInstance());
-            processor.validateResource(node, image.getFileName());
         } catch (IOException | GalleryException | RepositoryException e) {
             error(e);
             log.error(e.getMessage());

@@ -25,6 +25,7 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 import org.apache.jackrabbit.JcrConstants;
+import org.hippoecm.frontend.editor.plugins.resource.MimeTypeHelper;
 import org.hippoecm.frontend.editor.plugins.resource.ResourceHelper;
 import org.hippoecm.frontend.plugins.gallery.imageutil.ScaleImageOperation;
 import org.hippoecm.frontend.plugins.gallery.imageutil.ScalingParameters;
@@ -42,8 +43,6 @@ public class ScalingGalleryProcessor extends AbstractGalleryProcessor {
 
     private static final Logger log = LoggerFactory.getLogger(ScalingGalleryProcessor.class);
     private static final long serialVersionUID = 1L;
-
-    protected static final ScalingParameters INDIVIDUAL_UPLOAD_SCALING_PARAMETERS = new ScalingParameters(0, 0, false);
 
     /**
      * Map of JCR node names to scaling parameters.
@@ -91,7 +90,7 @@ public class ScalingGalleryProcessor extends AbstractGalleryProcessor {
         int width = 0;
         int height = 0;
 
-        if (isImageMimeType(mimeType)) {
+        if (MimeTypeHelper.isImageMimeType(mimeType)) {
             final String nodeName = node.getName();
             final ScalingParameters p = scalingParametersMap.get(nodeName);
             if (p != null) {
