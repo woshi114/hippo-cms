@@ -47,7 +47,7 @@ public abstract class AbstractBrowserDialog<T extends RichTextEditorDocumentLink
 
             @Override
             protected IModel<Node> getInitialModel() {
-                return (IModel<Node>) getModelObject().getLinkTarget();
+                return getModelObject().getLinkTarget();
             }
 
             @Override
@@ -74,7 +74,6 @@ public abstract class AbstractBrowserDialog<T extends RichTextEditorDocumentLink
     }
 
     protected void onModelSelected(IModel<Node> model) {
-
     }
 
     protected IModel<Node> getFolderModel() {

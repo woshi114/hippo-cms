@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -49,14 +49,14 @@ import wicket.contrib.input.events.key.KeyType;
 /**
  * A multi file upload dialog that can be configured by means of the {@link FileUploadWidgetSettings}.
  */
-public abstract class MultiFileUploadDialog extends AbstractDialog {
+public abstract class MultiFileUploadDialog<T> extends AbstractDialog<T> {
     private static final long serialVersionUID = 1L;
 
     private FileUploadWidget widget;
     private AjaxButton ajaxButton;
     private AjaxButton closeButton;
 
-    private List<String> errors = new LinkedList<String>();
+    private List<String> errors = new LinkedList<>();
 
     protected MultiFileUploadDialog(IPluginContext pluginContext, IPluginConfig pluginConfig) {
         setOutputMarkupId(true);
@@ -65,7 +65,7 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
         setOkEnabled(false);
         setOkVisible(false);
 
-        ajaxButton = new AjaxButton(DialogConstants.BUTTON, new Model<String>("Ok")) {
+        ajaxButton = new AjaxButton(DialogConstants.BUTTON, new Model<>("Ok")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -112,7 +112,7 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
         ajaxButton.add(new InputBehavior(new KeyType[]{KeyType.Enter}, EventType.click));
         addButton(ajaxButton);
 
-        closeButton = new AjaxButton(DialogConstants.BUTTON, new Model<String>("Close")) {
+        closeButton = new AjaxButton(DialogConstants.BUTTON, new Model<>("Close")) {
 
             @Override
             protected void onSubmit(final AjaxRequestTarget target, final Form<?> form) {
@@ -135,13 +135,19 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
                 try {
                     MultiFileUploadDialog.this.handleUploadItem(file);
                 } catch (FileUploadException e) {
-                    Throwable t = e.getCause();
-                    String message = t.getLocalizedMessage();
-                    if (t.getCause() != null) {
-                        message += "<br/>" + t.getCause();
-                        log.error("FileUploadException caught", t);
+                    if (log.isDebugEnabled()) {
+                        log.info("FileUploadException caught", e);
+                    } else {
+                        log.info("FileUploadException caught: " + e);
                     }
-                    errors.add(message);
+                    Throwable t = e;
+                    while(t != null) {
+                        final String translatedMessage = getExceptionTranslation(t, file.getClientFileName()).getObject();
+                        if (translatedMessage != null && !errors.contains(translatedMessage)) {
+                            errors.add(translatedMessage);
+                        }
+                        t = t.getCause();
+                    }
                 }
             }
 
@@ -185,8 +191,8 @@ public abstract class MultiFileUploadDialog extends AbstractDialog {
             }
         };
         fp.setEscapeModelStrings(false);
-        fp.add(new AttributeAppender("class", true, new Model<String>("hippo-modal-feedback"), " "));
-        fp.add(new AttributeAppender("class", true, new Model<String>("upload-feedback-panel"), " "));
+        fp.add(new AttributeAppender("class", new Model<>("hippo-modal-feedback")));
+        fp.add(new AttributeAppender("class", new Model<>("upload-feedback-panel")));
         add(fp);
     }
 

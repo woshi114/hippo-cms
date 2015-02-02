@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -140,15 +140,11 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
                 }
 
                 return null;
-            } catch (MarkupException ex) {
+            } catch (MarkupException | MarkupNotFoundException  ex) {
                 // re-throw it. The exception contains already all the information
                 // required.
                 throw ex;
-            } catch (MarkupNotFoundException ex) {
-                // re-throw it. The exception contains already all the information
-                // required.
-                throw ex;
-            } catch (WicketRuntimeException ex) {
+            }  catch (WicketRuntimeException ex) {
                 // throw exception since there is no associated markup
                 throw new MarkupNotFoundException(
                         exceptionMessage("Markup of type '" + getMarkupType().getExtension() +
@@ -194,12 +190,12 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
             Serializable serializable = message.getMessage();
             if (serializable instanceof Exception) {
                 Exception ex = (Exception) message.getMessage();
-                IModel<String> exceptionModel = getTranslatedException(ex);
+                IModel<String> exceptionModel = getExceptionTranslation(ex);
                 return new ExceptionLabel(id, exceptionModel, ex,
                         ExceptionFeedbackPanel.this.getEscapeModelStrings());
             } else {
                 Label label = new Label(id);
-                label.setDefaultModel(new Model<String>(serializable == null ? "" : serializable.toString()));
+                label.setDefaultModel(new Model<>(serializable == null ? "" : serializable.toString()));
                 label.setEscapeModelStrings(ExceptionFeedbackPanel.this.getEscapeModelStrings());
                 return label;
             }
@@ -213,7 +209,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
 
     protected IModel<String> getTranslatedException(final Exception ex) {
         String key = "exception,type=${type},message=${message}";
-        Map<String, String> details = new HashMap<String, String>();
+        Map<String, String> details = new HashMap<>();
         details.put("type", ex.getClass().getName());
         details.put("message", ex.getMessage());
         StackTraceElement[] elements = ex.getStackTrace();
@@ -223,7 +219,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
             key += ",class=${clazz}";
         }
         return new StringResourceModel(key, AbstractDialog.this,
-                new Model<Serializable>((Serializable) details), ex.getLocalizedMessage());
+                new Model<>((Serializable) details), ex.getLocalizedMessage());
 
     }
 
@@ -243,7 +239,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
     }
 
     protected PersistentFeedbackMessagesModel fmm;
-    protected FeedbackPanel feedback;
+    protected Component feedback;
     private Component focusComponent;
 
     private LinkedList<ButtonWrapper> buttons;
@@ -271,7 +267,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
         feedback.setOutputMarkupId(true);
         add(feedback);
 
-        buttons = new LinkedList<ButtonWrapper>();
+        buttons = new LinkedList<>();
         ListView<ButtonWrapper> buttonsView = new ListView<ButtonWrapper>("buttons", buttons) {
             private static final long serialVersionUID = 1L;
 
@@ -452,7 +448,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
     }
 
     protected void setOkLabel(String label) {
-        setOkLabel(new Model<String>(label));
+        setOkLabel(new Model<>(label));
     }
 
     protected void setOkLabel(IModel<String> label) {
@@ -472,7 +468,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
     }
 
     protected void setCancelLabel(String label) {
-        setCancelLabel(new Model<String>(label));
+        setCancelLabel(new Model<>(label));
     }
 
     protected void setCancelLabel(IModel<String> label) {
