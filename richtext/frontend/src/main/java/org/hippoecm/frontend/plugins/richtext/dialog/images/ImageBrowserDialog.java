@@ -67,15 +67,15 @@ import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.gallery.model.DefaultGalleryProcessor;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
-import org.hippoecm.frontend.plugins.upload.FileUploadViolationException;
 import org.hippoecm.frontend.plugins.richtext.dialog.AbstractBrowserDialog;
 import org.hippoecm.frontend.plugins.richtext.model.RichTextEditorImageLink;
+import org.hippoecm.frontend.plugins.upload.FileUploadViolationException;
 import org.hippoecm.frontend.plugins.yui.upload.validation.DefaultUploadValidationService;
 import org.hippoecm.frontend.plugins.yui.upload.validation.FileUploadValidationService;
 import org.hippoecm.frontend.session.UserSession;
+import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.frontend.validation.IValidationResult;
 import org.hippoecm.frontend.validation.ValidationException;
-import org.hippoecm.frontend.util.CodecUtils;
 import org.hippoecm.frontend.validation.Violation;
 import org.hippoecm.frontend.widgets.ThrottledTextFieldWidget;
 import org.hippoecm.repository.api.Document;
@@ -532,7 +532,7 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
 
     @Override
     public IValueMap getProperties() {
-        return new ValueMap("width=855,height=525");
+        return new ValueMap("width=855,height=585");
     }
 
     protected GalleryProcessor getGalleryProcessor() {
