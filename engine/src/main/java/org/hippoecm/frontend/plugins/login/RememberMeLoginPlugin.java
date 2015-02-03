@@ -212,6 +212,10 @@ public class RememberMeLoginPlugin extends LoginPlugin {
         private final int nrUnsuccessfulLogins;
         private final boolean useCaptcha;
         private int loginTrialsCounter;
+        private int cookieMaxAge;
+        private int halCookieMaxAge;
+        private boolean useSecureCookies;
+        private boolean httpOnly;
 
         public void setRememberme(boolean value) {
             rememberme = value;
@@ -228,6 +232,10 @@ public class RememberMeLoginPlugin extends LoginPlugin {
             useCaptcha = getPluginConfig().getAsBoolean("use.captcha", false);
             nrUnsuccessfulLogins = (getPluginConfig().getAsInteger("show.captcha.after.how.many.times", 3) < 0) ? 3
                     : getPluginConfig().getAsInteger("show.captcha.after.how.many.times", 3);
+            cookieMaxAge = getPluginConfig().getAsInteger("rememberme.cookie.maxage", COOKIE_DEFAULT_MAX_AGE);
+            halCookieMaxAge = getPluginConfig().getAsInteger("hal.cookie.maxage", COOKIE_DEFAULT_MAX_AGE);
+            useSecureCookies = getPluginConfig().getAsBoolean("use.secure.cookies", false);
+            httpOnly = getPluginConfig().getAsBoolean("use.httponly.cookies", false);
 
             // Create and add captcha related components
             createAndAddCaptcha(false);
@@ -261,8 +269,7 @@ public class RememberMeLoginPlugin extends LoginPlugin {
                         WebApplicationHelper.clearCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME);
                     } else {
                         Cookie remembermeCookie = new Cookie(REMEMBERME_COOKIE_NAME, String.valueOf(true));
-                        remembermeCookie.setMaxAge(RememberMeLoginPlugin.this.getPluginConfig().getAsInteger(
-                                "rememberme.cookie.maxage", COOKIE_DEFAULT_MAX_AGE));
+                        remembermeCookie.setMaxAge(cookieMaxAge);
 
                         WebApplicationHelper.retrieveWebResponse().addCookie(remembermeCookie);
                     }
@@ -372,7 +379,7 @@ public class RememberMeLoginPlugin extends LoginPlugin {
                 ConcurrentLoginFilter.validateSession(servletWebRequest.getContainerRequest().getSession(true), username, false);
 
                 // If rememberme checkbox is checked and there is no cookie already, this happens in case of autologin
-                if (rememberme&& servletWebRequest.getCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME) == null) {
+                if (rememberme && servletWebRequest.getCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME) == null) {
                     Session jcrSession = userSession.getJcrSession();
                     if (jcrSession.getUserID().equals(username)) {
                         try {
@@ -391,20 +398,13 @@ public class RememberMeLoginPlugin extends LoginPlugin {
                                 userinfo.save();
 
                                 final Cookie halCookie = new Cookie(HIPPO_AUTO_LOGIN_COOKIE_NAME, passphrase);
-                                halCookie.setMaxAge(RememberMeLoginPlugin.this.getPluginConfig().getAsInteger(
-                                        "hal.cookie.maxage", COOKIE_DEFAULT_MAX_AGE));
-
-                                halCookie.setSecure(RememberMeLoginPlugin.this.getPluginConfig().getAsBoolean(
-                                        "use.secure.cookies", false));
+                                halCookie.setMaxAge(halCookieMaxAge);
+                                halCookie.setSecure(useSecureCookies);
 
                                 // Replace with Cookie#setHttpOnly when we upgrade to a container compliant with
                                 // Servlet API(s) v3.0t his was added cause the setHttpOnly/isHttpOnly at the time of
                                 // developing this code were not available cause we used to use Servlet API(s) v2.5
-                                RememberMeLoginPlugin.this.addCookieWithHttpOnly(
-                                        halCookie,
-                                        WebApplicationHelper.retrieveWebResponse(),
-                                        RememberMeLoginPlugin.this.getPluginConfig().getAsBoolean("use.httponly.cookies",
-                                                false));
+                                addCookieWithHttpOnly(halCookie, WebApplicationHelper.retrieveWebResponse(), httpOnly);
                             } else {
                                 loginExceptionPageParameters = buildPageParameters(LoginException.CAUSE.REPOSITORY_ERROR);
                                 handleLoginFailure(loginExceptionPageParameters, userSession);
