@@ -372,7 +372,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 new StringResourceModel(category, this, null),
                 category,
                 prototypes,
-                translated && locale != null,
+                translated && locale == null,
                 invoker,
                 CodecUtils.getNodeNameCodecModel(getPluginContext(), locale),
                 getLocaleProvider()
