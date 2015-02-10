@@ -58,3 +58,8 @@
 body .hippo-picker-properties div.hippo-dialog-alt div.text-input input {
     width: 282px;
 }
+
+.hippo-dialog-picker .hippo-modal-feedback {
+    max-height: 65px;
+    overflow-y: auto;
+}
