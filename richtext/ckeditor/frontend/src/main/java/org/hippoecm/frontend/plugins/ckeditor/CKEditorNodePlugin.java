@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2013-2015 Hippo B.V. (http://www.onehippo.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,8 @@ import org.hippoecm.frontend.plugins.richtext.jcr.RichTextImageURLProvider;
 import org.hippoecm.frontend.plugins.richtext.model.RichTextImageMetaDataModel;
 import org.hippoecm.frontend.plugins.richtext.view.RichTextDiffWithLinksAndImagesPanel;
 import org.hippoecm.frontend.plugins.richtext.view.RichTextPreviewWithLinksAndImagesPanel;
+import org.hippoecm.frontend.plugins.standards.diff.DefaultHtmlDiffService;
+import org.hippoecm.frontend.plugins.standards.diff.DiffService;
 import org.hippoecm.frontend.plugins.standards.picker.NodePickerControllerSettings;
 import org.hippoecm.frontend.service.IBrowseService;
 import org.hippoecm.repository.HippoStdNodeType;
@@ -200,7 +202,12 @@ public class CKEditorNodePlugin extends AbstractCKEditorPlugin<Node> {
     protected Panel createComparePanel(final String id, final IModel<Node> baseModel, final IModel<Node> currentModel) {
         final JcrNodeModel baseNodeModel = (JcrNodeModel) baseModel;
         final JcrNodeModel currentNodeModel = (JcrNodeModel) currentModel;
-        return new RichTextDiffWithLinksAndImagesPanel(id, baseNodeModel, currentNodeModel, getBrowser());
+        return new RichTextDiffWithLinksAndImagesPanel(id, baseNodeModel, currentNodeModel, getBrowser(), getDiffService());
+    }
+
+    private DiffService getDiffService() {
+        String serviceId = getPluginConfig().getString(DiffService.SERVICE_ID);
+        return getPluginContext().getService(serviceId, DefaultHtmlDiffService.class);
     }
 
     private IPluginConfig getChildPluginConfig(final String key, IPluginConfig defaultConfig) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2013-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.hippoecm.frontend.plugins.richtext.StripScriptModel;
 import org.hippoecm.frontend.plugins.richtext.jcr.JcrRichTextImageFactory;
 import org.hippoecm.frontend.plugins.richtext.jcr.JcrRichTextLinkFactory;
 import org.hippoecm.frontend.plugins.richtext.model.BrowsableModel;
+import org.hippoecm.frontend.plugins.standards.diff.DiffService;
 import org.hippoecm.frontend.plugins.richtext.model.RichTextImageMetaDataModel;
 import org.hippoecm.frontend.plugins.standards.diff.HtmlDiffModel;
 import org.hippoecm.frontend.service.IBrowseService;
@@ -58,13 +59,14 @@ public class RichTextDiffWithLinksAndImagesPanel extends AbstractRichTextDiffPan
     public RichTextDiffWithLinksAndImagesPanel(final String id,
                                                final IModel<Node> baseNodeModel,
                                                final IModel<Node> currentNodeModel,
-                                               final IBrowseService browser) {
+                                               final IBrowseService browser,
+                                               final DiffService diffService) {
         super(id);
 
         final PreviewLinksBehavior previewLinksBehavior = new PreviewLinksBehavior(currentNodeModel, browser, false);
         add(previewLinksBehavior);
 
-        final IModel<String> viewModel = createDiffModel(baseNodeModel, currentNodeModel, previewLinksBehavior);
+        final IModel<String> viewModel = createDiffModel(baseNodeModel, currentNodeModel, previewLinksBehavior, diffService);
         addView(viewModel);
     }
 
@@ -76,7 +78,8 @@ public class RichTextDiffWithLinksAndImagesPanel extends AbstractRichTextDiffPan
 
     private static IModel<String> createDiffModel(final IModel<Node> baseNodeModel,
                                                   final IModel<Node> currentNodeModel,
-                                                  final PreviewLinksBehavior previewLinksBehavior) {
+                                                  final PreviewLinksBehavior previewLinksBehavior,
+                                                  final DiffService diffService) {
 
         final JcrPropertyValueModel<String> baseModel = getContentModelOrNull(baseNodeModel);
         final IRichTextLinkFactory baseLinkFactory = new JcrRichTextLinkFactory(baseNodeModel);
@@ -100,7 +103,7 @@ public class RichTextDiffWithLinksAndImagesPanel extends AbstractRichTextDiffPan
                 if (link.indexOf('/') > 0) {
                     facetName = link.substring(0, link.indexOf('/'));
                 }
-
+        
                 final String baseUuid = RichTextFacetHelper.getChildDocBaseOrNull(baseNodeModel.getObject(), facetName);
                 final String currentUuid = RichTextFacetHelper.getChildDocBaseOrNull(currentNodeModel.getObject(), facetName);
 
@@ -133,7 +136,7 @@ public class RichTextDiffWithLinksAndImagesPanel extends AbstractRichTextDiffPan
         };
 
         final IModel<String> decoratedCurrent = new RichTextImageMetaDataModel(currentModel, currentDecorator);
-        final HtmlDiffModel diffModel = new HtmlDiffModel(new StripScriptModel(decoratedBase), new StripScriptModel(decoratedCurrent));
+        final HtmlDiffModel diffModel = new HtmlDiffModel(new StripScriptModel(decoratedBase), new StripScriptModel(decoratedCurrent), diffService);
 
         return new BrowsableModel(diffModel, previewLinksBehavior);
     }
