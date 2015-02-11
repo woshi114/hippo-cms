@@ -44,6 +44,8 @@ import org.hippoecm.frontend.plugins.richtext.RichTextLink;
 import org.hippoecm.frontend.plugins.richtext.RichTextModel;
 import org.hippoecm.frontend.plugins.richtext.jcr.JcrRichTextImageFactory;
 import org.hippoecm.frontend.plugins.richtext.jcr.JcrRichTextLinkFactory;
+import org.hippoecm.frontend.plugins.standards.diff.DefaultHtmlDiffService;
+import org.hippoecm.frontend.plugins.standards.diff.DiffService;
 import org.hippoecm.frontend.plugins.standards.diff.HtmlDiffModel;
 import org.hippoecm.frontend.plugins.xinha.dialog.images.ImagePickerBehavior;
 import org.hippoecm.frontend.plugins.xinha.dialog.links.InternalLinkBehavior;
@@ -154,8 +156,13 @@ public class XinhaNodePlugin extends AbstractXinhaPlugin {
         IModel<String> decoratedCurrent = new PrefixingModel(currentModel, currentDecorator);
 
         return new BrowsableModel(
-                new HtmlDiffModel(new StripScriptModel(decoratedBase), new StripScriptModel(decoratedCurrent)),
+                new HtmlDiffModel(new StripScriptModel(decoratedBase), new StripScriptModel(decoratedCurrent), getDiffService()),
                 previewLinksBehavior);
+    }
+
+    private DiffService getDiffService() {
+        final String serviceId = getPluginConfig().getString(DiffService.SERVICE_ID);
+        return getPluginContext().getService(serviceId, DefaultHtmlDiffService.class);
     }
 
     @Override
