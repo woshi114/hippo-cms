@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  */
 package org.hippoecm.frontend.i18n;
 
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.wicket.model.IDetachable;
 import org.apache.wicket.model.IModel;
@@ -25,10 +23,12 @@ import org.hippoecm.frontend.plugin.IPlugin;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.repository.HippoStdNodeType;
-import org.hippoecm.repository.api.HippoNodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @version $Id$
+ */
 public class ConfigTraversingPlugin extends AbstractTranslateService implements IPlugin {
 
     private static final long serialVersionUID = 1L;
@@ -43,20 +43,7 @@ public class ConfigTraversingPlugin extends AbstractTranslateService implements 
     }
 
     public IModel getModel(Map<String, String> criteria) {
-        if (translations != null) {
-            IPluginConfig keyConfig = translations.getPluginConfig((String) criteria.get(HippoNodeType.HIPPO_KEY));
-            if (keyConfig != null) {
-                Set<IPluginConfig> candidates = keyConfig.getPluginConfigSet();
-                Set<ConfigWrapper> list = new HashSet<ConfigWrapper>((int) candidates.size());
-                for (IPluginConfig candidate : candidates) {
-                    if (candidate.getString(HippoNodeType.HIPPO_LANGUAGE, "").equals(criteria.get(HippoNodeType.HIPPO_LANGUAGE))) {
-                        list.add(new ConfigWrapper(candidate, criteria));
-                    }
-                }
-                return new TranslationSelectionStrategy<IModel>(criteria.keySet()).select(list).getModel();
-            }
-        }
-        return null;
+        return TranslatorUtils.getTranslatedModel(translations, criteria);
     }
 
     public void detach() {

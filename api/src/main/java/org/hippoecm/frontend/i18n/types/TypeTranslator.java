@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,29 +15,36 @@
  */
 package org.hippoecm.frontend.i18n.types;
 
-import java.util.Locale;
-
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Session;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
+import org.hippoecm.frontend.FrontendNodeType;
+import org.hippoecm.frontend.i18n.TranslatorException;
+import org.hippoecm.frontend.i18n.TranslatorUtils;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.model.nodetypes.JcrNodeTypeModel;
 import org.hippoecm.frontend.model.nodetypes.NodeTypeModelWrapper;
+import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.NodeNameCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @version $Id$
+ */
 public class TypeTranslator extends NodeTypeModelWrapper {
 
     final static Logger log = LoggerFactory.getLogger(TypeTranslator.class);
 
     private static final long serialVersionUID = 1L;
 
+    private IPluginConfig translations = null;
     private TypeNameModel name;
     private transient boolean attached = false;
     private transient JcrNodeModel nodeModel;
@@ -96,31 +103,41 @@ public class TypeTranslator extends NodeTypeModelWrapper {
         @Override
         protected String load() {
             String name = getNodeTypeModel().getType();
+
             JcrNodeModel nodeModel = getNodeModel();
-            if (nodeModel != null) {
-                Node node = nodeModel.getNode();
-                if (node != null) {
-                    try {
-                        name = NodeNameCodec.decode(node.getName());
-                        if (node.isNodeType("hippo:translated")) {
-                            Locale locale = Session.get().getLocale();
-                            NodeIterator nodes = node.getNodes("hippo:translation");
-                            while (nodes.hasNext()) {
-                                Node child = nodes.nextNode();
-                                if (child.isNodeType("hippo:translation") && !child.hasProperty("hippo:property")) {
-                                    String language = child.getProperty("hippo:language").getString();
-                                    if (locale.getLanguage().equals(language)) {
-                                        return child.getProperty("hippo:message").getString();
-                                    }
-                                }
-                            }
+            if (nodeModel == null) {
+                return name;
+            }
+            Node node = nodeModel.getNode();
+            if (node == null){
+                return name;
+            }
+
+            try {
+                name = NodeNameCodec.decode(node.getName());
+                if (node.isNodeType(HippoNodeType.NT_TRANSLATED)) {
+                    String language = Session.get().getLocale().getLanguage();
+                    NodeIterator nodes = node.getNodes(HippoNodeType.HIPPO_TRANSLATION);
+                    while (nodes.hasNext()) {
+                        Node child = nodes.nextNode();
+                        if (findTranslationNode(child, language)) {
+                            return child.getProperty(HippoNodeType.HIPPO_MESSAGE).getString();
                         }
-                    } catch (RepositoryException ex) {
-                        log.error(ex.getMessage());
                     }
                 }
+            } catch (RepositoryException ex) {
+                log.error(ex.getMessage());
             }
             return name;
+        }
+
+        private boolean findTranslationNode(final Node node, final String matchingLanguage) throws RepositoryException {
+            if (node.isNodeType(HippoNodeType.HIPPO_TRANSLATION) && !node.hasProperty(HippoNodeType.HIPPO_PROPERTY)
+                    && node.hasProperty(HippoNodeType.HIPPO_LANGUAGE)) {
+                String language = node.getProperty(HippoNodeType.HIPPO_LANGUAGE).getString();
+                return StringUtils.equals(matchingLanguage, language);
+            }
+            return false;
         }
 
         void onDetachTranslator() {
@@ -146,35 +163,33 @@ public class TypeTranslator extends NodeTypeModelWrapper {
 
         @Override
         protected String load() {
-            IModel<String> name = value;
+            String name = value.getObject();
             JcrNodeModel nodeModel = getNodeModel();
-            if (nodeModel != null) {
-                Node node = nodeModel.getNode();
-                if (node != null) {
-                    try {
-                        if (node.isNodeType(HippoNodeType.NT_TRANSLATED)) {
-                            Locale locale = Session.get().getLocale();
-                            NodeIterator nodes = node.getNodes(HippoNodeType.HIPPO_TRANSLATION);
-                            while (nodes.hasNext()) {
-                                Node child = nodes.nextNode();
-                                if (child.isNodeType(HippoNodeType.NT_TRANSLATION) && child.hasProperty(HippoNodeType.HIPPO_PROPERTY)
-                                        && child.hasProperty(HippoNodeType.HIPPO_VALUE)) {
-                                    if (child.getProperty(HippoNodeType.HIPPO_PROPERTY).getString().equals(property)
-                                            && child.getProperty(HippoNodeType.HIPPO_VALUE).getString().equals(name.getObject())) {
-                                        String language = child.getProperty(HippoNodeType.HIPPO_LANGUAGE).getString();
-                                        if (locale.getLanguage().equals(language)) {
-                                            return child.getProperty(HippoNodeType.HIPPO_MESSAGE).getString();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } catch (RepositoryException ex) {
-                        log.error(ex.getMessage());
+            if (nodeModel == null) {
+                return name;
+            }
+            Node node = nodeModel.getNode();
+            if (node == null) {
+                return name;
+            }
+
+            try {
+                if (!node.isNodeType(HippoNodeType.NT_TRANSLATED)) {
+                    return name;
+                }
+                String language = Session.get().getLocale().getLanguage();
+                NodeIterator nodes = node.getNodes(HippoNodeType.HIPPO_TRANSLATION);
+                while (nodes.hasNext()) {
+                    Node child = nodes.nextNode();
+                    if (findTranslationNode(child, name, language, property)) {
+                        return child.getProperty(HippoNodeType.HIPPO_MESSAGE).getString();
                     }
                 }
             }
-            return name.getObject();
+            catch (RepositoryException ex) {
+                log.error(ex.getMessage());
+            }
+            return name;
         }
 
         @Override
@@ -184,6 +199,33 @@ public class TypeTranslator extends NodeTypeModelWrapper {
             TypeTranslator.this.detach();
         }
 
+        /**
+         * Return true if the given <code>node</code> containing the matching translation of given name, language and property.
+         * @param node
+         * @param matchingName
+         * @param matchingLanguage
+         * @return
+         * @throws RepositoryException
+         */
+        private boolean findTranslationNode(final Node node,
+                                                   final String matchingName,
+                                                   final String matchingLanguage,
+                                                   final String matchingProperty) throws RepositoryException {
+            if (node.isNodeType(HippoNodeType.NT_TRANSLATION)
+                    && node.hasProperty(HippoNodeType.HIPPO_PROPERTY)
+                    && node.hasProperty(HippoNodeType.HIPPO_VALUE)
+                    && node.hasProperty(HippoNodeType.HIPPO_LANGUAGE)) {
+
+                String property = node.getProperty(HippoNodeType.HIPPO_PROPERTY).getString();
+                String name = node.getProperty(HippoNodeType.HIPPO_VALUE).getString();
+                String language = node.getProperty(HippoNodeType.HIPPO_LANGUAGE).getString();
+
+                return StringUtils.equals(property, matchingProperty)
+                        && StringUtils.equals(name, matchingName)
+                        && StringUtils.equals(language, matchingLanguage);
+            }
+            return false;
+        }
     }
 
     class PropertyModel extends LoadableDetachableModel<String> {
@@ -197,37 +239,24 @@ public class TypeTranslator extends NodeTypeModelWrapper {
 
         @Override
         protected String load() {
-            JcrNodeModel nodeModel = getNodeModel();
-            if (nodeModel != null) {
-                Node node = nodeModel.getNode();
-                if (node != null) {
-                    try {
-                        if (node.isNodeType(HippoNodeType.NT_TRANSLATED)) {
-                            Locale locale = Session.get().getLocale();
-                            NodeIterator nodes = node.getNodes(HippoNodeType.HIPPO_TRANSLATION);
-                            while (nodes.hasNext()) {
-                                Node child = nodes.nextNode();
-                                if (child.isNodeType(HippoNodeType.NT_TRANSLATION) && child.hasProperty(HippoNodeType.HIPPO_PROPERTY)) {
-                                    if (child.getProperty(HippoNodeType.HIPPO_PROPERTY).getString().equals(propertyName)) {
-                                        String language = child.getProperty(HippoNodeType.HIPPO_LANGUAGE).getString();
-                                        if (locale.getLanguage().equals(language)) {
-                                            return child.getProperty(HippoNodeType.HIPPO_MESSAGE).getString();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } catch (RepositoryException ex) {
-                        log.error(ex.getMessage());
-                    }
-                }
+            String translatedName = translate(propertyName);
+            if (StringUtils.isNotEmpty(translatedName)) {
+                return translatedName;
             }
-            int colonIndex = propertyName.indexOf(":");
-            if (colonIndex != -1 && colonIndex + 1 < propertyName.length()) {
-                return propertyName.substring(colonIndex + 1);
-            } else {
-                return propertyName;
+
+            // fallback to old translation mechanism
+            translatedName = translateProperty(propertyName);
+            if (StringUtils.isNotEmpty(translatedName)) {
+                return translatedName;
             }
+
+            // use caption as the last resort
+            final String captionPropertyName = getCaptionProperty(propertyName);
+            if (StringUtils.isNotEmpty(captionPropertyName)) {
+                return captionPropertyName;
+            }
+
+            return getShortName(propertyName);
         }
 
         @Override
@@ -235,6 +264,106 @@ public class TypeTranslator extends NodeTypeModelWrapper {
             super.detach();
             TypeTranslator.this.detach();
         }
+
     }
 
+    /**
+     * Translate field name using old i18n mechanism with 'hippo:translation' nodes directly under the doc-type node, i.e.
+     * <code>/hippo:namespaces/${projectName}/${docType}/hippo:translation[X]</code>
+     *
+     * @deprecated It's recommended to use the new i18n translation mechanism for field name in {@link #translate(String)}
+     * @return
+     */
+    @Deprecated
+    private String translateProperty(final String propertyName) {
+        JcrNodeModel nodeModel = getNodeModel();
+        if (nodeModel == null) {
+            return null;
+        }
+        Node node = nodeModel.getNode();
+        if (node == null) {
+            return null;
+        }
+        try {
+            if (node.isNodeType(HippoNodeType.NT_TRANSLATED)) {
+                String matchingLanguage = Session.get().getLocale().getLanguage();
+                NodeIterator nodes = node.getNodes(HippoNodeType.HIPPO_TRANSLATION);
+                while (nodes.hasNext()) {
+                    Node child = nodes.nextNode();
+                    if (findTranslationNode(child, propertyName, matchingLanguage)) {
+                        return child.getProperty(HippoNodeType.HIPPO_MESSAGE).getString();
+                    }
+                }
+            }
+        } catch (RepositoryException ex) {
+            log.error(ex.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Translate field name using the new i18n field name translation mechanism, i.e. the translator node of type
+     * 'frontend:plugin' at <code>/hippo:namespaces/${projectName}/${docType}/editor:templates/_default_/translator</code>
+     *
+     * @param propertyName
+     * @return
+     */
+    protected String translate(final String propertyName){
+        if (translations == null){
+            attach();
+            try {
+                Node docTypeNode = nodeModel.getNode();
+                if (docTypeNode != null) {
+                    translations = TranslatorUtils.getTranslationsConfig(docTypeNode);
+                }
+            } catch (TranslatorException e) {
+                log.debug("Cannot retrieve i18n translation configuration", e);
+            }
+        }
+
+        final String shortName = getShortName(propertyName);
+        IModel model = TranslatorUtils.getTranslatedModel(translations, TranslatorUtils.getCriteria(shortName));
+        return (model != null) ? (String) model.getObject() : null;
+    }
+
+    private String getCaptionProperty(final String propertyName) {
+        final String shortName = getShortName(propertyName);
+        JcrNodeModel nodeModel = getNodeModel();
+        if (nodeModel == null) {
+            return null;
+        }
+        try {
+            final Node templateNode = TranslatorUtils.getTemplateNode(nodeModel.getObject());
+            Node fieldTypeNode = templateNode.getNode(shortName);
+            if (fieldTypeNode != null && fieldTypeNode.isNodeType(FrontendNodeType.NT_PLUGIN)) {
+                return fieldTypeNode.getProperty(TranslatorUtils.CAPTION_PROPERTY).getString();
+            } else {
+                log.debug("Cannot find the field node type '{}'", propertyName);
+            }
+        } catch (TranslatorException | RepositoryException e) {
+            log.debug("Cannot retrieve caption property of the field '{}'", propertyName, e);
+        }
+        return null;
+    }
+
+    private static String getShortName(final String name) {
+        int colonIndex = name.indexOf(":");
+        if (colonIndex != -1 && colonIndex + 1 < name.length()) {
+            return name.substring(colonIndex + 1);
+        } else {
+            return name;
+        }
+    }
+
+    private static boolean findTranslationNode(final Node node, final String matchingProperty, final String matchingLanguage) throws RepositoryException {
+        if (node.isNodeType(HippoNodeType.NT_TRANSLATION)
+                && node.hasProperty(HippoNodeType.HIPPO_PROPERTY)
+                && node.hasProperty(HippoNodeType.HIPPO_LANGUAGE)) {
+
+            String property = node.getProperty(HippoNodeType.HIPPO_PROPERTY).getString();
+            String language = node.getProperty(HippoNodeType.HIPPO_LANGUAGE).getString();
+            return StringUtils.equals(property, matchingProperty) && StringUtils.equals(matchingLanguage, language);
+        }
+        return false;
+    }
 }
