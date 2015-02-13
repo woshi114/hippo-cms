@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.Plugin;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
@@ -85,10 +86,13 @@ public class HtmlCleanerPlugin extends Plugin implements IHtmlCleanerService {
 
     @Override
     public String clean(final String value) throws Exception {
+        if (StringUtils.isEmpty(value)){
+            return StringUtils.EMPTY;
+        }
         HtmlCleaner cleaner = createCleaner();
         final TagNode node = cleaner.clean(value);
         if (filter(node) == null) {
-            return "";
+            return StringUtils.EMPTY;
         }
         return serialize(node, cleaner.getProperties());
     }
