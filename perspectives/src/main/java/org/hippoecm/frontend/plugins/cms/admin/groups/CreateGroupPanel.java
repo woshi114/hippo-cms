@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class CreateGroupPanel extends AdminBreadCrumbPanel {
         FormComponent fc;
         fc = new RequiredTextField("groupname");
         fc.add(StringValidator.minimumLength(2));
-        fc.add(new GroupValidator());
+        fc.add(new GroupnameValidator());
         form.add(fc);
         
         form.add(new TextField("description"));
@@ -117,7 +117,7 @@ public class CreateGroupPanel extends AdminBreadCrumbPanel {
         }.setDefaultFormProcessing(false));
     }
 
-    class GroupValidator extends StringValidator {
+    class GroupnameValidator extends StringValidator {
         private static final long serialVersionUID = 1L;
 
         @Override
@@ -126,7 +126,7 @@ public class CreateGroupPanel extends AdminBreadCrumbPanel {
 
             String groupname = (String) validatable.getValue();
             if (Group.exists(groupname)) {
-                validatable.error(new ValidationError(this, "GroupnameValidator.exists"));
+                validatable.error(new ValidationError(this, "exists"));
             }
         }
     }
