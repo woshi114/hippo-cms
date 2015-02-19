@@ -288,23 +288,39 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             typeComponent = new Label("type", "default").setVisible(false);
         }
 
-        final AbstractDialog dialog = newUploadDialog();
+        final IPluginConfig pluginConfig = getPluginConfig();
+        final FileUploadWidgetSettings settings = new FileUploadWidgetSettings(pluginConfig);
+
+        final AbstractDialog dialog;
+        if (!settings.isFlashUploadEnabled() && settings.isJSMultiSelectionsEnabled()){
+            // use the new jquery multi-selection file upload dialog, for IE10+ and modern FF, Chrome.
+            dialog = newJQueryUploadDialog();
+        } else {
+            // use the old file-upload approach, including the flash-based and the single-selection file
+            // that is compatible with IE8, IE9
+            dialog = newUploadDialog();
+        }
 
         dialog.add(typeComponent);
         return dialog;
     }
 
+    /**
+     * Override this method to extend uploading dialog
+     * @return
+     */
     protected AbstractDialog newUploadDialog() {
-        final IPluginConfig pluginConfig = getPluginConfig();
-        final FileUploadWidgetSettings settings = new FileUploadWidgetSettings(pluginConfig);
-        if (!settings.isFlashUploadEnabled() && settings.isJSMultiSelectionsEnabled()){
-            // use the new jquery multi-selection file upload dialog, for IE10+ and modern FF, Chrome.
-            return new JQueryUploadDialog(getPluginContext(), pluginConfig);
-        } else {
-            // use the old file-upload approach, including the flash-based and the single-selection file
-            // that is compatible with IE8, IE9
-            return new UploadDialog(getPluginContext(), pluginConfig);
-        }
+        return new UploadDialog(getPluginContext(), getPluginConfig());
+    }
+
+    /**
+     * @deprecated this method is only available since version 2.26.14 and will be removed since version 2.28.00.
+     * To override uploading dialog on CMS 2.28.xx, use {@link #newUploadDialog()}
+     * @return
+     */
+    @Deprecated
+    protected AbstractDialog newJQueryUploadDialog() {
+        return new JQueryUploadDialog(getPluginContext(), getPluginConfig());
     }
 
     protected StringCodec getLocalizeCodec() {
