@@ -111,7 +111,7 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
     public class JQueryUploadDialog extends JQueryFileUploadDialog {
         private static final long serialVersionUID = 1L;
 
-        protected JQueryUploadDialog(final IPluginContext pluginContext, final IPluginConfig pluginConfig) {
+        public JQueryUploadDialog(final IPluginContext pluginContext, final IPluginConfig pluginConfig) {
             super(pluginContext, pluginConfig);
         }
 
@@ -288,21 +288,23 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             typeComponent = new Label("type", "default").setVisible(false);
         }
 
-        final IPluginConfig pluginConfig = getPluginConfig();
-        final FileUploadWidgetSettings settings = new FileUploadWidgetSettings(pluginConfig);
-
-        final AbstractDialog dialog;
-        if (!settings.isFlashUploadEnabled() && settings.isJSMultiSelectionsEnabled()){
-            // use the new jquery multi-selection file upload dialog, for IE10+ and modern FF, Chrome.
-            dialog = new JQueryUploadDialog(getPluginContext(), pluginConfig);
-        } else {
-            // use the old file-upload approach, including the flash-based and the single-selection file
-            // that is compatible with IE8, IE9
-            dialog = new UploadDialog(getPluginContext(), pluginConfig);
-        }
+        final AbstractDialog dialog = newUploadDialog();
 
         dialog.add(typeComponent);
         return dialog;
+    }
+
+    protected AbstractDialog newUploadDialog() {
+        final IPluginConfig pluginConfig = getPluginConfig();
+        final FileUploadWidgetSettings settings = new FileUploadWidgetSettings(pluginConfig);
+        if (!settings.isFlashUploadEnabled() && settings.isJSMultiSelectionsEnabled()){
+            // use the new jquery multi-selection file upload dialog, for IE10+ and modern FF, Chrome.
+            return new JQueryUploadDialog(getPluginContext(), pluginConfig);
+        } else {
+            // use the old file-upload approach, including the flash-based and the single-selection file
+            // that is compatible with IE8, IE9
+            return new UploadDialog(getPluginContext(), pluginConfig);
+        }
     }
 
     protected StringCodec getLocalizeCodec() {
