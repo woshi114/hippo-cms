@@ -158,7 +158,7 @@ class ParameterInUrlController extends UrlControllerBehavior implements IObserve
             if (jcrPath != null) {
                 JcrNodeModel nodeModel = new JcrNodeModel(jcrPath);
 
-                Node jcrNode = nodeModel.getNode();
+                final Node jcrNode = nodeModel.getNode();
                 if (jcrNode != null) {
                     if (browseService != null) {
                         browseService.browse(nodeModel);
