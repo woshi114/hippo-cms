@@ -167,7 +167,7 @@ class ParameterInUrlController extends UrlControllerBehavior implements IObserve
                     }
 
                     if (!jcrNode.isNodeType(HippoStdNodeType.NT_FOLDER) && !jcrNode.isNodeType(HippoStdNodeType.NT_DIRECTORY)
-                           && !jcrNode.isNodeType("rep:root")) {
+                           && !jcrNode.isNodeType("rep:root") && !jcrNode.getPath().matches("\\/hippo:namespaces(\\/)?")) {
                         if (editorMgr != null) {
                             IEditor editor = editorMgr.getEditor(nodeModel);
                             try {
