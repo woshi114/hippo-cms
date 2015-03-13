@@ -20,19 +20,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.markup.html.form.Button;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.upload.FileUploadException;
 import org.apache.wicket.util.value.IValueMap;
 import org.hippoecm.frontend.dialog.AbstractDialog;
 import org.hippoecm.frontend.dialog.DialogConstants;
-import org.hippoecm.frontend.plugins.upload.FileUploadViolationException;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
+import org.hippoecm.frontend.plugins.upload.FileUploadViolationException;
 import org.hippoecm.frontend.plugins.yui.upload.validation.DefaultUploadValidationService;
 import org.hippoecm.frontend.plugins.yui.upload.validation.FileUploadValidationService;
 import org.slf4j.Logger;
@@ -58,7 +56,7 @@ public abstract class JQueryFileUploadDialog extends AbstractDialog {
     private FileUploadWidget fileUploadWidget;
 
     private final FileUploadValidationService validator;
-    private final Button ajaxOkButton;
+    private final Button uploadButton;
 
     protected JQueryFileUploadDialog(final IPluginContext pluginContext, final IPluginConfig pluginConfig){
         setOutputMarkupId(true);
@@ -67,29 +65,15 @@ public abstract class JQueryFileUploadDialog extends AbstractDialog {
         setOkVisible(false);
         setOkEnabled(false);
 
-        // create custom OK button to call javascript uploading
-        ajaxOkButton = new AjaxButton(DialogConstants.BUTTON, new StringResourceModel("ok", this, null)){
-            private boolean isUploading = false;
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                log.debug("Submitting files");
-                isUploading = true;
-            }
-
+        uploadButton = new AjaxButton(DialogConstants.BUTTON, new StringResourceModel("button-upload-label", this, null)){
             @Override
             protected String getOnClickScript(){
                 return UPLOADING_SCRIPT;
             }
-            @Override
-            public boolean isEnabled(){
-                return !isUploading;
-            }
         };
-        ajaxOkButton.setEnabled(true);
-        ajaxOkButton.setVisible(true);
-        ajaxOkButton.add(new InputBehavior(new KeyType[]{KeyType.Enter}, EventType.click));
-        this.addButton(ajaxOkButton);
+        uploadButton.add(new InputBehavior(new KeyType[]{KeyType.Enter}, EventType.click));
+        uploadButton.setOutputMarkupId(true);
+        this.addButton(uploadButton);
 
         this.pluginContext = pluginContext;
         this.pluginConfig = pluginConfig;
