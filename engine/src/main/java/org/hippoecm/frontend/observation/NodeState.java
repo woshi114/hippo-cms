@@ -207,6 +207,13 @@ class NodeState {
             }
         }
 
+        List<String> renamed = NodeStateUtil.renamed(this.nodes, newNodes);
+        if (renamed != null){
+            for (String child : renamed) {
+                events.add(new NodeEvent(newNodes.get(child), Event.NODE_MOVED));
+            }
+        }
+
         return events.iterator();
     }
 
