@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -572,5 +572,25 @@ public abstract class AbstractFieldPlugin<P extends Item, C extends IModel> exte
 
     public int getNumberOfItems() {
         return provider.size();
+    }
+
+    /**
+     * Returns a key consisting of the super's cluster (tab) based translator id, plus the document type.
+     * The document type is added to not get translations mixed up in the Wicket cache for fields of different document
+     * types with the same name (e.g. title).
+     */
+    @Override
+    public String getResourceProviderKey() {
+        String key = super.getResourceProviderKey();
+        if (helper.getDocumentType() != null) {
+            key = (key == null) ? "" : (key + ".");
+            key += helper.getDocumentType().getName();
+            if (log.isDebugEnabled()) {
+                log.debug("For field {}/{}, enriched resource provider key with doc type, resulting in {}",
+                        new String[]{helper.getDocumentType().getName(),
+                                (helper.getField() != null) ? helper.getField().getName() : "[unknown]", key});
+            }
+        }
+        return key;
     }
 }
