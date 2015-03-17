@@ -80,7 +80,7 @@ class ParameterInUrlController extends UrlControllerBehavior implements IObserve
 
         String jcrPath = getJcrPath(parameters);
         if(jcrPath != null){
-            IEditor.Mode mode = IEditor.Mode.VIEW;
+            IEditor.Mode mode = null;
             final String modeValue = parameters.get(MODE_PARAM);
             if (modeValue != null && !modeValue.isEmpty()) {
                 if (modeValue.equals(MODE_VALUE_EDIT)) {
@@ -174,7 +174,9 @@ class ParameterInUrlController extends UrlControllerBehavior implements IObserve
                                 if (editor == null) {
                                     editor = editorMgr.openPreview(nodeModel);
                                 }
-                                editor.setMode(mode);
+                                if (mode != null) {
+                                    editor.setMode(mode);
+                                }
                             } catch (EditorException e) {
                                 log.info("Could not open editor for " + jcrPath);
                             } catch (ServiceException e) {
