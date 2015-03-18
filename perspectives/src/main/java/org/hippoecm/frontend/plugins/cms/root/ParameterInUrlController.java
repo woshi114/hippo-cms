@@ -159,7 +159,7 @@ class ParameterInUrlController extends UrlControllerBehavior implements IObserve
                 JcrNodeModel nodeModel = new JcrNodeModel(jcrPath);
 
                 final Node jcrNode = nodeModel.getNode();
-                if (jcrNode != null) {
+                if (jcrNode != null && !jcrNode.getPath().matches("\\/hippo:namespaces(\\/)?")) {
                     if (browseService != null) {
                         browseService.browse(nodeModel);
                     } else {
@@ -167,7 +167,7 @@ class ParameterInUrlController extends UrlControllerBehavior implements IObserve
                     }
 
                     if (!jcrNode.isNodeType(HippoStdNodeType.NT_FOLDER) && !jcrNode.isNodeType(HippoStdNodeType.NT_DIRECTORY)
-                           && !jcrNode.isNodeType("rep:root") && !jcrNode.getPath().matches("\\/hippo:namespaces(\\/)?")) {
+                           && !jcrNode.isNodeType("rep:root")) {
                         if (editorMgr != null) {
                             IEditor editor = editorMgr.getEditor(nodeModel);
                             try {
@@ -185,7 +185,7 @@ class ParameterInUrlController extends UrlControllerBehavior implements IObserve
                         }
                     }
                 } else {
-                    log.debug("Cannot browse to '{}': node does not exist", jcrPath);
+                    log.debug("Cannot browse to '{}': node does not exist or is not allowed", jcrPath);
                 }
             }
         } catch (RepositoryException e) {
