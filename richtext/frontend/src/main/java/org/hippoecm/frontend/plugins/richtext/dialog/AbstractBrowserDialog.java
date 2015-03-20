@@ -18,6 +18,7 @@ package org.hippoecm.frontend.plugins.richtext.dialog;
 
 import javax.jcr.Node;
 
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.value.IValueMap;
@@ -68,7 +69,7 @@ public abstract class AbstractBrowserDialog<T extends RichTextEditorDocumentLink
 
     @Override
     protected FeedbackPanel newFeedbackPanel(final String id) {
-        return new FeedbackPanel(id) {{
+        return new FeedbackPanel(id, new ContainerFeedbackMessageFilter(this)) {{
             setOutputMarkupId(true);
         }};
     }

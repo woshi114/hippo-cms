@@ -1,5 +1,5 @@
 /**
- * Copyright 2012-2013 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2012-2015 Hippo B.V. (http://www.onehippo.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
+import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.RadioGroup;
@@ -78,8 +79,7 @@ public class UpdaterEditor extends Panel {
         this.container = container;
 
         form = new Form("updater-form");
-
-        feedback = new FeedbackPanel("feedback");
+        feedback = new FeedbackPanel("feedback", new ContainerFeedbackMessageFilter(this));
         feedback.setOutputMarkupId(true);
         form.add(feedback);
 

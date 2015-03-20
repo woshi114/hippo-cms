@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.ValueFormatException;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.event.IEvent;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.IFeedbackMessageFilter;
 import org.apache.wicket.markup.head.CssHeaderItem;
@@ -39,7 +40,6 @@ import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
-import org.hippoecm.frontend.PluginRequestTarget;
 import org.hippoecm.frontend.i18n.model.NodeTranslator;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
@@ -59,6 +59,7 @@ import org.hippoecm.frontend.validation.IValidationListener;
 import org.hippoecm.frontend.validation.IValidationResult;
 import org.hippoecm.frontend.validation.IValidationService;
 import org.hippoecm.frontend.validation.Violation;
+import org.hippoecm.frontend.widgets.UpdateFeedbackInfo;
 import org.hippoecm.repository.translation.HippoTranslationNodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,7 +121,11 @@ public class EditPerspective extends Perspective {
                 public void onValidation(IValidationResult result) {
                     AjaxRequestTarget target = RequestCycle.get().find(AjaxRequestTarget.class);
                     if (target != null) {
-                        renderFeedbackIfNeeded(target);
+                        boolean hasMessage = false;
+                        if (result != null && result.getViolations() != null){
+                            hasMessage = !result.getViolations().isEmpty();
+                        }
+                        renderFeedbackIfNeeded(target, hasMessage);
                     }
                 }
 
@@ -138,37 +143,38 @@ public class EditPerspective extends Perspective {
     }
 
     @Override
+    public void onEvent(IEvent event) {
+        // handle notified validation events from wicket fields
+        if(event.getPayload() instanceof UpdateFeedbackInfo) {
+            final UpdateFeedbackInfo ufi = (UpdateFeedbackInfo) event.getPayload();
+            renderFeedbackIfNeeded(ufi.getTarget(), feedback.anyMessage());
+        }
+    }
+
+    @Override
     public void renderHead(final IHeaderResponse response) {
         super.renderHead(response);
 
         response.render(CssHeaderItem.forReference(PERSPECTIVE_SKIN));
     }
 
-    @Override
-    public void render(PluginRequestTarget target) {
-        super.render(target);
-        renderFeedbackIfNeeded(target);
-    }
-
-    private void renderFeedbackIfNeeded(final AjaxRequestTarget target) {
-        boolean hasMessage = feedback.anyMessage();
-        UnitSettings topSettings = wfSettings.getUnit("top");
-        boolean updateTop = false;
-        if (hasMessage && !feedbackShown) {
-            topSettings.setHeight(Integer.valueOf(
-                    getPluginConfig().getAsInteger("feedback.height", 50) + Integer.parseInt(topHeight)).toString());
-            feedbackShown = true;
-            updateTop = true;
-        } else if (!hasMessage && feedbackShown) {
-            topSettings.setHeight(topHeight);
-            feedbackShown = false;
-            updateTop = true;
-        }
-        if (updateTop && isVisibleInHierarchy() && target != null) {
-            String topId = topSettings.getId().getElementId();
-            target.appendJavaScript("YAHOO.hippo.LayoutManager.findLayoutUnit(YAHOO.util.Dom.get('" + topId
-                    + "')).set('height', " + topSettings.getHeight() + ");");
-            target.add(feedback);
+    private void renderFeedbackIfNeeded(final AjaxRequestTarget target, final boolean hasFeedbackMessage) {
+        if (target != null && isVisibleInHierarchy()) {
+            UnitSettings topSettings = wfSettings.getUnit("top");
+            if (hasFeedbackMessage) {
+                topSettings.setHeight(Integer.valueOf(
+                        getPluginConfig().getAsInteger("feedback.height", 50) + Integer.parseInt(topHeight)).toString());
+            } else {
+                topSettings.setHeight(topHeight);
+            }
+            // only render if there is any change in the feedback panel
+            if (hasFeedbackMessage || feedbackShown) {
+                String topId = topSettings.getId().getElementId();
+                target.appendJavaScript("YAHOO.hippo.LayoutManager.findLayoutUnit(YAHOO.util.Dom.get('" + topId
+                        + "')).set('height', " + topSettings.getHeight() + ");");
+                target.add(feedback);
+            }
+            feedbackShown = hasFeedbackMessage;
         }
     }
 

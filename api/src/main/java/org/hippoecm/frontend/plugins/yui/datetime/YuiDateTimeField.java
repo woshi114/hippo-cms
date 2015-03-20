@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.datetime.DateConverter;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
+import org.apache.wicket.event.Broadcast;
 import org.apache.wicket.extensions.yui.calendar.DatePicker;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.head.CssHeaderItem;
@@ -42,6 +43,7 @@ import org.apache.wicket.request.resource.CssResourceReference;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.hippoecm.frontend.editor.resources.CmsEditorHeaderItem;
 import org.hippoecm.frontend.plugins.standards.image.CachingImage;
+import org.hippoecm.frontend.widgets.UpdateFeedbackInfo;
 import org.joda.time.DateTimeFieldType;
 import org.joda.time.DateTimeZone;
 import org.joda.time.MutableDateTime;
@@ -160,6 +162,12 @@ public class YuiDateTimeField extends DateTimeField {
                 @Override
                 protected void onUpdate(AjaxRequestTarget target) {
                     updateDateTime();
+                    send(YuiDateTimeField.this, Broadcast.BUBBLE, new UpdateFeedbackInfo(target));
+                }
+
+                protected void onError(AjaxRequestTarget target, RuntimeException e){
+                    super.onError(target, e);
+                    send(YuiDateTimeField.this, Broadcast.BUBBLE, new UpdateFeedbackInfo(target));
                 }
             });
         }

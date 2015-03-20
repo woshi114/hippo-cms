@@ -373,9 +373,7 @@ public class ImageBrowserDialog extends AbstractBrowserDialog<RichTextEditorImag
                         final String localName = getLocalizeCodec().encode(upload.getClientFileName());
                         List<String> errors = e.getViolationMessages();
                         final String errorMessage = StringUtils.join(errors, ";");
-                        String errMsg = getExceptionTranslation(e, localName, errorMessage).getObject();
-                        log.warn(errMsg);
-                        ImageBrowserDialog.this.error(errMsg);
+                        error(getExceptionTranslation(e, localName, errorMessage).getObject());
 
                         if (log.isDebugEnabled()) {
                             log.error("Failed to validate uploading file '{}': {}", localName, errorMessage);
