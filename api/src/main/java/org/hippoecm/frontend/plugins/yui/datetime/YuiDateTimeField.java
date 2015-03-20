@@ -84,6 +84,7 @@ public class YuiDateTimeField extends DateTimeField {
 
         if (settings == null) {
             settings = new YuiDatePickerSettings();
+            settings.setLanguage(getLocale().getLanguage());
         }
 
         this.settings = settings;
