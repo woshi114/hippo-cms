@@ -491,8 +491,4 @@ public class PluginUserSession extends UserSession {
         return main.getRepository();
     }
 
-    public boolean isLoggedInUser() {
-        return getJcrSession().getUserID().equals(fallbackCredentials.getUsername());
-    }
-
 }

@@ -95,9 +95,9 @@ public class RememberMeLoginPlugin extends LoginPlugin {
     private static final Logger log = LoggerFactory.getLogger(RememberMeLoginPlugin.class);
 
     /** Algorithm to use for creating the passkey secret.
-        Intentionally a relative weak algorithm, as this whole procedure isn't
-        too safe to begin with.
-    */
+     Intentionally a relative weak algorithm, as this whole procedure isn't
+     too safe to begin with.
+     */
     private static final String ALGORITHM = "MD5";
     private static final String EDITION_PROPERTY = "edition";
 
@@ -127,25 +127,23 @@ public class RememberMeLoginPlugin extends LoginPlugin {
     @Override
     protected void onInitialize() {
         if (!PageExpiredErrorPage.class.isInstance(getPage())) {
-            final PluginUserSession userSession = (PluginUserSession) getSession();
-            if (!userSession.isLoggedInUser()) {
-                // Check for remember me cookie
-                if ((WebApplicationHelper.retrieveWebRequest().getCookie(REMEMBERME_COOKIE_NAME) != null)
-                        && (WebApplicationHelper.retrieveWebRequest().getCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME) != null)
-                        && (WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
-                        .getAttribute(HAL_REQUEST_ATTRIBUTE_NAME) == null)) {
+            // Check for remember me cookie
+            if ((WebApplicationHelper.retrieveWebRequest().getCookie(REMEMBERME_COOKIE_NAME) != null)
+                    && (WebApplicationHelper.retrieveWebRequest().getCookie(HIPPO_AUTO_LOGIN_COOKIE_NAME) != null)
+                    && (WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
+                    .getAttribute(HAL_REQUEST_ATTRIBUTE_NAME) == null)) {
 
+                WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
+                        .setAttribute(HAL_REQUEST_ATTRIBUTE_NAME, true);
+                try {
+                    tryToAutoLoginWithRememberMe();
+                } finally {
                     WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
-                            .setAttribute(HAL_REQUEST_ATTRIBUTE_NAME, true);
-                    try {
-                        tryToAutoLoginWithRememberMe();
-                    } finally {
-                        WebApplicationHelper.retrieveWebRequest().getHttpServletRequest()
-                                .removeAttribute(HAL_REQUEST_ATTRIBUTE_NAME);
-                    }
+                            .removeAttribute(HAL_REQUEST_ATTRIBUTE_NAME);
                 }
             }
         }
+
         super.onInitialize();
     }
 
