@@ -119,6 +119,7 @@ public abstract class MultiFileUploadDialog<T> extends AbstractDialog<T> {
                 closeDialog();
             }
         };
+        closeButton.setDefaultFormProcessing(false);
         closeButton.setEnabled(false);
         closeButton.setVisible(false);
         closeButton.add(new InputBehavior(new KeyType[]{KeyType.Escape}, EventType.click));
