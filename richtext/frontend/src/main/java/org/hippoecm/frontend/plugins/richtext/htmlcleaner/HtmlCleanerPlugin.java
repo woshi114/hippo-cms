@@ -49,6 +49,7 @@ public class HtmlCleanerPlugin extends Plugin implements IHtmlCleanerService {
     private static final String CHARSET = "charset";
     private static final String DEFAULT_CHARSET = "UTF-8";
     private static final String SERIALIZER = "serializer";
+    private static final String SIMPLE = "simple";
     private static final String COMPACT = "compact";
     private static final String PRETTY = "pretty";
     private static final String OMIT_COMMENTS = "omitComments";
@@ -64,7 +65,7 @@ public class HtmlCleanerPlugin extends Plugin implements IHtmlCleanerService {
     public HtmlCleanerPlugin(final IPluginContext context, final IPluginConfig config) {
         super(context, config);
         charset = config.getString(CHARSET, DEFAULT_CHARSET);
-        serializer = config.getString(SERIALIZER, COMPACT);
+        serializer = config.getString(SERIALIZER, SIMPLE);
         omitComments = config.getBoolean(OMIT_COMMENTS);
         final IPluginConfig whitelistConfig = config.getPluginConfig(WHITELIST);
         if (whitelistConfig != null) {

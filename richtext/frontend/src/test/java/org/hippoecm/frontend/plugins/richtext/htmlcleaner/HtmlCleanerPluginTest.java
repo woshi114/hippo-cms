@@ -17,11 +17,9 @@ package org.hippoecm.frontend.plugins.richtext.htmlcleaner;
 
 import javax.jcr.Node;
 
-import org.apache.wicket.util.io.IClusterable;
 import org.easymock.EasyMock;
 import org.hippoecm.frontend.PluginTest;
 import org.hippoecm.frontend.model.JcrNodeModel;
-import org.hippoecm.frontend.plugin.IPlugin;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugin.config.impl.JavaPluginConfig;
@@ -30,7 +28,6 @@ import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
 import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -92,7 +89,7 @@ public class HtmlCleanerPluginTest extends PluginTest {
 
         String html = htmlCleanerPlugin.clean("simple text <p>&nbsp;</p>");
         log.debug(html);
-        assertEquals("simple text \n<p>&nbsp;</p>", html);
+        assertEquals("simple text <p>&nbsp;</p>", html);
     }
 
     @Test

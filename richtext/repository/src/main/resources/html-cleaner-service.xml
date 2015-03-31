@@ -27,9 +27,6 @@
   <sv:property sv:name="charset" sv:type="String">
     <sv:value>UTF-8</sv:value>
   </sv:property>
-  <sv:property sv:name="serializer" sv:type="String">
-    <sv:value>compact</sv:value>
-  </sv:property>
   <sv:property sv:name="omitComments" sv:type="String">
     <sv:value>false</sv:value>
   </sv:property>
