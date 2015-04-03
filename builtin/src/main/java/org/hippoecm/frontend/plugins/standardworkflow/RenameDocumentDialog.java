@@ -1,5 +1,5 @@
 /*
- *  Copyright 2012-2014 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2012-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,118 +17,50 @@ package org.hippoecm.frontend.plugins.standardworkflow;
 
 import java.util.Locale;
 
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
-import org.apache.wicket.ajax.attributes.ThrottlingSettings;
-import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.util.string.Strings;
-import org.apache.wicket.util.time.Duration;
 import org.apache.wicket.util.value.IValueMap;
 import org.hippoecm.addon.workflow.AbstractWorkflowDialog;
 import org.hippoecm.addon.workflow.IWorkflowInvoker;
+import org.hippoecm.addon.workflow.WorkflowDescriptorModel;
 import org.hippoecm.frontend.dialog.DialogConstants;
-import org.hippoecm.frontend.plugins.standards.list.resolvers.CssClassAppender;
+import org.hippoecm.frontend.plugins.standardworkflow.components.NameUriField;
+import org.hippoecm.frontend.plugins.standardworkflow.validators.RenameDocumentValidator;
 import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.repository.api.StringCodec;
 
 public class RenameDocumentDialog extends AbstractWorkflowDialog<RenameDocumentArguments> {
 
-    private IModel<String> title;
-    private TextField nameComponent;
-    private TextField uriComponent;
-    private boolean uriModified;
+    private final IModel<String> title;
+    private final NameUriField nameUriContainer;
     private final IModel<StringCodec> nodeNameCodecModel;
 
-    public RenameDocumentDialog(RenameDocumentArguments renameDocumentModel, IModel<String> title, 
-                                IWorkflowInvoker invoker, IModel<StringCodec> nodeNameCodec) {
+    public RenameDocumentDialog(RenameDocumentArguments renameDocumentModel, IModel<String> title,
+                                IWorkflowInvoker invoker, IModel<StringCodec> nodeNameCodec, final WorkflowDescriptorModel workflowDescriptorModel) {
         super(Model.of(renameDocumentModel), invoker);
         this.title = title;
         this.nodeNameCodecModel = nodeNameCodec;
 
-        final PropertyModel<String> nameModel = new PropertyModel<>(renameDocumentModel, "targetName");
-        final PropertyModel<String> uriModel = new PropertyModel<>(renameDocumentModel, "uriName");
+        final String originalUriName = renameDocumentModel.getUriName();
+        final String originalTargetName = renameDocumentModel.getTargetName();
 
-        String s1 = nameModel.getObject();
-        String s2 = uriModel.getObject();
-        uriModified = !s1.equals(s2);
-
-        nameComponent = new TextField<>("name", nameModel);
-        nameComponent.setRequired(true);
-        nameComponent.setLabel(new StringResourceModel("name-label", this, null));
-        nameComponent.add(new OnChangeAjaxBehavior() {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                if (!uriModified) {
-                    uriModel.setObject(getNodeNameCodec().encode(nameModel.getObject()));
-                    target.add(uriComponent);
-                }
-            }
-
-            @Override
-            protected void updateAjaxAttributes(final AjaxRequestAttributes attributes) {
-                super.updateAjaxAttributes(attributes);
-                attributes.setThrottlingSettings(new ThrottlingSettings(RenameDocumentDialog.this.getPath(), Duration.milliseconds(500)));
-            }
-        });
-
-        nameComponent.setOutputMarkupId(true);
-        setFocus(nameComponent);
-        add(nameComponent);
-
-        uriComponent = new TextField<String>("uriinput", uriModel) {
-            @Override
-            public boolean isEnabled() {
-                return uriModified;
-            }
-        };
-
-        uriComponent.setLabel(new StringResourceModel("url-label", this, null));
-        add(uriComponent);
-
-        uriComponent.add(new CssClassAppender(new AbstractReadOnlyModel<String>() {
-            @Override
-            public String getObject() {
-                return uriModified ? "grayedin" : "grayedout";
-            }
-        }));
-        uriComponent.setOutputMarkupId(true);
-        uriComponent.setRequired(true);
-
-        AjaxLink<Boolean> uriAction = new AjaxLink<Boolean>("uriAction") {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                uriModified = !uriModified;
-                if (!uriModified) {
-                    uriModel.setObject(Strings.isEmpty(nameModel.getObject()) ? "" : getNodeNameCodec().encode(
-                            nameModel.getObject()));
-                    uriComponent.modelChanged();
-                } else {
-                    target.focusComponent(uriComponent);
-                }
-                target.add(RenameDocumentDialog.this);
-            }
-        };
-        uriAction.add(new Label("uriActionLabel", new AbstractReadOnlyModel<String>() {
-            @Override
-            public String getObject() {
-                return uriModified ? getString("url-reset") : getString("url-edit");
-            }
-        }));
-        add(uriAction);
+        final boolean uriModified = !StringUtils.equals(originalTargetName, originalUriName);
+        add(nameUriContainer = new NameUriField("name-url", this.nodeNameCodecModel, originalUriName, originalTargetName, uriModified));
 
         final Locale cmsLocale = UserSession.get().getLocale();
         final RenameMessage message = new RenameMessage(cmsLocale, renameDocumentModel.getLocalizedNames());
         if (message.shouldShow()) {
             warn(message.forFolder());
         }
+
+        add(new RenameDocumentValidator(nameUriContainer, workflowDescriptorModel) {
+            @Override
+            protected void showError(final String key, final Object... parameters) {
+                error(new StringResourceModel(key, RenameDocumentDialog.this, null, parameters).getObject());
+            }
+        });
     }
 
     @Override
@@ -141,8 +73,12 @@ public class RenameDocumentDialog extends AbstractWorkflowDialog<RenameDocumentA
         return DialogConstants.MEDIUM;
     }
 
-    protected StringCodec getNodeNameCodec() {
-        return nodeNameCodecModel.getObject();
+    @Override
+    protected void onOk() {
+        RenameDocumentArguments renameDocumentArguments = getModel().getObject();
+        renameDocumentArguments.setUriName(nameUriContainer.getUrl());
+        renameDocumentArguments.setTargetName(nameUriContainer.getName());
+        super.onOk();
     }
 
     @Override

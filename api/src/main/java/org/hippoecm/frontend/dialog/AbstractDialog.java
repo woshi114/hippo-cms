@@ -19,7 +19,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -102,15 +101,13 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
             messages = null;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        protected List processMessages(final List messages) {
+        protected List<FeedbackMessage> processMessages(final List<FeedbackMessage> messages) {
             if (this.messages == null) {
                 this.messages = messages;
             }
             return this.messages;
         }
-
     }
 
     @SuppressWarnings("unchecked")
@@ -137,16 +134,15 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
                 Markup markup = MarkupFactory.get().getMarkup(AbstractDialog.this, false);
 
                 // If we found markup for this container
-                if ((markup != null) && (markup != Markup.NO_MARKUP)) {
+                if (markup != null && markup != Markup.NO_MARKUP) {
                     return markup;
                 }
 
                 return null;
-            } catch (MarkupException | MarkupNotFoundException  ex) {
-                // re-throw it. The exception contains already all the information
-                // required.
+            } catch (MarkupException | MarkupNotFoundException ex) {
+                // Re-throw it. The exception already contains all the information required.
                 throw ex;
-            }  catch (WicketRuntimeException ex) {
+            } catch (WicketRuntimeException ex) {
                 // throw exception since there is no associated markup
                 throw new MarkupNotFoundException(
                         exceptionMessage("Markup of type '" + getMarkupType().getExtension() +
@@ -220,22 +216,6 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
         }
     }
 
-    protected IModel<String> getTranslatedException(final Exception ex) {
-        String key = "exception,type=${type},message=${message}";
-        Map<String, String> details = new HashMap<>();
-        details.put("type", ex.getClass().getName());
-        details.put("message", ex.getMessage());
-        StackTraceElement[] elements = ex.getStackTrace();
-        if (elements.length > 0) {
-            StackTraceElement top = elements[0];
-            details.put("clazz", top.getClassName());
-            key += ",class=${clazz}";
-        }
-        return new StringResourceModel(key, AbstractDialog.this,
-                new Model<>((Serializable) details), ex.getLocalizedMessage());
-
-    }
-
     protected IModel<String> getExceptionTranslation(final Throwable t, final Object... parameters) {
         String key = "exception,type=${type},message=${message}";
         HashMap<String, String> details = new HashMap<>();
@@ -248,7 +228,6 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
             key += ",class=${clazz}";
         }
         return new StringResourceModel(key, AbstractDialog.this, new Model<>(details), t.getLocalizedMessage(), parameters);
-
     }
 
     protected PersistentFeedbackMessagesModel fmm;
@@ -286,6 +265,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
             log.warn("The dialog '{}' uses a feedback panel with a filter that does not extend ContainerFeedbackMessageFilter." +
                     "As a result, this dialog may show unrelated feedback messages.", getClass());
         }
+
         feedback.setOutputMarkupId(true);
         add(feedback);
 
@@ -309,7 +289,6 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
             protected void onSubmit() {
                 handleSubmit();
             }
-
         };
         ok.setKeyType(KeyType.Enter);
         buttons.add(ok);
@@ -342,7 +321,6 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
                 button.setDefaultFormProcessing(false);
                 return super.decorate(button);
             }
-
         };
         cancel.setKeyType(KeyType.Escape);
         buttons.add(cancel);
@@ -473,7 +451,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
     }
 
     protected void setOkLabel(String label) {
-        setOkLabel(new Model<>(label));
+        setOkLabel(Model.of(label));
     }
 
     protected void setOkLabel(IModel<String> label) {
@@ -493,7 +471,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
     }
 
     protected void setCancelLabel(String label) {
-        setCancelLabel(new Model<>(label));
+        setCancelLabel(Model.of(label));
     }
 
     protected void setCancelLabel(IModel<String> label) {
@@ -644,7 +622,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
             for (ButtonWrapper bw : buttons) {
                 if (bw.getKeyType() != null) {
                     // the input behavior does not support removal, so we need to do this manually
-                    target.prependJavaScript("shortcut.remove('" + bw.getKeyType() + "');\n");
+                    target.prependJavaScript("if (window['shortcut']) { shortcut.remove('" + bw.getKeyType() + "'); }\n");
                 }
             }
         }
@@ -684,6 +662,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
         if (hasFeedbackMessage()) {
             getFeedbackMessages().clear();
         }
+
         super.process(submittingComponent);
     }
 }

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LoadableDetachableModel;
 import org.apache.wicket.model.Model;
@@ -53,6 +54,7 @@ import org.hippoecm.frontend.plugin.IServiceReference;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.standardworkflow.components.LanguageField;
 import org.hippoecm.frontend.plugins.standardworkflow.components.NameUriField;
+import org.hippoecm.frontend.plugins.standardworkflow.validators.AddDocumentValidator;
 import org.hippoecm.frontend.service.IBrowseService;
 import org.hippoecm.frontend.service.IEditor;
 import org.hippoecm.frontend.service.IEditorManager;
@@ -226,7 +228,6 @@ public class FolderShortcutPlugin extends RenderPlugin {
         private LanguageField languageContainer;
 
         public Dialog(IPluginContext context, IPluginConfig config, Node folder, String defaultFolder) {
-
             if (config.containsKey("option.first")) {
                 optionSelectFirst = config.getBoolean("option.first");
             }
@@ -376,6 +377,18 @@ public class FolderShortcutPlugin extends RenderPlugin {
                 templateCategory = templates.keySet().iterator().next();
             }
             evaluateChoices();
+
+            add(new AddDocumentValidator(nameUriContainer, folderWorkflowDescriptorModel) {
+                @Override
+                protected void showError(final String key, final Object... parameters) {
+                    Dialog.this.error(new StringResourceModel(key, Dialog.this, null, parameters).getObject());
+                }
+            });
+        }
+
+        @Override
+        protected FeedbackPanel newFeedbackPanel(String id) {
+            return new FeedbackPanel(id);
         }
 
         private void evaluateChoices() {

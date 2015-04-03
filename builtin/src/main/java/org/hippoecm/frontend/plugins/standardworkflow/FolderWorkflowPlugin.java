@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009-2014 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2009-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -361,7 +361,8 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 renameDocumentModel,
                 new StringResourceModel("rename-title", this, null),
                 invoker,
-                codecModel
+                codecModel,
+                this.getModel()
         );
     }
 
@@ -375,7 +376,8 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                 translated && locale == null,
                 invoker,
                 CodecUtils.getNodeNameCodecModel(getPluginContext(), locale),
-                getLocaleProvider()
+                getLocaleProvider(),
+                this.getModel()
         );
     }
 
