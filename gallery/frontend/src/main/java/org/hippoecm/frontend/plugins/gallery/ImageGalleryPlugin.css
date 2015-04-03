@@ -16,6 +16,8 @@
 .gallery-wrapper {
     margin-left: auto;
     margin-right: auto;
+    overflow: auto;
+    height: 312px;
 }
 
 .hippo-gallery-images .hippo-list-details {
