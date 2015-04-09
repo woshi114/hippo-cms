@@ -19,19 +19,20 @@
 <html xmlns:wicket="http://wicket.apache.org/">
   <wicket:panel>
     <form wicket:id="updater-form">
-        <div wicket:id="feedback" class="hippo-modal-feedback">[info/warn/error messages]</div>
-        <div>
-            <input type="submit" value="Save" wicket:id="save-button"/>
-            <input type="submit" value="Dry run" wicket:id="dryrun-button"/>
-            <input type="submit" value="Execute" wicket:id="execute-button"/>
-            <input type="submit" value="Undo" wicket:id="undo-button"/>
-            <input type="submit" value="Stop" wicket:id="stop-button"/>
-            <input type="submit" value="Delete" wicket:id="delete-button"/>
-        </div>
-        <p>&nbsp;</p>
+      <div wicket:id="feedback" class="hippo-modal-feedback">[info/warn/error messages]</div>
+      <div>
+          <input type="submit" value="Save" wicket:id="save-button"/>
+          <input type="submit" value="Dry run" wicket:id="dryrun-button"/>
+          <input type="submit" value="Execute" wicket:id="execute-button"/>
+          <input type="submit" value="Undo" wicket:id="undo-button"/>
+          <input type="submit" value="Stop" wicket:id="stop-button"/>
+          <input type="submit" value="Delete" wicket:id="delete-button"/>
+      </div>
+      <p>&nbsp;</p>
       <span wicket:id="radios">
           <table width="100%">
               <tr wicket:id="name"/>
+              <tr><td><span wicket:id="select"/></td></tr>
               <tr wicket:id="path"/>
               <tr wicket:id="query"/>
               <tr wicket:id="batch-size"/>
@@ -39,6 +40,16 @@
               <tr wicket:id="dryrun"/>
           </table>
       </span>
+      <script>
+        var changeSelection = function () {
+          $('.updater-details input[type=radio]').closest('tr').find('input[type=text]').prop('disabled', true);
+          $('.updater-details input[type=radio]:checked').closest('tr').find('input[type=text]').prop('disabled', false);
+        };
+        $('.updater-details input[type=radio]').on('change', function() {
+          changeSelection();
+        });
+        changeSelection();
+      </script>
       <p>&nbsp;</p>
       <p>Script</p>
       <p>&nbsp;</p>

@@ -209,10 +209,10 @@ public class UpdaterEditor extends Panel {
         };
         form.add(deleteButton);
 
-        final RadioGroup<String> radios = new RadioGroup<String>("radios", new PropertyModel<String>(this, "method"));
+        final RadioGroup<String> radios = new RadioGroup<>("radios", new PropertyModel<String>(this, "method"));
         form.add(radios);
 
-        final LabelledInputFieldTableRow nameField = new LabelledInputFieldTableRow("name", new Model<String>("Name"), new PropertyModel<String>(this, "name")) {
+        final LabelledInputFieldTableRow nameField = new LabelledInputFieldTableRow("name", new Model<>("Name"), new PropertyModel<String>(this, "name")) {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isEnabled() {
@@ -226,7 +226,9 @@ public class UpdaterEditor extends Panel {
         };
         radios.add(nameField);
 
-        final RadioLabelledInputFieldTableRow pathField = new RadioLabelledInputFieldTableRow("path", radios, new Model<String>("Path"), new PropertyModel<String>(this, "visitorPath")) {
+        radios.add(new Label("select", new Model<>("Select node using")));
+
+        final RadioLabelledInputFieldTableRow pathField = new RadioLabelledInputFieldTableRow("path", radios, new Model<>("Repository path"), new PropertyModel<String>(this, "visitorPath")) {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isEnabled() {
@@ -245,7 +247,7 @@ public class UpdaterEditor extends Panel {
         };
         radios.add(pathField);
 
-        final RadioLabelledInputFieldTableRow queryField = new RadioLabelledInputFieldTableRow("query", radios, new Model<String>("Query"), new PropertyModel<String>(this, "visitorQuery")) {
+        final RadioLabelledInputFieldTableRow queryField = new RadioLabelledInputFieldTableRow("query", radios, new Model<>("XPath query"), new PropertyModel<String>(this, "visitorQuery")) {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isEnabled() {
@@ -264,7 +266,7 @@ public class UpdaterEditor extends Panel {
         };
         radios.add(queryField);
 
-        final LabelledInputFieldTableRow batchSizeField = new LabelledInputFieldTableRow("batch-size", new Model<String>("Batch Size"), new PropertyModel<String>(this, "batchSize")) {
+        final LabelledInputFieldTableRow batchSizeField = new LabelledInputFieldTableRow("batch-size", new Model<>("Batch Size"), new PropertyModel<String>(this, "batchSize")) {
             @Override
             public boolean isEnabled() {
                 return isBatchSizeFieldEnabled();
@@ -278,7 +280,7 @@ public class UpdaterEditor extends Panel {
         };
         radios.add(batchSizeField);
 
-        final LabelledInputFieldTableRow throttleField = new LabelledInputFieldTableRow("throttle", new Model<String>("Throttle (ms)"), new PropertyModel<String>(this, "throttle")) {
+        final LabelledInputFieldTableRow throttleField = new LabelledInputFieldTableRow("throttle", new Model<>("Throttle (ms)"), new PropertyModel<String>(this, "throttle")) {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isEnabled() {
@@ -292,7 +294,7 @@ public class UpdaterEditor extends Panel {
         };
         radios.add(throttleField);
 
-        final LabelledCheckBoxTableRow dryRunCheckBox = new LabelledCheckBoxTableRow("dryrun", new Model<String>("Dry run"), new PropertyModel<Boolean>(this, "dryRun")) {
+        final LabelledCheckBoxTableRow dryRunCheckBox = new LabelledCheckBoxTableRow("dryrun", new Model<>("Dry run"), new PropertyModel<Boolean>(this, "dryRun")) {
             private static final long serialVersionUID = 1L;
             @Override
             public boolean isEnabled() {
