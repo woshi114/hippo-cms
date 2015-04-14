@@ -17,7 +17,6 @@ package org.hippoecm.frontend.plugins.standardworkflow;
 
 import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -46,8 +45,7 @@ public class RenameDocumentDialog extends AbstractWorkflowDialog<RenameDocumentA
         final String originalUriName = renameDocumentModel.getUriName();
         final String originalTargetName = renameDocumentModel.getTargetName();
 
-        final boolean uriModified = !StringUtils.equals(originalTargetName, originalUriName);
-        add(nameUriContainer = new NameUriField("name-url", this.nodeNameCodecModel, originalUriName, originalTargetName, uriModified));
+        add(nameUriContainer = new NameUriField("name-url", this.nodeNameCodecModel, originalUriName, originalTargetName));
 
         final Locale cmsLocale = UserSession.get().getLocale();
         final RenameMessage message = new RenameMessage(cmsLocale, renameDocumentModel.getLocalizedNames());
