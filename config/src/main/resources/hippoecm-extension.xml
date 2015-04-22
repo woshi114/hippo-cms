@@ -211,7 +211,7 @@
     </sv:property>
   </sv:node>
 
-  <!-- CMS7-9059 - patch to remove rememberme login settings -->
+  <!-- CMS7-9060 - patch to remove rememberme login settings -->
   <sv:node sv:name="cms-login-patch-remove-rememberme">
     <sv:property sv:name="jcr:primaryType" sv:type="Name">
       <sv:value>hippo:initializeitem</sv:value>
