@@ -362,7 +362,7 @@ public class TabsPlugin extends RenderPlugin {
                             log.error(ex.getMessage());
                         }
                     }
-                }, editor.isValid(), (JcrNodeModel) editor.getModel());
+                }, editor.isValid(), (JcrNodeModel) editor.getModel(), editor.getMode());
 
                 IDialogService dialogService = getPluginContext().getService(IDialogService.class.getName(),
                         IDialogService.class);
@@ -663,7 +663,7 @@ public class TabsPlugin extends RenderPlugin {
             void close();
         }
 
-        public OnCloseDialog(final Actions actions, final boolean isValid, JcrNodeModel model) {
+        public OnCloseDialog(final Actions actions, final boolean isValid, JcrNodeModel model, final IEditor.Mode mode) {
             super(model);
 
             setOkVisible(false);
@@ -722,6 +722,7 @@ public class TabsPlugin extends RenderPlugin {
                 }
             };
             button.setModel(new ResourceModel("save", "Save"));
+            button.setEnabled(mode == IEditor.Mode.EDIT);
             addButton(button);
         }
 
