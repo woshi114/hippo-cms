@@ -53,6 +53,7 @@ import org.hippoecm.frontend.PluginPage;
 import org.hippoecm.frontend.model.UserCredentials;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
+import org.hippoecm.frontend.plugin.config.impl.JavaPluginConfig;
 import org.hippoecm.frontend.service.render.RenderPlugin;
 import org.hippoecm.frontend.session.LoginException;
 import org.hippoecm.frontend.session.PluginUserSession;
@@ -81,7 +82,7 @@ public class LoginPlugin extends RenderPlugin {
     protected String password;
 
     public LoginPlugin(IPluginContext context, IPluginConfig config) {
-        super(context, config);
+        super(context, new JavaPluginConfig(config));
         add(createSignInForm("signInForm"));
         add(new Label("pinger"));
     }
