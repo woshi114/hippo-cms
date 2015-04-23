@@ -25,6 +25,8 @@
   <sv:property sv:name="hippostd:modify" sv:type="String">
     <sv:value>./_name</sv:value>
     <sv:value>$name</sv:value>
+    <sv:value>./basedocument/hipposysedit:nodetype/hipposysedit:nodetype/hipposysedit:uri</sv:value>
+    <sv:value>$uri</sv:value>
   </sv:property>
   <sv:property sv:name="jcr:language" sv:type="String">
     <sv:value>xpath</sv:value>
