@@ -426,7 +426,9 @@ public class HippostdPublishableEditor extends AbstractCmsEditor<Node> implement
             }
 
             handleNode.getSession().refresh(true);
-            ((EditableWorkflow) manager.getWorkflow("editing", docNode)).disposeEditableInstance();
+            if (getMode() == Mode.EDIT) {
+                ((EditableWorkflow) manager.getWorkflow("editing", docNode)).disposeEditableInstance();
+            }
             session.getJcrSession().refresh(true);
             this.modified = false;
 
