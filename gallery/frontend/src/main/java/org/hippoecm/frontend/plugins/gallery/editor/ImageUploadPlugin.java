@@ -21,11 +21,14 @@ import java.util.Calendar;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
-import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.event.Broadcast;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.value.IValueMap;
 import org.hippoecm.frontend.behaviors.EventStoppingBehavior;
+import org.hippoecm.frontend.dialog.HippoForm;
 import org.hippoecm.frontend.plugins.upload.FileUploadViolationException;
 import org.hippoecm.frontend.plugins.upload.SingleFileUploadWidget;
 import org.hippoecm.frontend.model.JcrNodeModel;
@@ -37,6 +40,7 @@ import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
 import org.hippoecm.frontend.plugins.yui.upload.validation.FileUploadValidationService;
 import org.hippoecm.frontend.service.render.RenderPlugin;
+import org.hippoecm.frontend.widgets.UpdateFeedbackInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,13 +53,14 @@ public class ImageUploadPlugin extends RenderPlugin {
     private static final long serialVersionUID = 1L;
 
     static final Logger log = LoggerFactory.getLogger(ImageUploadPlugin.class);
+    private final FileUploadForm form;
 
     private IValueMap types;
 
     public ImageUploadPlugin(final IPluginContext context, IPluginConfig config) {
         super(context, config);
 
-        FileUploadForm form = new FileUploadForm("form");
+        form = new FileUploadForm("form");
         add(form);
         String mode = config.getString("mode", "edit");
         form.setVisible("edit".equals(mode));
@@ -63,7 +68,7 @@ public class ImageUploadPlugin extends RenderPlugin {
         add(new EventStoppingBehavior("onclick"));
     }
 
-    private class FileUploadForm extends Form {
+    private class FileUploadForm extends HippoForm {
         private static final long serialVersionUID = 1L;
 
         private SingleFileUploadWidget widget;
@@ -77,7 +82,7 @@ public class ImageUploadPlugin extends RenderPlugin {
 
             add(widget = new SingleFileUploadWidget("fileUploadPanel", getPluginConfig(), validator) {
                 @Override
-                protected void onFileUpload(FileUpload fileUpload) {
+                protected void onFileUpload(FileUpload fileUpload) throws FileUploadViolationException {
                     handleUpload(fileUpload);
                 }
             });
@@ -92,12 +97,15 @@ public class ImageUploadPlugin extends RenderPlugin {
                 for(String errMsg : e.getViolationMessages()){
                     error(errMsg);
                 }
+                // update feedback panel in EditPerspective
+                final AjaxRequestTarget target = RequestCycle.get().find(AjaxRequestTarget.class);
+                send(ImageUploadPlugin.this, Broadcast.BUBBLE, new UpdateFeedbackInfo(target));
             }
         }
 
     }
 
-    private void handleUpload(FileUpload upload) {
+    private void handleUpload(FileUpload upload) throws FileUploadViolationException {
         String fileName = upload.getClientFileName();
         String mimeType = upload.getContentType();
 
@@ -114,8 +122,12 @@ public class ImageUploadPlugin extends RenderPlugin {
             ImageBinary image = new ImageBinary(node, upload.getInputStream(), fileName, mimeType);
             processor.initGalleryResource(node, image.getStream(), image.getMimeType(), image.getFileName(), Calendar.getInstance());
         } catch (IOException | GalleryException | RepositoryException e) {
-            error(e);
-            log.error(e.getMessage());
+            if (log.isDebugEnabled()) {
+                log.error("Cannot upload image ", e);
+            } else {
+                log.error("Cannot upload image: {}", e.getMessage());
+            }
+            throw new FileUploadViolationException(e.getMessage());
         }
     }
 }
