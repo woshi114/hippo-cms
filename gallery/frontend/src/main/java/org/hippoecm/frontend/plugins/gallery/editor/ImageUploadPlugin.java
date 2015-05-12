@@ -52,20 +52,38 @@ public class ImageUploadPlugin extends RenderPlugin {
 
     private static final long serialVersionUID = 1L;
 
-    static final Logger log = LoggerFactory.getLogger(ImageUploadPlugin.class);
-    private final FileUploadForm form;
-
+    private static final Logger log = LoggerFactory.getLogger(ImageUploadPlugin.class);
+    private FileUploadForm form;
+    private final String mode;
     private IValueMap types;
 
     public ImageUploadPlugin(final IPluginContext context, IPluginConfig config) {
         super(context, config);
-
-        form = new FileUploadForm("form");
-        add(form);
-        String mode = config.getString("mode", "edit");
-        form.setVisible("edit".equals(mode));
-
+        mode = config.getString("mode", "edit");
+        addNewUploadForm();
         add(new EventStoppingBehavior("onclick"));
+        setOutputMarkupId(true);
+    }
+
+    /**
+     * Reset form so we can upload same image again
+     * after "restore" function is invoked.
+     *
+     */
+    private void resetForm() {
+        final AjaxRequestTarget ajaxRequestTarget = RequestCycle.get().find(AjaxRequestTarget.class);
+        if (ajaxRequestTarget != null && form != null) {
+            remove(form);
+            addNewUploadForm();
+            ajaxRequestTarget.add(this);
+        }
+    }
+
+    private void addNewUploadForm() {
+        form = new FileUploadForm("form", this);
+        form.setVisible("edit".equals(mode));
+        form.setOutputMarkupId(true);
+        add(form);
     }
 
     private class FileUploadForm extends HippoForm {
@@ -73,7 +91,7 @@ public class ImageUploadPlugin extends RenderPlugin {
 
         private SingleFileUploadWidget widget;
 
-        public FileUploadForm(String name) {
+        public FileUploadForm(String name, final ImageUploadPlugin parent) {
             super(name);
             setMultiPart(true);
 
@@ -84,6 +102,7 @@ public class ImageUploadPlugin extends RenderPlugin {
                 @Override
                 protected void onFileUpload(FileUpload fileUpload) throws FileUploadViolationException {
                     handleUpload(fileUpload);
+                    parent.resetForm();
                 }
             });
             setMaxSize(Bytes.bytes(widget.getSettings().getMaxFileSize()));
