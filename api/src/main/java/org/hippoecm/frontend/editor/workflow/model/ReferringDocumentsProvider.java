@@ -17,7 +17,6 @@ package org.hippoecm.frontend.editor.workflow.model;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -132,7 +131,7 @@ public class ReferringDocumentsProvider extends NodeModelWrapper implements ISor
             handle = handle.getParent();
         }
         if (!handle.isNodeType(HippoNodeType.NT_HANDLE)) {
-            return Collections.emptySortedSet();
+            return new TreeSet<>();
         }
 
         final Map<String, Node> referrers = new HashMap<>();
