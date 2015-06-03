@@ -1,5 +1,5 @@
 /*
- *  Copyright 2012-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2012-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import javax.jcr.Node;
+import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 
 import org.apache.wicket.markup.html.basic.Label;
@@ -36,6 +37,7 @@ import org.apache.wicket.util.resource.IResourceStream;
 import org.apache.wicket.util.resource.ResourceStreamNotFoundException;
 import org.apache.wicket.util.time.Time;
 import org.hippoecm.frontend.model.properties.JcrPropertyModel;
+import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.util.JcrUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,12 +53,18 @@ public class BinaryEditor extends Panel {
     public BinaryEditor(String id, JcrPropertyModel model) {
         super(id);
         final IResourceStream stream = new BinaryResourceStream(model);
-        final Link link = new ResourceLink("binary-link", new ResourceStreamResource() {
-            @Override
-            public IResourceStream getResourceStream() {
-                return stream;
+        final ResourceStreamResource resource = new ResourceStreamResource(stream);
+        try {
+            final Node node = model.getProperty().getParent().getParent();
+            final StringBuilder fileName = new StringBuilder(node.getName());
+            if (isExtractedTextProperty(model.getProperty())) {
+                fileName.append(".txt");
             }
-        });
+            resource.setFileName(fileName.toString());
+        } catch (RepositoryException e) {
+            log.error("Unexpected exception while determining download filename", e);
+        }
+        final Link link = new ResourceLink("binary-link", resource);
         link.add(new Label("binary-link-text", "download (" + getSizeString(stream.length()) + ")"));
         add(link);
     }
@@ -79,6 +87,28 @@ public class BinaryEditor extends Panel {
         return sizeString;
     }
 
+    private static boolean isExtractedTextProperty(Property property) {
+        try {
+            return property.getName().equals(HippoNodeType.HIPPO_TEXT) && isPartOfHippoDocument(property);
+        } catch (RepositoryException e) {
+            log.error("Unexpected exception while determining whether property contains extracted text", e);
+            return false;
+        }
+    }
+
+    private static boolean isPartOfHippoDocument(final Property property) throws RepositoryException {
+        final Node root = property.getSession().getRootNode();
+        Node current = property.getParent();
+        while (!current.isSame(root)) {
+            Node parent = current.getParent();
+            if (parent.isNodeType(HippoNodeType.NT_HANDLE) && current.isNodeType(HippoNodeType.NT_DOCUMENT)) {
+                return true;
+            }
+            current = parent;
+        }
+        return false;
+    }
+
     private static class BinaryResourceStream extends AbstractResourceStream {
 
         private transient InputStream is;
@@ -91,8 +121,12 @@ public class BinaryEditor extends Panel {
         @Override
         public String getContentType() {
             try {
-                final Node node = model.getProperty().getParent();
-                return JcrUtils.getStringProperty(node, "jcr:mimeType", "unknown");
+                if (BinaryEditor.isExtractedTextProperty(model.getProperty())) {
+                    return "text/plain";
+                } else {
+                    final Node node = model.getProperty().getParent();
+                    return JcrUtils.getStringProperty(node, "jcr:mimeType", "unknown");
+                }
             } catch (RepositoryException e) {
                 log.error("Unexpected exception while determining mime type", e);
             }
