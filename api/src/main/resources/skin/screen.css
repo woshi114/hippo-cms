@@ -1352,15 +1352,6 @@ body .hippo-picker-properties div.text-input input {
   background: transparent
 }
 
-.hippo-browser-documents-small .hippo-browser-docum
-ents-small-folders h3 {
-  background: transparent url(images/filelistHeaderback.png) repeat-x;
-  font-weight: normal;
-  padding: 2px;
-  padding-left: 6px;
-  padding-bottom: 5px;
-}
-
 .hippo-browser-documents-small .hippo-browser-documents-small-files {
   border-left: 1px solid #afafaf;
   border-right: 1px solid #afafaf;
@@ -1785,10 +1776,6 @@ div.wicket-modal div.wicket-tree {
   background-image: url("images/icons/rename-48.png")
 }
 
-.rename-24 {
-  background-image: url("images/icons/rename-24.png");
-}
-
 .rename-16 {
   background-image: url("images/icons/rename-16.png");
 }
@@ -1838,10 +1825,6 @@ div.wicket-modal div.wicket-tree {
   background-image: url("images/icons/delete-inline-16.png")
 }
 
-.delete-inline-24 {
-  background-image: url("images/icons/delete-inline-24.png")
-}
-
 .delete-inline-48 {
   background-image: url("images/icons/delete-inline-48.png")
 }
@@ -1873,14 +1856,6 @@ span.down-16 {
 
 .save_ico {
   background-image: url("images/icons/document-save-16.png")
-}
-
-.templateitemup_ico {
-  background-image: url("images/icons/go-up.png")
-}
-
-.templateitemdown_ico {
-  background-image: url("images/icons/go-down.png")
 }
 
 .reqdelete_ico {
@@ -1921,10 +1896,6 @@ span.down-16 {
 
 .move-16 {
   background-image: url("images/icons/move-16.png")
-}
-
-.depublish-schedule-16 {
-  background-image: url("images/icons/unpublish-scheduled-16.png")
 }
 
 .reqcancel_ico {
