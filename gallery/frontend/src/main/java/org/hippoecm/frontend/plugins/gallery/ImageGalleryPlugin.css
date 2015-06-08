@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2013 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2010-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,16 @@
 .gallery-wrapper {
     margin-left: auto;
     margin-right: auto;
-    overflow: auto;
-    height: 312px;
+}
+
+.hippo-picker-list-details .gallery-wrapper {
+    height: 314px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.hippo-picker-list-details .toggle-button {
+    padding-bottom: 1px;
 }
 
 .hippo-gallery-images .hippo-list-details {
