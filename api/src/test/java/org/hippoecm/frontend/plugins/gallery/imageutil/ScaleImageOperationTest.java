@@ -1,12 +1,12 @@
 /*
  * Copyright 2012-2015 Hippo B.V. (http://www.onehippo.com)
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *  http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -76,21 +76,6 @@ public class ScaleImageOperationTest {
     }
 
     @Test
-    public void scaleToOriginalDimensionsWhenNoBoundingBoxIsGiven() throws GalleryException, IOException {
-        InputStream data = getClass().getResourceAsStream("/test-380x428.jpg");
-        ScaleImageOperation scaleOp = new ScaleImageOperation(0, 0, false, ImageUtils.ScalingStrategy.SPEED);
-        scaleOp.execute(data, "image/jpeg");
-        checkImageDimensions(scaleOp, "image/jpeg", 380, 428);
-
-        // redo scaling to check the data itself
-        data = getClass().getResourceAsStream("/test-380x428.jpg");
-        scaleOp = new ScaleImageOperation(0, 0, false, ImageUtils.ScalingStrategy.SPEED);
-        scaleOp.execute(data, "image/jpeg");
-        InputStream original = getClass().getResourceAsStream("/test-380x428.jpg");
-        assertFalse("Original image data should not be used as-is", IOUtils.contentEquals(original, scaleOp.getScaledData()));
-    }
-
-    @Test
     public void scaleToOriginalDimensionsWhenBoundingBoxMatchesOriginalDimensions() throws GalleryException, IOException {
         InputStream data = getClass().getResourceAsStream("/test-380x428.jpg");
         ScaleImageOperation scaleOp = new ScaleImageOperation(380, 428, false, ImageUtils.ScalingStrategy.SPEED);
@@ -103,6 +88,23 @@ public class ScaleImageOperationTest {
         scaleOp.execute(data, "image/jpeg");
         InputStream original = getClass().getResourceAsStream("/test-380x428.jpg");
         assertFalse("Original image data should not be used as-is", IOUtils.contentEquals(original, scaleOp.getScaledData()));
+    }
+
+    @Test
+    public void unboundedBoundingBoxPreservesOriginalData() throws GalleryException, IOException {
+        InputStream data = getClass().getResourceAsStream("/test-380x428.jpg");
+        ScaleImageOperation scaleOp = new ScaleImageOperation(0, 0, false, ImageUtils.ScalingStrategy.SPEED);
+        scaleOp.execute(data, "image/jpeg");
+        InputStream original = getClass().getResourceAsStream("/test-380x428.jpg");
+        assertTrue("Original image data should be stored as-is", IOUtils.contentEquals(original, scaleOp.getScaledData()));
+    }
+
+    @Test
+    public void unboundedBoundingBoxSetsOriginalWidthAndHeight() throws GalleryException, IOException {
+        InputStream data = getClass().getResourceAsStream("/test-380x428.jpg");
+        ScaleImageOperation scaleOp = new ScaleImageOperation(0, 0, false, ImageUtils.ScalingStrategy.SPEED);
+        scaleOp.execute(data, "image/jpeg");
+        checkImageDimensions(scaleOp, "image/jpeg", 380, 428);
     }
 
     @Test
@@ -217,7 +219,7 @@ public class ScaleImageOperationTest {
         scaleOp.execute(data, "image/gif");
         checkImageDimensions(scaleOp, "image/gif", 760, 856);
     }
-    
+
     @Test
     public void upscalingUnboundedWidth() throws GalleryException, IOException {
         InputStream data = getClass().getResourceAsStream("/test-380x428.gif");
