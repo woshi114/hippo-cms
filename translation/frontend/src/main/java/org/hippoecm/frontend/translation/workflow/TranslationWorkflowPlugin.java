@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2014 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import javax.jcr.AccessDeniedException;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
@@ -47,6 +48,7 @@ import org.apache.wicket.request.resource.ResourceReference;
 import org.hippoecm.addon.workflow.MenuDescription;
 import org.hippoecm.addon.workflow.StdWorkflow;
 import org.hippoecm.addon.workflow.WorkflowDescriptorModel;
+import org.hippoecm.addon.workflow.WorkflowSNSException;
 import org.hippoecm.editor.type.JcrTypeStore;
 import org.hippoecm.frontend.dialog.IDialogService.Dialog;
 import org.hippoecm.frontend.model.JcrNodeModel;
@@ -54,6 +56,7 @@ import org.hippoecm.frontend.model.ocm.StoreException;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.standards.image.CachingImage;
+import org.hippoecm.frontend.plugins.standardworkflow.validators.SameNameSiblingsUtil;
 import org.hippoecm.frontend.service.IBrowseService;
 import org.hippoecm.frontend.service.ISettingsService;
 import org.hippoecm.frontend.service.IconSize;
@@ -301,12 +304,21 @@ public final class TranslationWorkflowPlugin extends RenderPlugin {
         protected String executeNonAvailableTranslation(TranslationWorkflow workflow) throws Exception {
             javax.jcr.Session session = UserSession.get().getJcrSession();
 
-            for (int i = 0; i < (folders.size() - 1); i++) {
-                FolderTranslation folder = folders.get(i);
-                if (!folder.isEditable()) {
-                    continue;
-                }
-                if (!saveFolder(folder, session)) {
+            // Find the index of the deepest translated folder.
+            // The caller is to guarantee that at least the root node is translated (hence starting i at 1),
+            // and that there is a document handle node at the end of the list (representing the to-be-translated document).
+            final int indexOfDeepestFolder = folders.size() - 1;
+            int i;
+            for (i = 1; i < indexOfDeepestFolder && !folders.get(i).isEditable(); i++) {
+                // do nothing
+            }
+
+            int indexOfDeepestTranslatedFolder = i - 1;
+            avoidSameNameSiblings(session, indexOfDeepestTranslatedFolder);
+
+            // Try to create new target folders for all not yet translated source folders
+            for (; i < indexOfDeepestFolder; i++) {
+                if (!saveFolder(folders.get(i), session)) {
                     return COULD_NOT_CREATE_FOLDERS;
                 }
             }
@@ -350,6 +362,45 @@ public final class TranslationWorkflowPlugin extends RenderPlugin {
                 }
             }
             return null;
+        }
+
+        /**
+         * Prevent the creation of same-name-sibling (SNS) folders when translating a document (or folder?).
+         * This affects
+         *
+         *   1) the case where the deepest existing folder already has a child node with the same (node-)name
+         *   2) the case where the deepest existing folder already has a child node with the same localized name
+         *
+         * An exception of type {@link WorkflowSNSException} will be thrown if there is an SNS issue.
+         *
+         * @param session
+         * @param indexOfDeepestTranslatedFolder
+         */
+        private void avoidSameNameSiblings(final Session session, final int indexOfDeepestTranslatedFolder)
+                throws WorkflowSNSException, RepositoryException {
+
+            final FolderTranslation deepestTranslatedFolder = folders.get(indexOfDeepestTranslatedFolder);
+            final Node deepestTranslatedSourceNode = session.getNodeByIdentifier(deepestTranslatedFolder.getId());
+            final Node deepestTranslatedTargetNode = new HippoTranslatedNode(deepestTranslatedSourceNode).getTranslation(language);
+
+            if (deepestTranslatedTargetNode == null) {
+                // this means that there's a programmatic problem in the construction ot the "folders" list.
+                log.error("Invalid deepestTranslatedNode parameter. Target translation node for '{}' could not be found.",
+                        deepestTranslatedFolder.getName());
+                return;
+            }
+            // highest untranslated item can be folder OR document
+            final FolderTranslation highestUntranslatedItem = folders.get(indexOfDeepestTranslatedFolder + 1);
+            String targetUrlName = highestUntranslatedItem.getUrlfr();
+            String targetLocalizedName = highestUntranslatedItem.getNamefr();
+            if (deepestTranslatedTargetNode.hasNode(targetUrlName)) {
+                throw new WorkflowSNSException("A folder or document with name '" + targetUrlName + "' already exists", targetUrlName);
+            }
+            // check for duplicated localized name
+            if (SameNameSiblingsUtil.hasChildWithLocalizedName(deepestTranslatedTargetNode, targetLocalizedName)) {
+                throw new WorkflowSNSException("A folder or document with localized name '" + targetLocalizedName + "' already exists", targetLocalizedName);
+            }
+            // No SNS issue!
         }
 
         private Document getTranslatedVariant(final Document translatedDocument) throws RepositoryException {

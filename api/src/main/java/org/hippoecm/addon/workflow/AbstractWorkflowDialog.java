@@ -1,5 +1,5 @@
 /*
- *  Copyright 2012-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2012-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,6 +15,12 @@
  */
 package org.hippoecm.addon.workflow;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.jcr.AccessDeniedException;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -52,12 +58,37 @@ public abstract class AbstractWorkflowDialog<T> extends AbstractDialog<T> {
     protected void onOk() {
         try {
             invoker.invokeWorkflow();
+        } catch (WorkflowSNSException e) {
+            log.warn("Could not execute workflow due to same-name-sibling issue: " + e.getMessage());
+            handleExceptionTranslation(e, e.getConflictingName());
         } catch (WorkflowException e) {
             log.warn("Could not execute workflow: " + e.getMessage());
-            error(e);
+            handleExceptionTranslation(e);
+        } catch (AccessDeniedException e) {
+            log.warn("Access denied: " + e.getMessage());
+            handleExceptionTranslation(e);
         } catch (Exception e) {
             log.error("Could not execute workflow.", e);
             error(e);
+        }
+    }
+
+    private void handleExceptionTranslation(final Throwable e, final Object... parameters) {
+        List<String> errors = new ArrayList<>();
+        Throwable t = e;
+        while(t != null) {
+            final String translatedMessage = getExceptionTranslation(t, parameters).getObject();
+            if (translatedMessage != null && !errors.contains(translatedMessage)) {
+                errors.add(translatedMessage);
+            }
+            t = t.getCause();
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Exception caught: {}", StringUtils.join(errors.toArray(), ";"), e);
+        }
+
+        for(String errorMsg : errors) {
+            error(errorMsg);
         }
     }
 }
