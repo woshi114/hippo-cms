@@ -15,12 +15,13 @@
  */
 package org.hippoecm.frontend.plugins.cms.admin.groups;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -30,6 +31,7 @@ import javax.jcr.query.Query;
 import javax.jcr.query.QueryManager;
 import javax.jcr.query.QueryResult;
 
+import org.apache.commons.collections.SetUtils;
 import org.apache.jackrabbit.util.ISO9075;
 import org.apache.jackrabbit.util.Text;
 import org.apache.wicket.Session;
@@ -61,7 +63,6 @@ public class Group implements Comparable<Group>, IClusterable {
     private final static String QUERY_ALL_ROLES = "select * from hipposys:role";
     private final static String QUERY_GROUP = "SELECT * FROM hipposys:group WHERE fn:name()='{}'";
 
-
     private String path;
     private String groupname;
 
@@ -74,7 +75,6 @@ public class Group implements Comparable<Group>, IClusterable {
         return UserSession.get().getQueryManager();
     }
 
-
     public static boolean exists(String groupname) {
         return getGroup(groupname) != null;
     }
@@ -83,7 +83,8 @@ public class Group implements Comparable<Group>, IClusterable {
         List<Group> groups = new ArrayList<>();
         NodeIterator iter;
         try {
-            @SuppressWarnings({"deprecation"}) Query query = getQueryManager().createQuery(QUERY_ALL_LOCAL, Query.SQL);
+            @SuppressWarnings({"deprecation"})
+            Query query = getQueryManager().createQuery(QUERY_ALL_LOCAL, Query.SQL);
             iter = query.execute().getNodes();
             while (iter.hasNext()) {
                 Node node = iter.nextNode();
@@ -161,7 +162,8 @@ public class Group implements Comparable<Group>, IClusterable {
         List<String> roles = new ArrayList<String>();
         NodeIterator iter;
         try {
-            @SuppressWarnings({"deprecation"}) Query query = getQueryManager().createQuery(QUERY_ALL_ROLES, Query.SQL);
+            @SuppressWarnings({"deprecation"})
+            Query query = getQueryManager().createQuery(QUERY_ALL_ROLES, Query.SQL);
             iter = query.execute().getNodes();
             while (iter.hasNext()) {
                 Node node = iter.nextNode();
@@ -246,7 +248,7 @@ public class Group implements Comparable<Group>, IClusterable {
             final Value[] storedMembers = node.getProperty(HippoNodeType.HIPPO_MEMBERS).getValues();
 
             // do query for system users only when needed
-            final List<String> systemUserNames = excludeSystemUsers ? getSystemUserNames() : new ArrayList<String>(0);
+            final Set systemUserNames = excludeSystemUsers ? getSystemUserNames() : SetUtils.EMPTY_SET;
 
             for (Value value : storedMembers) {
                 final String userName = value.getString();
@@ -285,10 +287,10 @@ public class Group implements Comparable<Group>, IClusterable {
         return users;
     }
 
-    private List<String> getSystemUserNames() {
+    private Set<String> getSystemUserNames() {
         final UserDataProvider dataProvider = new SystemUserDataProvider();
         final Iterator<User> iterator = dataProvider.iterator(0, dataProvider.size());
-        final List<String> names = new ArrayList<>();
+        final Set<String> names = new HashSet<>();
         while (iterator.hasNext()) {
             final String systemUserName = iterator.next().getUsername();
             names.add(systemUserName);
