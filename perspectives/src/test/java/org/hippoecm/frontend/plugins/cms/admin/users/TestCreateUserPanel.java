@@ -21,12 +21,15 @@ import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidationError;
 import org.apache.wicket.validation.validator.EmailAddressValidator;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import junit.framework.Assert;
 
 /**
  */
 public class TestCreateUserPanel {
+    private static final Logger log = LoggerFactory.getLogger(TestCreateUserPanel.class);
 
     /* CMS7-9148 */
     @Test
@@ -61,7 +64,7 @@ public class TestCreateUserPanel {
 
         @Override
         public void error(final IValidationError error) {
-            System.out.println("Validation error: "+error.toString());
+            log.error("Validation error: ", error);
             this.valid = false;
         }
 
