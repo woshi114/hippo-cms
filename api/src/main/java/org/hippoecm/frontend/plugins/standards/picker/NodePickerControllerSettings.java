@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ public class NodePickerControllerSettings implements IClusterable {
     private static final String FOLDER_SERVICE_KEY      = "model.folder";
 
     public static final String BASE_UUID                = "base.uuid";
+    public static final String BASE_PATH                = "base.path";
     public static final String SELECTABLE_NODETYPES     = "nodetypes";
 
     public static final String LAST_VISITED_KEY         = "last.visited.key";
