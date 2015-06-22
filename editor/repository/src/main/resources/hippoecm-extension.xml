@@ -750,7 +750,6 @@
     </sv:property>
   </sv:node>
 
-  <!--TODO: Move change for CMS7-9324 to namespace-hippo.xml and reload on startup-->
   <sv:node sv:name="hippo-cms-patch-hippo-mirror-for-base-path-property">
     <sv:property sv:name="jcr:primaryType" sv:type="Name">
       <sv:value>hippo:initializeitem</sv:value>
