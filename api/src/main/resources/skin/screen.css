@@ -2195,3 +2195,17 @@ body.hippo-root div.yui-log-container {
 .hippo-referring-documents-list .hippo-list-paging .paging-label {
     margin-top: 0;
 }
+
+.clearfix:after {
+  visibility: hidden;
+  display: block;
+  font-size: 0;
+  content: " ";
+  clear: both;
+  height: 0;
+}
+.clearfix { display: inline-block; }
+/* start commented backslash hack \*/
+* html .clearfix { height: 1%; }
+.clearfix { display: block; }
+/* close commented backslash hack */
