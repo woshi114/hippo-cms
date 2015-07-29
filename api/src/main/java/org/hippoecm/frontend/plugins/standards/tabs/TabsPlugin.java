@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -79,7 +79,6 @@ import org.slf4j.LoggerFactory;
  * </ul>
  */
 public class TabsPlugin extends RenderPlugin {
-    private static final long serialVersionUID = 1L;
 
     static final Logger log = LoggerFactory.getLogger(TabsPlugin.class);
 
@@ -130,7 +129,6 @@ public class TabsPlugin extends RenderPlugin {
 
         selectCount = 0;
         ServiceTracker<IRenderService> tabsTracker = new ServiceTracker<IRenderService>(IRenderService.class) {
-            private static final long serialVersionUID = 1L;
 
             @Override
             public void onServiceAdded(IRenderService service, String name) {
@@ -255,11 +253,7 @@ public class TabsPlugin extends RenderPlugin {
             if (ignoreTab != null && tab.equals(ignoreTab)) {
                 continue;
             }
-            IServiceReference<IRenderService> reference = getPluginContext().getReference(tab.renderer);
-            if (reference == null) {
-                continue;
-            }
-            IEditor editor = getPluginContext().getService(reference.getServiceId(), IEditor.class);
+            final IEditor editor = tab.getEditor();
             try {
                 if (editor != null && editor.isModified()) {
                     changedTabs.add(tab);
@@ -287,12 +281,11 @@ public class TabsPlugin extends RenderPlugin {
      * @param ignoredTab    the tab to exclude from closing, pass null to close all the tabs.
      * @param target AjaxRequestTarget
      */
-    void closeAll(Tab ignoredTab, final AjaxRequestTarget target) {
-        List<Tab> changedTabs = getChangedTabs(ignoredTab);
-        if (changedTabs.size() > 0) {
+    void closeAll(final Tab ignoredTab, final AjaxRequestTarget target) {
+        final List<Tab> changedTabs = getChangedTabs(ignoredTab);
+        if (!changedTabs.isEmpty()) {
             IDialogService dialogService = getPluginContext().getService(IDialogService.class.getName(), IDialogService.class);
             dialogService.show(new CloseAllDialog(changedTabs, ignoredTab));
-
         } else {
             List<TabsPlugin.Tab> tabsCopy = new ArrayList<TabsPlugin.Tab>(tabs);
             for (TabsPlugin.Tab currentTab : tabsCopy) {
@@ -311,18 +304,11 @@ public class TabsPlugin extends RenderPlugin {
      * @param target AjaxRequestTarget
      */
     void onCloseUnmodified(Tab tab, AjaxRequestTarget target) {
-        IServiceReference<IRenderService> reference = getPluginContext().getReference(tab.renderer);
-        if (reference == null) {
-            log.error("Could not find render service for a tab");
-            return;
-        }
-        final IEditor editor = getPluginContext().getService(reference.getServiceId(), IEditor.class);
-
+        final IEditor editor = tab.getEditor();
         try {
-            if (!editor.getMode().equals(IEditor.Mode.EDIT)) {
+            if (editor != null && !editor.getMode().equals(IEditor.Mode.EDIT)) {
                 editor.close();
             }
-
         } catch (EditorException e) {
             log.warn("Unable to save the document in the editor", e);
             throw new RuntimeException("Unable to save the document in the editor", e);
@@ -338,12 +324,10 @@ public class TabsPlugin extends RenderPlugin {
      * @param target AjaxRequestTarget (unused)
      */
     void onClose(Tab tab, AjaxRequestTarget target) {
-        IServiceReference<IRenderService> reference = getPluginContext().getReference(tab.renderer);
-        if (reference == null) {
-            log.error("Could not find render service for a tab");
+        final IEditor editor = tab.getEditor();
+        if (editor == null) {
             return;
         }
-        final IEditor editor = getPluginContext().getService(reference.getServiceId(), IEditor.class);
         try {
             if (editor.isModified() || !editor.isValid()) {
 
@@ -421,7 +405,6 @@ public class TabsPlugin extends RenderPlugin {
     }
 
     protected class Tab implements ITab, IObserver<IObservable> {
-        private static final long serialVersionUID = 1L;
 
         ServiceTracker<ITitleDecorator> decoratorTracker;
         ITitleDecorator decorator;
@@ -435,7 +418,6 @@ public class TabsPlugin extends RenderPlugin {
             IPluginContext context = getPluginContext();
             String serviceId = context.getReference(renderer).getServiceId();
             decoratorTracker = new ServiceTracker<ITitleDecorator>(ITitleDecorator.class) {
-                private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void onServiceAdded(ITitleDecorator service, String name) {
@@ -490,11 +472,9 @@ public class TabsPlugin extends RenderPlugin {
             return (IObservable) titleModel;
         }
 
-
         public IModel<Node> getModel() {
-            IServiceReference<IRenderService> reference = getPluginContext().getReference(renderer);
-            IEditor editor = getPluginContext().getService(reference.getServiceId(), IEditor.class);
-            return editor.getModel();
+            final IEditor editor = getEditor();
+            return editor != null ? editor.getModel() : null;
         }
 
         public void onEvent(Iterator<? extends IEvent<IObservable>> events) {
@@ -536,16 +516,24 @@ public class TabsPlugin extends RenderPlugin {
 
         // package internals
 
+        IEditor getEditor() {
+            final IPluginContext context = getPluginContext();
+            final IServiceReference<IRenderService> reference = context.getReference(renderer);
+
+            if (reference == null) {
+                log.error("Could not find render service for a tab");
+                return null;
+            }
+            return context.getService(reference.getServiceId(), IEditor.class);
+        }
+
         boolean isEditorTab() {
-            IServiceReference<IRenderService> reference = getPluginContext().getReference(renderer);
-            IEditor editor = getPluginContext().getService(reference.getServiceId(), IEditor.class);
-            return (editor != null);
+            return getEditor() != null;
         }
 
         public Form getForm() {
-            IServiceReference<IRenderService> reference = getPluginContext().getReference(renderer);
-            IEditor editor = getPluginContext().getService(reference.getServiceId(), IEditor.class);
-            return editor.getForm();
+            final IEditor editor = getEditor();
+            return editor != null ? editor.getForm() : null;
         }
 
         void select() {
@@ -570,88 +558,102 @@ public class TabsPlugin extends RenderPlugin {
     }
 
     private class CloseAllDialog extends AbstractDialog {
+        public static final String MODIFIED_DOCS_VIEW_ID = "modified-docs-view";
+
+        private final ModifiedDocumentsProvider provider;
+        private final ModifiedDocumentsView modifiedDocumentsView;
+        private final Tab ignoredTab;
+
+        public abstract class Action<T extends Tab> {
+            abstract void apply(T tab);
+        }
 
         public CloseAllDialog(final List<Tab> changedTabs, final Tab ignoredTab) {
             super();
+            this.ignoredTab = ignoredTab;
+
             setOkVisible(false);
 
-            AjaxButton button = new AjaxButton(DialogConstants.BUTTON) {
-                private static final long serialVersionUID = 1L;
-
+            addButton(new AjaxButton(DialogConstants.BUTTON, new ResourceModel("discard-all")) {
                 @Override
                 protected void onSubmit(AjaxRequestTarget target, Form form) {
-                    List<TabsPlugin.Tab> tabsCopy = new ArrayList<TabsPlugin.Tab>(tabs);
-                    for (TabsPlugin.Tab currentTab : tabsCopy) {
-                        IServiceReference<IRenderService> reference = getPluginContext().getReference(currentTab.renderer);
-                        if (reference == null) {
-                            log.error("Could not find render service for a tab");
-                            return;
-                        }
-                        IEditor editor = getPluginContext().getService(reference.getServiceId(), IEditor.class);
-                        try {
-
-                            if (editor.isModified()) {
-                                editor.discard(); ///discard the document and switch to VIEW mode
+                    final Action<Tab> discardAndCloseAction = new Action<Tab>() {
+                        @Override
+                        void apply(final Tab tab) {
+                            final IEditor editor = tab.getEditor();
+                            if (editor != null) {
+                                try {
+                                    if (editor.isModified()) {
+                                        editor.discard(); ///discard the document and switch to VIEW mode
+                                    }
+                                    editor.close();
+                                } catch (EditorException e) {
+                                    log.error("Unable to discard/close the document {}", e.getMessage());
+                                }
                             }
-                            editor.close();
-                        } catch (EditorException e) {
-                            log.error("Unable to discard/close the document {}", e.getMessage());
                         }
-                    }
-                    closeDialog();
-                    TabsPlugin.this.closeAll(ignoredTab, target);
+                    };
+                    processAllTabs(discardAndCloseAction);
+                    updateDialog(target);
                 }
-            };
+            });
 
-            button.setModel(new ResourceModel("discard-all"));
-
-            addButton(button);
-
-            button = new AjaxButton(DialogConstants.BUTTON) {
-                private static final long serialVersionUID = 1L;
-
+            addButton(new AjaxButton(DialogConstants.BUTTON, new ResourceModel("save-all")) {
                 @Override
                 protected void onSubmit(AjaxRequestTarget target, Form form) {
-                    for (TabsPlugin.Tab currentTab : changedTabs) {
-                        IServiceReference<IRenderService> reference = getPluginContext().getReference(currentTab.renderer);
-                        if (reference == null) {
-                            log.error("Could not find render service for a tab");
-                            return;
-                        }
-                        IEditor editor = getPluginContext().getService(reference.getServiceId(), IEditor.class);
-                        try {
-
-                            if (editor.isModified()) {
-                                editor.done(); //save the document and switch to VIEW mode
+                    final Action<Tab> saveAndCloseAction = new Action<Tab>() {
+                        @Override
+                        void apply(final Tab tab) {
+                            final IEditor editor = tab.getEditor();
+                            if (editor != null) {
+                                try {
+                                    if (editor.isModified()) {
+                                        editor.done(); //save the document and switch to VIEW mode
+                                    }
+                                    editor.close();
+                                } catch (EditorException e) {
+                                    log.error("Unable to save the document {}", e.getMessage());
+                                }
                             }
-                            editor.close();
-                        } catch (EditorException e) {
-                            log.error("Unable to save the document {}", e.getMessage());
                         }
-                    }
-                    closeDialog();
-                    TabsPlugin.this.closeAll(ignoredTab, target);
+                    };
+                    processAllTabs(saveAndCloseAction);
+                    updateDialog(target);
                 }
-            };
+            });
 
-            button.setModel(new ResourceModel("save-all"));
-
-            addButton(button);
-
-
-
-            ModifiedDocumentsProvider provider = new ModifiedDocumentsProvider(getTabModelList(changedTabs));
-            add(new ModifiedDocumentsView("modified-docs-view", provider));
+            provider = new ModifiedDocumentsProvider(getNodeModelList(changedTabs));
+            modifiedDocumentsView = new ModifiedDocumentsView(MODIFIED_DOCS_VIEW_ID, provider);
+            add(modifiedDocumentsView);
         }
 
-        private List<JcrNodeModel> getTabModelList(List<Tab> changedTabs) {
-            List<JcrNodeModel> tabModels = new ArrayList<JcrNodeModel>();
-            for (Tab tab : changedTabs) {
-                IServiceReference<IRenderService> reference = getPluginContext().getReference(tab.renderer);
-                if (reference == null) {
-                    continue;
+        private void processAllTabs(final Action<Tab> action) {
+            // need to clone the list because the action may close a tab, then it is removed from the tabs at
+            // ServiceTracker#onRemoveService(). This may cause ConcurrentModificationException
+            final List<Tab> listTabsClone = new ArrayList<>(TabsPlugin.this.tabs);
+            for (Tab tab : listTabsClone) {
+                if (!tab.equals(ignoredTab)) {
+                    action.apply(tab);
                 }
-                IEditor editor = getPluginContext().getService(reference.getServiceId(), IEditor.class);
+            }
+        }
+
+        private void updateDialog(final AjaxRequestTarget target) {
+            // If there's any changed tab left, update the close-all dialog, otherwise close it.
+            final List<Tab> updatedChangedTabs = getChangedTabs(ignoredTab);
+            if (updatedChangedTabs.isEmpty()) {
+                closeDialog();
+            } else {
+                final List<JcrNodeModel> nodeModelList = getNodeModelList(updatedChangedTabs);
+                provider.setModifiedDocuments(nodeModelList);
+                target.add(modifiedDocumentsView);
+            }
+        }
+
+        private List<JcrNodeModel> getNodeModelList(List<Tab> changedTabs) {
+            final List<JcrNodeModel> tabModels = new ArrayList<>();
+            for (Tab tab : changedTabs) {
+                final IEditor editor = tab.getEditor();
                 try {
                     if (editor != null && editor.isModified()) {
                         tabModels.add(new JcrNodeModel((Node) editor.getModel().getObject()));
@@ -700,9 +702,8 @@ public class TabsPlugin extends RenderPlugin {
             exceptionLabel.setOutputMarkupId(true);
             add(exceptionLabel);
 
-            AjaxButton button = new AjaxButton(DialogConstants.BUTTON) {
-                private static final long serialVersionUID = 1L;
-
+            ResourceModel discardButtonLabel = isValid ? new ResourceModel("discard", "Discard") : new ResourceModel("discard-invalid");
+            addButton(new AjaxButton(DialogConstants.BUTTON, discardButtonLabel) {
                 @Override
                 protected void onSubmit(AjaxRequestTarget target, Form form) {
                     try {
@@ -710,22 +711,13 @@ public class TabsPlugin extends RenderPlugin {
                         actions.close();
                         closeDialog();
                     } catch (Exception ex) {
-                        exceptionLabel.setDefaultModel(new Model<String>(ex.getMessage()));
+                        exceptionLabel.setDefaultModel(Model.of(ex.getMessage()));
                         target.add(exceptionLabel);
                     }
                 }
-            };
+            });
 
-            if (isValid) {
-                button.setModel(new ResourceModel("discard", "Discard"));
-            } else {
-                button.setModel(new ResourceModel("discard-invalid"));
-            }
-            addButton(button);
-
-            button = new AjaxButton(DialogConstants.BUTTON) {
-                private static final long serialVersionUID = 1L;
-
+            final AjaxButton saveButton = new AjaxButton(DialogConstants.BUTTON, new ResourceModel("save", "Save")) {
                 @Override
                 public boolean isVisible() {
                     return isValid;
@@ -738,14 +730,13 @@ public class TabsPlugin extends RenderPlugin {
                         actions.close();
                         closeDialog();
                     } catch (Exception ex) {
-                        exceptionLabel.setDefaultModel(new Model<String>(ex.getMessage()));
+                        exceptionLabel.setDefaultModel(Model.of(ex.getMessage()));
                         target.add(exceptionLabel);
                     }
                 }
             };
-            button.setModel(new ResourceModel("save", "Save"));
-            button.setEnabled(mode == IEditor.Mode.EDIT);
-            addButton(button);
+            saveButton.setEnabled(mode == IEditor.Mode.EDIT);
+            addButton(saveButton);
         }
 
         public IModel<String> getTitle() {

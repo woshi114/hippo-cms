@@ -29,6 +29,7 @@ import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.hippoecm.frontend.PluginRequestTarget;
+import org.hippoecm.frontend.dialog.HippoForm;
 import org.hippoecm.frontend.editor.ITemplateEngine;
 import org.hippoecm.frontend.editor.TemplateEngineException;
 import org.hippoecm.frontend.editor.impl.TemplateEngineFactory;
@@ -51,7 +52,7 @@ import org.hippoecm.frontend.validation.ValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EditorForm extends Form<Node> implements IFeedbackMessageFilter, IFeedbackLogger {
+public class EditorForm extends HippoForm<Node> implements IFeedbackMessageFilter, IFeedbackLogger {
 
     private static final long serialVersionUID = 1L;
 
@@ -132,6 +133,10 @@ public class EditorForm extends Form<Node> implements IFeedbackMessageFilter, IF
 
     @Override
     protected void onValidateModelObjects() {
+        // HippoForm#process() has cleared old feedbacks, but in case
+        // the validation is invoked from Ajax, they should be cleared again
+        clearFeedbackMessages();
+
         // do the validation
         try {
             validation.doValidate();
