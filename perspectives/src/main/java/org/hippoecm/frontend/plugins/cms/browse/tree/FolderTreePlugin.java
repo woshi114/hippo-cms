@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,15 +20,19 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RequestCycle;
 import org.apache.wicket.ResourceReference;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AbstractBehavior;
 import org.apache.wicket.markup.html.IHeaderResponse;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.markup.html.tree.ITreeState;
 import org.apache.wicket.model.IModel;
@@ -58,7 +62,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FolderTreePlugin extends RenderPlugin {
-    private static final long serialVersionUID = 1L;
     static final Logger log = LoggerFactory.getLogger(FolderTreePlugin.class);
 
     protected final CmsJcrTree tree;
@@ -66,19 +69,48 @@ public class FolderTreePlugin extends RenderPlugin {
     protected JcrTreeNode rootNode;
     private JcrNodeModel rootModel;
 
+    private static final String DEFAULT_START_PATH = "/content";
+
     private WicketTreeHelperBehavior treeHelperBehavior;
 
     public FolderTreePlugin(final IPluginContext context, final IPluginConfig config) {
         super(context, config);
+        
+        String startingPath = config.getString("path", DEFAULT_START_PATH);
+        boolean canAccessPath = true;
+        try {
+            final Session session = getSession().getJcrSession();
+            if (!session.hasPermission(startingPath, Session.ACTION_READ)) {
+                log.warn("User '{} is unauthorized to read at the configured path '{}'", session.getUserID(), startingPath);
+                canAccessPath = false;
+            } else if (!session.itemExists(startingPath)) {
+                log.warn("The configured path '{}' does not exist. Please check the configuration", startingPath);
+                canAccessPath =  false;
+            }
+        } catch (RepositoryException exception) {
+            canAccessPath = false;
+            log.debug("Path '{}' is invalid", startingPath);
+        }
 
-        String startingPath = config.getString("path", "/");
+        if (!canAccessPath) {
+            tree = null;
+            add(new Label("tree", StringUtils.EMPTY));
+            return;
+        }
+
+        add(tree = initializeTree(context, config, startingPath));
+        onModelChanged();
+        add(new ScrollBehavior());
+    }
+
+    private CmsJcrTree initializeTree(final IPluginContext context, final IPluginConfig config, final String startingPath) {
         rootModel = new JcrNodeModel(startingPath);
 
         DocumentListFilter folderTreeConfig = new DocumentListFilter(config);
         this.rootNode = new FolderTreeNode(rootModel, folderTreeConfig);
         treeModel = new JcrTreeModel(rootNode);
         context.registerService(treeModel, IObserver.class.getName());
-        tree = new CmsJcrTree("tree", treeModel, newTreeNodeTranslator(config), newTreeNodeIconProvider()) {
+        final CmsJcrTree cmsJcrTree = new CmsJcrTree("tree", treeModel, newTreeNodeTranslator(config), newTreeNodeIconProvider()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -96,7 +128,7 @@ public class FolderTreePlugin extends RenderPlugin {
 
             @Override
             protected MarkupContainer newContextLink(final MarkupContainer parent, String id, final TreeNode node,
-                    final MarkupContainer content) {
+                                                     final MarkupContainer content) {
 
                 final boolean workflowEnabled = getPluginConfig().getAsBoolean("workflow.enabled", true);
                 parent.add(new AbstractBehavior() {
@@ -172,9 +204,9 @@ public class FolderTreePlugin extends RenderPlugin {
                 updateTree(target);
             }
         };
-        add(tree);
 
-        tree.add(treeHelperBehavior = new WicketTreeHelperBehavior(new WicketTreeHelperSettings(config)) {
+
+        cmsJcrTree.add(treeHelperBehavior = new WicketTreeHelperBehavior(new WicketTreeHelperSettings(config)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -184,11 +216,8 @@ public class FolderTreePlugin extends RenderPlugin {
 
         });
 
-        tree.setRootLess(config.getBoolean("rootless"));
-
-        onModelChanged();
-
-        add(new ScrollBehavior());
+        cmsJcrTree.setRootLess(config.getBoolean("rootless"));
+        return cmsJcrTree;
     }
 
     protected ITreeNodeTranslator newTreeNodeTranslator(IPluginConfig config) {
@@ -226,12 +255,16 @@ public class FolderTreePlugin extends RenderPlugin {
     @Override
     public void render(PluginRequestTarget target) {
         super.render(target);
-        tree.updateTree();
+        if (tree != null) {
+            tree.updateTree();
+        }
     }
 
     @Override
     public void onBeforeRender() {
-        tree.detach();
+        if (tree != null) {
+            tree.detach();
+        }
         super.onBeforeRender();
     }
 
@@ -239,8 +272,10 @@ public class FolderTreePlugin extends RenderPlugin {
     public void onModelChanged() {
         super.onModelChanged();
 
+        if (tree == null) {
+            return;
+        }
         JcrNodeModel model = (JcrNodeModel) getDefaultModel();
-
         ITreeState treeState = tree.getTreeState();
         TreePath treePath = treeModel.lookup(model);
         if (treePath != null) {
@@ -250,7 +285,6 @@ public class FolderTreePlugin extends RenderPlugin {
                     treeState.expandNode(treeNode);
                 }
             }
-
             treeState.selectNode((TreeNode) treePath.getLastPathComponent(), true);
         }
     }
