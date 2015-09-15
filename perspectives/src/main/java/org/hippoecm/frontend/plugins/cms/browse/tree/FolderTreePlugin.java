@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -25,11 +25,13 @@ import javax.jcr.Session;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tree.ITreeState;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.EmptyPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.IRequestParameters;
@@ -62,8 +64,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FolderTreePlugin extends RenderPlugin {
-    private static final long serialVersionUID = 1L;
-
     static final Logger log = LoggerFactory.getLogger(FolderTreePlugin.class);
 
     protected final CmsJcrTree tree;
@@ -79,16 +79,33 @@ public class FolderTreePlugin extends RenderPlugin {
         super(context, config);
 
         String startingPath = config.getString("path", DEFAULT_START_PATH);
+        boolean canAccessPath = true;
         try {
-            Session session = getSession().getJcrSession();
-            if (!session.itemExists(startingPath)) {
-                log.warn("The configured path '"+startingPath+"' does not exist, using '"+DEFAULT_START_PATH+"' instead.");
-                startingPath = DEFAULT_START_PATH;
+            final Session session = getSession().getJcrSession();
+            if (!session.hasPermission(startingPath, Session.ACTION_READ)) {
+                log.warn("User '{} is unauthorized to read at the configured path '{}'", session.getUserID(), startingPath);
+                canAccessPath = false;
+            } else if (!session.itemExists(startingPath)) {
+                log.warn("The configured path '{}' does not exist. Please check the configuration", startingPath);
+                canAccessPath =  false;
             }
         } catch (RepositoryException exception) {
-            log.warn("The configured path '"+startingPath+"' does not exist, using '"+DEFAULT_START_PATH+"' instead.");
-            startingPath = DEFAULT_START_PATH;
+            canAccessPath = false;
+            log.debug("Path '{}' is invalid", startingPath);
         }
+
+        if (!canAccessPath) {
+            tree = null;
+            add(new Label("tree", StringUtils.EMPTY));
+            return;
+        }
+
+        add(tree = initializeTree(context, config, startingPath));
+        onModelChanged();
+        add(new ScrollBehavior());
+    }
+
+    private CmsJcrTree initializeTree(final IPluginContext context, final IPluginConfig config, final String startingPath) {
         rootModel = new JcrNodeModel(startingPath);
 
         DocumentListFilter folderTreeConfig = new DocumentListFilter(config);
@@ -97,7 +114,7 @@ public class FolderTreePlugin extends RenderPlugin {
         this.rootNode = new FolderTreeNode(rootModel, folderTreeConfig);
         treeModel = new JcrTreeModel(rootNode);
         context.registerService(treeModel, IObserver.class.getName());
-        tree = new CmsJcrTree("tree", treeModel, newTreeNodeTranslator(config), newTreeNodeIconProvider()) {
+        final CmsJcrTree cmsJcrTree = new CmsJcrTree("tree", treeModel, newTreeNodeTranslator(config), newTreeNodeIconProvider()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -115,7 +132,7 @@ public class FolderTreePlugin extends RenderPlugin {
 
             @Override
             protected MarkupContainer newContextLink(final MarkupContainer parent, String id, final TreeNode node,
-                    final MarkupContainer content) {
+                                                     final MarkupContainer content) {
 
                 if (getPluginConfig().getBoolean("contextmenu.rightclick.enabled")) {
                     parent.add(new RightClickBehavior(content, parent) {
@@ -195,9 +212,9 @@ public class FolderTreePlugin extends RenderPlugin {
                 }
             }
         };
-        add(tree);
 
-        tree.add(treeHelperBehavior = new WicketTreeHelperBehavior(new WicketTreeHelperSettings(config)) {
+
+        cmsJcrTree.add(treeHelperBehavior = new WicketTreeHelperBehavior(new WicketTreeHelperSettings(config)) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -207,11 +224,8 @@ public class FolderTreePlugin extends RenderPlugin {
 
         });
 
-        tree.setRootLess(config.getBoolean("rootless"));
-
-        onModelChanged();
-
-        add(new ScrollBehavior());
+        cmsJcrTree.setRootLess(config.getBoolean("rootless"));
+        return cmsJcrTree;
     }
 
     protected ITreeNodeTranslator newTreeNodeTranslator(IPluginConfig config) {
@@ -249,14 +263,18 @@ public class FolderTreePlugin extends RenderPlugin {
     @Override
     public void render(PluginRequestTarget target) {
         super.render(target);
-        if (target != null && isActive()) {
-            tree.updateTree();
+        if (tree != null) {
+            if (target != null && isActive()) {
+                tree.updateTree();
+            }
         }
     }
 
     @Override
     public void onBeforeRender() {
-        tree.detach();
+        if (tree != null) {
+            tree.detach();
+        }
         super.onBeforeRender();
     }
 
@@ -264,8 +282,10 @@ public class FolderTreePlugin extends RenderPlugin {
     public void onModelChanged() {
         super.onModelChanged();
 
+        if (tree == null) {
+            return;
+        }
         JcrNodeModel model = (JcrNodeModel) getDefaultModel();
-
         ITreeState treeState = tree.getTreeState();
         TreePath treePath = treeModel.lookup(model);
         if (treePath != null) {
@@ -275,7 +295,6 @@ public class FolderTreePlugin extends RenderPlugin {
                     treeState.expandNode(treeNode);
                 }
             }
-
             treeState.selectNode((TreeNode) treePath.getLastPathComponent(), true);
         }
     }
