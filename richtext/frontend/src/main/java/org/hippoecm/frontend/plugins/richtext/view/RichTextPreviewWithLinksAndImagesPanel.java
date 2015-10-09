@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2013-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.apache.wicket.model.IModel;
 import org.hippoecm.frontend.plugins.richtext.IImageURLProvider;
 import org.hippoecm.frontend.plugins.richtext.IRichTextImageFactory;
 import org.hippoecm.frontend.plugins.richtext.IRichTextLinkFactory;
+import org.hippoecm.frontend.plugins.richtext.ReplaceAposForIE8Model;
 import org.hippoecm.frontend.plugins.richtext.jcr.RichTextImageURLProvider;
 import org.hippoecm.frontend.plugins.richtext.StripScriptModel;
 import org.hippoecm.frontend.plugins.richtext.jcr.JcrRichTextImageFactory;
@@ -53,7 +54,8 @@ public class RichTextPreviewWithLinksAndImagesPanel extends AbstractRichTextView
         final IImageURLProvider urlProvider = new RichTextImageURLProvider(imageFactory, linkFactory, nodeModel);
 
         final StripScriptModel stripScriptModel = new StripScriptModel(htmlModel);
-        final RichTextImageMetaDataModel prefixingModel = new RichTextImageMetaDataModel(stripScriptModel, urlProvider);
+        final ReplaceAposForIE8Model replaceAposForIE8Model = new ReplaceAposForIE8Model(stripScriptModel);
+        final RichTextImageMetaDataModel prefixingModel = new RichTextImageMetaDataModel(replaceAposForIE8Model, urlProvider);
         final BrowsableModel browsableModel = new BrowsableModel(prefixingModel, previewLinksBehavior);
 
         return browsableModel;

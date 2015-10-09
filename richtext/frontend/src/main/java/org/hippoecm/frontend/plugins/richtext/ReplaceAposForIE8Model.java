@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2015 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,19 +18,30 @@ package org.hippoecm.frontend.plugins.richtext;
 import java.util.regex.Pattern;
 
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.protocol.http.ClientProperties;
+import org.apache.wicket.protocol.http.WebSession;
 
-public class StripScriptModel extends AbstractStringTransformingModel {
+public class ReplaceAposForIE8Model extends AbstractStringTransformingModel {
 
-    private static Pattern SCRIPT_PATTERN = Pattern.compile("<script.*?((>.*?</script>)|(/>))",
+    private static Pattern APOS_PATTERN = Pattern.compile("&apos;",
             Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
 
-    public StripScriptModel(IModel<String> valueModel) {
+    public ReplaceAposForIE8Model(IModel<String> valueModel) {
         super(valueModel);
     }
 
     @Override
     protected String transform(final String string) {
-        return SCRIPT_PATTERN.matcher(string).replaceAll("");
+        ClientProperties clientProperties = WebSession.get().getClientInfo().getProperties();
+        if (clientProperties.isBrowserInternetExplorer() && clientProperties.getBrowserVersionMajor() == 8) {
+            return replaceApos(string);
+        }
+
+        return string;
+    }
+
+    protected static String replaceApos(final String string) {
+        return APOS_PATTERN.matcher(string).replaceAll("&#39;");
     }
 
 }

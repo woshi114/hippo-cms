@@ -16,6 +16,7 @@
 package org.hippoecm.frontend.plugins.richtext.view;
 
 import org.apache.wicket.model.IModel;
+import org.hippoecm.frontend.plugins.richtext.ReplaceAposForIE8Model;
 import org.hippoecm.frontend.plugins.richtext.StripScriptModel;
 import org.hippoecm.frontend.plugins.standards.diff.DiffService;
 import org.hippoecm.frontend.plugins.standards.diff.HtmlDiffModel;
@@ -40,7 +41,10 @@ public class RichTextDiffPanel extends AbstractRichTextDiffPanel {
     private IModel<String> createDiffModel(final IModel<String> baseModel,
                                            final IModel<String> currentModel, final DiffService diffService) {
 
-        return new HtmlDiffModel(new StripScriptModel(baseModel), new StripScriptModel(currentModel), diffService);
+        return new HtmlDiffModel(
+                new ReplaceAposForIE8Model(new StripScriptModel(baseModel)),
+                new ReplaceAposForIE8Model(new StripScriptModel(currentModel)),
+                diffService);
     }
 
 }

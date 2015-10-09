@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2013-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.hippoecm.frontend.plugins.richtext.view;
 
 import org.apache.wicket.model.IModel;
+import org.hippoecm.frontend.plugins.richtext.ReplaceAposForIE8Model;
 import org.hippoecm.frontend.plugins.richtext.StripScriptModel;
 
 /**
@@ -25,7 +26,7 @@ public class RichTextPreviewPanel extends AbstractRichTextViewPanel {
 
     public RichTextPreviewPanel(final String id, final IModel<String> htmlModel) {
         super(id);
-        addView(new StripScriptModel(htmlModel));
+        addView(new ReplaceAposForIE8Model(new StripScriptModel(htmlModel)));
     }
 
 }

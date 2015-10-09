@@ -40,14 +40,25 @@ public class RichTextDiffWithLinksAndImagesPanelTest {
 
     private MockNode root;
     private javax.jcr.Session session;
+    private HippoTester tester;
 
     @Before
     public void setUp() throws RepositoryException, NoSuchMethodException {
-        final HippoTester tester = new HippoTester();
-        tester.startPage(MockHomePage.class);
-
+        setUpHippoTester();
         session = UserSession.get().getJcrSession();
         root = (MockNode) session.getRootNode();
+    }
+
+    private void setUpHippoTester() {
+        setUpHippoTester(null);
+    }
+
+    private void setUpHippoTester(String userAgent) {
+        tester = new HippoTester();
+        if (userAgent != null) {
+            tester.getRequest().setHeader("User-Agent", userAgent);
+        }
+        tester.startPage(MockHomePage.class);
     }
 
     @Test
@@ -105,6 +116,25 @@ public class RichTextDiffWithLinksAndImagesPanelTest {
                 + "</html>\n"), diff);
     }
 
+    @Test
+    public void aposIsNotReplacedForNonIE8Browser() throws RepositoryException {
+        Node base = addHtmlNode(root, "base", "foo&apos;bar");
+        Node current = addHtmlNode(root, "current", "foo&apos;bar");
+        String diff = createDiff(base, current);
+        // believe it or not, creating the HTML diff first replaces &apos; with ' (which then gets encoded to &#039)
+        assertEquals(htmlEncode("<html>foo'bar</html>\n"), diff);
+    }
+
+    @Test
+    public void aposIsReplacedForIE8() throws RepositoryException {
+        setUpHippoTester("Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1; Trident/4.0)");
+        Node base = addHtmlNode(root, "base", "foo&apos;bar");
+        Node current = addHtmlNode(root, "current", "foo&apos;bar");
+        String diff = createDiff(base, current);
+        // believe it or not, creating the HTML diff first replaces &apos; with ' (which then gets encoded to &#039)
+        assertEquals(htmlEncode("<html>foo'bar</html>\n"), diff);
+    }
+
     private MockNode addImage(final MockNode node, final String name) throws RepositoryException {
         MockNode imageHandle = node.addMockNode(name, "hippo:handle");
         MockNode imageSet = imageHandle.addMockNode(name, "hippogallery:imageset");
@@ -138,7 +168,7 @@ public class RichTextDiffWithLinksAndImagesPanelTest {
     }
 
     private static String htmlEncode(final String text) {
-        return text.replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;");
+        return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;").replaceAll("\'", "&#039;");
     }
 
 }

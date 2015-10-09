@@ -32,6 +32,7 @@ import org.hippoecm.frontend.plugins.richtext.IImageURLProvider;
 import org.hippoecm.frontend.plugins.richtext.IRichTextImageFactory;
 import org.hippoecm.frontend.plugins.richtext.IRichTextLinkFactory;
 import org.hippoecm.frontend.plugins.richtext.LineEndingsModel;
+import org.hippoecm.frontend.plugins.richtext.ReplaceAposForIE8Model;
 import org.hippoecm.frontend.plugins.richtext.RichTextModel;
 import org.hippoecm.frontend.plugins.richtext.dialog.images.ImagePickerBehavior;
 import org.hippoecm.frontend.plugins.richtext.dialog.images.RichTextEditorImageService;
@@ -183,7 +184,7 @@ public class CKEditorNodePlugin extends AbstractCKEditorPlugin<Node> {
         final IImageURLProvider urlProvider = createImageUrlProvider(imageFactory, linkFactory);
         final RichTextImageMetaDataModel metaModel = new RichTextImageMetaDataModel(facetNodeNamesToUuidsModel, urlProvider);
 
-        return new LineEndingsModel(metaModel);
+        return new ReplaceAposForIE8Model(new LineEndingsModel(metaModel));
     }
 
     protected IRichTextLinkFactory createLinkFactory() {

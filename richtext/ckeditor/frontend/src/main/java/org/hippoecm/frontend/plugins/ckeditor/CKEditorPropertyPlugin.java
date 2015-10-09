@@ -21,6 +21,7 @@ import org.hippoecm.frontend.model.properties.JcrPropertyValueModel;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.richtext.LineEndingsModel;
+import org.hippoecm.frontend.plugins.richtext.ReplaceAposForIE8Model;
 import org.hippoecm.frontend.plugins.richtext.RichTextModel;
 import org.hippoecm.frontend.plugins.richtext.view.RichTextDiffPanel;
 import org.hippoecm.frontend.plugins.richtext.view.RichTextPreviewPanel;
@@ -62,7 +63,7 @@ public class CKEditorPropertyPlugin extends AbstractCKEditorPlugin<String> {
     protected IModel<String> createEditModel() {
         final RichTextModel model = new RichTextModel(getHtmlModel());
         model.setCleaner(getHtmlCleanerOrNull());
-        return new LineEndingsModel(model);
+        return new ReplaceAposForIE8Model(new LineEndingsModel(model));
     }
 
     @Override

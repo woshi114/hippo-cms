@@ -28,6 +28,7 @@ import org.hippoecm.frontend.model.properties.JcrPropertyValueModel;
 import org.hippoecm.frontend.plugins.richtext.IImageURLProvider;
 import org.hippoecm.frontend.plugins.richtext.IRichTextImageFactory;
 import org.hippoecm.frontend.plugins.richtext.IRichTextLinkFactory;
+import org.hippoecm.frontend.plugins.richtext.ReplaceAposForIE8Model;
 import org.hippoecm.frontend.plugins.richtext.RichTextException;
 import org.hippoecm.frontend.plugins.richtext.jcr.RichTextFacetHelper;
 import org.hippoecm.frontend.plugins.richtext.jcr.RichTextImageURLProvider;
@@ -136,7 +137,10 @@ public class RichTextDiffWithLinksAndImagesPanel extends AbstractRichTextDiffPan
         };
 
         final IModel<String> decoratedCurrent = new RichTextImageMetaDataModel(currentModel, currentDecorator);
-        final HtmlDiffModel diffModel = new HtmlDiffModel(new StripScriptModel(decoratedBase), new StripScriptModel(decoratedCurrent), diffService);
+        final HtmlDiffModel diffModel = new HtmlDiffModel(
+                new ReplaceAposForIE8Model(new StripScriptModel(decoratedBase)),
+                new ReplaceAposForIE8Model(new StripScriptModel(decoratedCurrent)),
+                diffService);
 
         return new BrowsableModel(diffModel, previewLinksBehavior);
     }
