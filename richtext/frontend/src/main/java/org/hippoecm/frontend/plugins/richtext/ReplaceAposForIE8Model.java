@@ -26,14 +26,18 @@ public class ReplaceAposForIE8Model extends AbstractStringTransformingModel {
     private static Pattern APOS_PATTERN = Pattern.compile("&apos;",
             Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
 
+    private boolean clientIsIE8;
+
     public ReplaceAposForIE8Model(IModel<String> valueModel) {
         super(valueModel);
+
+        ClientProperties clientProperties = WebSession.get().getClientInfo().getProperties();
+        clientIsIE8 = clientProperties.isBrowserInternetExplorer() && clientProperties.getBrowserVersionMajor() == 8;
     }
 
     @Override
     protected String transform(final String string) {
-        ClientProperties clientProperties = WebSession.get().getClientInfo().getProperties();
-        if (clientProperties.isBrowserInternetExplorer() && clientProperties.getBrowserVersionMajor() == 8) {
+        if (clientIsIE8) {
             return replaceApos(string);
         }
 
