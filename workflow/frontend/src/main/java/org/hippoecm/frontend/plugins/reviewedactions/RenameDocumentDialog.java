@@ -30,6 +30,10 @@ import org.hippoecm.frontend.widgets.NameUriField;
 import org.hippoecm.repository.api.Localized;
 import org.hippoecm.repository.api.StringCodec;
 
+/**
+ * @deprecated was replaced by {@link org.hippoecm.frontend.plugins.standardworkflow.RenameDocumentDialog} since version 3.0.3.
+ */
+@Deprecated
 public  class RenameDocumentDialog extends WorkflowDialog<Void> {
 
     private final NameUriField nameUriField;
