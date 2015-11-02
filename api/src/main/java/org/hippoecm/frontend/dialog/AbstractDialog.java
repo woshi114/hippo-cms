@@ -23,9 +23,11 @@ import java.util.List;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.WicketRuntimeException;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.IAjaxIndicatorAware;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.extensions.ajax.markup.html.AjaxIndicatorAppender;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
@@ -88,6 +90,7 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
     static private IMarkupResourceStreamProvider streamProvider = new DefaultMarkupResourceStreamProvider();
 
     private boolean fullscreen = false;
+    private AjaxChannel ajaxChannel;
 
     protected static class PersistentFeedbackMessagesModel extends FeedbackMessagesModel {
         private static final long serialVersionUID = 1L;
@@ -282,12 +285,17 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
         buttonsView.setOutputMarkupId(true);
         add(buttonsView);
 
-        ok = new ButtonWrapper(new StringResourceModel("ok", AbstractDialog.this, null)) {
+        ok = new ButtonWrapper(new ResourceModel("ok")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onSubmit() {
                 handleSubmit();
+            }
+
+            @Override
+            protected void onUpdateAjaxAttributes(final AjaxRequestAttributes attributes) {
+                attributes.setChannel(ajaxChannel);
             }
         };
         ok.setKeyType(KeyType.Enter);
@@ -440,6 +448,10 @@ public abstract class AbstractDialog<T> extends Form<T> implements IDialogServic
 
     public void setNonAjaxSubmit() {
         ok.setAjax(false);
+    }
+
+    public void setAjaxChannel(AjaxChannel ajaxChannel) {
+        this.ajaxChannel = ajaxChannel;
     }
 
     protected void setOkEnabled(boolean isset) {

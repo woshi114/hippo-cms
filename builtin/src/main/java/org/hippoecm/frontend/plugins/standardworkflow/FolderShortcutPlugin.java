@@ -28,6 +28,7 @@ import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -304,8 +305,14 @@ public class FolderShortcutPlugin extends RenderPlugin {
                     return CodecUtils.getNodeNameCodec(getPluginContext(), language);
                 }
             };
+            add(nameUriContainer = new NameUriField("name-url", codecModel));
 
-            add(nameUriContainer = new NameUriField("name-url", codecModel)); 
+            // The dialog produces ajax requests in NameUriField and OK/Cancel dialog buttons, which may cause Wicket
+            // exceptions when typing very fast. Thus it needs to use a dedicated ajax channel with ACTIVE behavior when
+            // some AJAX requests may be sent after dialog is closed.
+            final AjaxChannel activeAjaxChannel = new AjaxChannel(getMarkupId(), AjaxChannel.Type.ACTIVE);
+            setAjaxChannel(activeAjaxChannel);
+            nameUriContainer.setAjaxChannel(activeAjaxChannel);            
 
             List<String> emptyList = new LinkedList<>();
             emptyList.add("");

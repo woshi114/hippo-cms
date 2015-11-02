@@ -17,6 +17,7 @@ package org.hippoecm.frontend.plugins.standardworkflow;
 
 import java.util.Locale;
 
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -47,8 +48,14 @@ public class RenameDocumentDialog extends AbstractWorkflowDialog<RenameDocumentA
 
         final String originalUriName = renameDocumentArguments.getUriName();
         final String originalTargetName = renameDocumentArguments.getTargetName();
-
         add(nameUriContainer = new NameUriField("name-url", this.nodeNameCodecModel, originalUriName, originalTargetName));
+
+        // The dialog produces ajax requests in NameUriField and OK/Cancel dialog buttons, which may cause Wicket
+        // exceptions when typing very fast. Thus it needs to use a dedicated ajax channel with ACTIVE behavior when
+        // some AJAX requests may be sent after dialog is closed.
+        final AjaxChannel activeAjaxChannel = new AjaxChannel(getMarkupId(), AjaxChannel.Type.ACTIVE);
+        setAjaxChannel(activeAjaxChannel);
+        nameUriContainer.setAjaxChannel(activeAjaxChannel);
 
         final Locale cmsLocale = UserSession.get().getLocale();
         final RenameMessage message = new RenameMessage(cmsLocale, renameDocumentArguments.getLocalizedNames());

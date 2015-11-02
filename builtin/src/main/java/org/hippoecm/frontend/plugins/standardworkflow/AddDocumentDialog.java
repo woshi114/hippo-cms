@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.basic.Label;
@@ -62,6 +63,13 @@ public class AddDocumentDialog extends AbstractWorkflowDialog<AddDocumentArgumen
         final PropertyModel<String> prototypeModel = new PropertyModel<>(addDocumentModel, "prototype");
 
         add(nameUriContainer = new NameUriField("name-url", this.nodeNameCodecModel));
+
+        // The dialog produces ajax requests in NameUriField and OK/Cancel dialog buttons, which may cause Wicket
+        // exceptions when typing very fast. Thus it needs to use a dedicated ajax channel with ACTIVE behavior when
+        // some AJAX requests may be sent after dialog is closed.
+        final AjaxChannel activeAjaxChannel = new AjaxChannel(getMarkupId(), AjaxChannel.Type.ACTIVE);
+        setAjaxChannel(activeAjaxChannel);
+        nameUriContainer.setAjaxChannel(activeAjaxChannel);
 
         final IModel<String> documentType = new StringResourceModel("document-type", this, null);
         final Label typeLabel = new Label("typelabel", documentType);

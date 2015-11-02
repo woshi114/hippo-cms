@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ import java.util.Map;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxCallListener;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
 import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.ComponentTag;
@@ -89,6 +91,23 @@ public class ButtonWrapper implements IClusterable {
                 public boolean isEnabled() {
                     return enabled;
                 }
+
+                @Override
+                protected void updateAjaxAttributes(final AjaxRequestAttributes attributes) {
+                    super.updateAjaxAttributes(attributes);
+                    attributes.getAjaxCallListeners().add(new AjaxCallListener(){
+                        @Override
+                        public CharSequence getBeforeHandler(final Component component) {
+                            return "$('#" + getMarkupId() + "').prop('disabled', true);";
+                        }
+
+                        @Override
+                        public CharSequence getCompleteHandler(final Component component) {
+                            return "$('#" + getMarkupId() + "').prop('disabled', false);";
+                        }
+                    });
+                    ButtonWrapper.this.onUpdateAjaxAttributes(attributes);
+                }
             };
             button.setModel(label);
             return button;
@@ -114,6 +133,9 @@ public class ButtonWrapper implements IClusterable {
             button.setModel(label);
             return button;
         }
+    }
+
+    protected void onUpdateAjaxAttributes(final AjaxRequestAttributes attributes) {
     }
 
     public Button getButton() {
