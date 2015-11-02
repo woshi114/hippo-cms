@@ -32,6 +32,10 @@ import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.repository.api.Localized;
 import org.hippoecm.repository.api.StringCodec;
 
+/**
+ * @deprecated was replaced by {@link org.hippoecm.frontend.plugins.standardworkflow.RenameDocumentDialog} since version 2.26.23.
+ */
+@Deprecated
 public  class RenameDocumentDialog extends AbstractWorkflowDialog<Void> {
 
     private final IModel<String> title;

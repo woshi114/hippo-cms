@@ -36,19 +36,22 @@ public class RenameDocumentDialog extends AbstractWorkflowDialog<RenameDocumentA
     private final NameUriField nameUriContainer;
     private final IModel<StringCodec> nodeNameCodecModel;
 
-    public RenameDocumentDialog(RenameDocumentArguments renameDocumentModel, IModel<String> title,
-                                IWorkflowInvoker invoker, IModel<StringCodec> nodeNameCodec, final WorkflowDescriptorModel workflowDescriptorModel) {
-        super(Model.of(renameDocumentModel), invoker);
+    public RenameDocumentDialog(final RenameDocumentArguments renameDocumentArguments,
+                                final IModel<String> title,
+                                final IWorkflowInvoker invoker,
+                                final IModel<StringCodec> nodeNameCodec,
+                                final WorkflowDescriptorModel workflowDescriptorModel) {
+        super(Model.of(renameDocumentArguments), invoker);
         this.title = title;
         this.nodeNameCodecModel = nodeNameCodec;
 
-        final String originalUriName = renameDocumentModel.getUriName();
-        final String originalTargetName = renameDocumentModel.getTargetName();
+        final String originalUriName = renameDocumentArguments.getUriName();
+        final String originalTargetName = renameDocumentArguments.getTargetName();
 
         add(nameUriContainer = new NameUriField("name-url", this.nodeNameCodecModel, originalUriName, originalTargetName));
 
         final Locale cmsLocale = UserSession.get().getLocale();
-        final RenameMessage message = new RenameMessage(cmsLocale, renameDocumentModel.getLocalizedNames());
+        final RenameMessage message = new RenameMessage(cmsLocale, renameDocumentArguments.getLocalizedNames());
         if (message.shouldShow()) {
             warn(message.forFolder());
         }
@@ -82,6 +85,9 @@ public class RenameDocumentDialog extends AbstractWorkflowDialog<RenameDocumentA
     @Override
     protected void onDetach() {
         nodeNameCodecModel.detach();
+        if (title != null) {
+            title.detach();
+        }
         super.onDetach();
     }
 }

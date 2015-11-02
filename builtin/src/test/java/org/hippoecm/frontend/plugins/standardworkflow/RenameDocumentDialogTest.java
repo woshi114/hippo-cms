@@ -17,6 +17,7 @@
 package org.hippoecm.frontend.plugins.standardworkflow;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Locale;
 
 import javax.jcr.Node;
@@ -82,10 +83,7 @@ public class RenameDocumentDialogTest {
         }
 
         // rename the 'news' folder
-        RenameDocumentArguments docModel = new RenameDocumentArguments();
-        docModel.setUriName("news");
-        docModel.setTargetName("News");
-        docModel.setNodeType(HippoStdNodeType.NT_FOLDER);
+        RenameDocumentArguments renameDocumentArguments = new RenameDocumentArguments("News", "news", HippoStdNodeType.NT_FOLDER, Collections.EMPTY_MAP);
 
         final IWorkflowInvoker invoker = Mockito.mock(IWorkflowInvoker.class);
 
@@ -104,7 +102,7 @@ public class RenameDocumentDialogTest {
         };
 
         final RenameDocumentDialog dialog = new RenameDocumentDialog(
-                docModel,
+                renameDocumentArguments,
                 Model.of("Add document dialog title"),
                 invoker,
                 stringCodecModel,
@@ -116,7 +114,6 @@ public class RenameDocumentDialogTest {
                 IDialogService dialogService = context.getService(IDialogService.class.getName(), IDialogService.class);
                 dialogService.show(dialog);
             }
-
         });
         return tester.newFormTester("dialog:content:form");
     }

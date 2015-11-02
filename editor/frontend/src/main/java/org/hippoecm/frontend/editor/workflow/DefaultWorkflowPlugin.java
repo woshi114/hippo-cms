@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2014 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -58,6 +58,7 @@ import org.hippoecm.frontend.model.NodeModelWrapper;
 import org.hippoecm.frontend.plugin.IPluginContext;
 import org.hippoecm.frontend.plugin.config.IPluginConfig;
 import org.hippoecm.frontend.plugins.standards.list.resolvers.CssClassAppender;
+import org.hippoecm.frontend.plugins.standardworkflow.RenameDocumentArguments;
 import org.hippoecm.frontend.service.IBrowseService;
 import org.hippoecm.frontend.service.IEditor;
 import org.hippoecm.frontend.service.IEditor.Mode;
@@ -158,8 +159,7 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
         });
 
         add(renameAction = new StdWorkflow("rename", new StringResourceModel("rename-label", this, null), context, getModel()) {
-            public String targetName;
-            public String uriName;
+            private RenameDocumentArguments renameDocumentArguments;
 
             @Override
             public String getSubMenu() {
@@ -175,17 +175,26 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
             protected Dialog createRequestDialog() {
                 try {
                     final HippoNode node = (HippoNode) getModel().getNode();
-                    uriName = node.getName();
-                    targetName = getLocalizedNameForSession(node);
+                    renameDocumentArguments = new RenameDocumentArguments(
+                            getLocalizedNameForSession(node),
+                            node.getName(),
+                            node.getLocalizedNames());
                 } catch (RepositoryException ex) {
-                    uriName = targetName = "";
+                    renameDocumentArguments = new RenameDocumentArguments();
                 }
-                return new RenameDocumentDialog(this, new StringResourceModel("rename-title",
-                        DefaultWorkflowPlugin.this, null));
+                return new org.hippoecm.frontend.plugins.standardworkflow.RenameDocumentDialog(renameDocumentArguments,
+                        new StringResourceModel("rename-title", DefaultWorkflowPlugin.this, null),
+                        this,
+                        getStringCodecModel(),
+                        this.getModel()
+                );               
             }
 
             @Override
             protected String execute(Workflow wf) throws Exception {
+                final String targetName = renameDocumentArguments.getTargetName();
+                final String uriName = renameDocumentArguments.getUriName();
+
                 if (Strings.isEmpty(targetName)) {
                     throw new WorkflowException("No name for destination given");
                 }
@@ -471,6 +480,16 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
         }
     }
 
+    private IModel<StringCodec> getStringCodecModel() {
+        String locale = null;
+        try {
+            locale = CodecUtils.getLocaleFromNodeAndAncestors(DefaultWorkflowPlugin.this.getModel().getNode());
+        } catch (RepositoryException e) {
+            //ignore
+        }
+        return CodecUtils.getNodeNameCodecModel(getPluginContext(), locale);
+    }
+
     public WorkflowDescriptorModel getModel() {
         return (WorkflowDescriptorModel) getDefaultModel();
     }
@@ -567,6 +586,10 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
         whereUsedAction.setVisible(!Boolean.FALSE.equals(workflowHints.get("status")));
     }
 
+
+    /**
+     * @deprecated was replaced by {@link org.hippoecm.frontend.plugins.standardworkflow.RenameDocumentDialog} since version 2.6.23.
+     */
     public class RenameDocumentDialog extends AbstractWorkflowDialog<WorkflowDescriptor> {
         private IModel<String> title;
         private TextField nameComponent;
@@ -577,15 +600,8 @@ public class DefaultWorkflowPlugin extends RenderPlugin {
             super(DefaultWorkflowPlugin.this.getModel(), action);
             this.title = title;
 
-            String locale = null;
-            try {
-                locale = CodecUtils.getLocaleFromNodeAndAncestors(DefaultWorkflowPlugin.this.getModel().getNode());
-            } catch (RepositoryException e) {
-                //ignore
-            }
+            final IModel<StringCodec> codecModel = getStringCodecModel();
             
-            final IModel<StringCodec> codecModel = CodecUtils.getNodeNameCodecModel(getPluginContext(), locale);
-
             final PropertyModel<String> nameModel = new PropertyModel<>(action, "targetName");
             final PropertyModel<String> uriModel = new PropertyModel<>(action, "uriName");
 
