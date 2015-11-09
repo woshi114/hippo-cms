@@ -210,7 +210,7 @@ public class ReferringDocumentsProvider extends NodeModelWrapper implements ISor
             @Override
             public int compare(final Node node1, final Node node2) {
                 try {
-                    return node1.getName().compareTo(node2.getName());
+                    return node1.getPath().compareTo(node2.getPath());
                 } catch (RepositoryException e) {
                     throw new RepositoryRuntimeException(e);
                 }
