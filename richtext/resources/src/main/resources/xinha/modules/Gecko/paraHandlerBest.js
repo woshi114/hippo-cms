@@ -114,7 +114,7 @@ EnterParagraphs.prototype.name = "EnterParagraphs";
 EnterParagraphs.prototype.insertAdjacentElement = function(ref,pos,el)
 {
   // in case cursor has been placed directly inside body tag
-  if (ref.parentNode == undefined || (el.localName !== null && el.localName.toLowerCase() == "body")) {
+  if (ref.parentNode == undefined || (el.tagName && el.tagName.toLowerCase() == "body")) {
       return false;
   }
 
