@@ -25,6 +25,8 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
@@ -242,6 +244,12 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             type = galleryTypes.get(0);
             typeComponent = new DropDownChoice<>("type", new PropertyModel<>(this, "type"), galleryTypes,
                     new TypeChoiceRenderer(this)).setNullValid(false).setRequired(true);
+            typeComponent.add(new OnChangeAjaxBehavior() {
+                @Override
+                protected void onUpdate(AjaxRequestTarget target) {
+                }
+            });
+
         } else if (galleryTypes != null && galleryTypes.size() == 1) {
             type = galleryTypes.get(0);
             typeComponent = new Label("type", type).setVisible(false);
