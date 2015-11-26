@@ -245,7 +245,7 @@ public class GalleryWorkflowPlugin extends CompatibilityWorkflowPlugin<GalleryWo
             typeComponent = new DropDownChoice<>("type", new PropertyModel<>(this, "type"), galleryTypes,
                     new TypeChoiceRenderer(this)).setNullValid(false).setRequired(true);
 
-            // Because images are sent via ajax POST requests prior the form is submitted, the selected gallery type need
+            // Because images are sent via ajax POST requests prior the form is submitted, the selected gallery type needs
             // to be updated instantly, otherwise the first uploaded image would have incorrect gallery type
             typeComponent.add(new OnChangeAjaxBehavior() {
                 @Override
