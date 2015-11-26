@@ -63,7 +63,11 @@ public class ParameterHistoryBehavior extends AbstractDefaultAjaxBehavior implem
                 myUpdate = true;
                 JcrNodeModel nodeModel = new JcrNodeModel(path.toString());
                 while (nodeModel.getNode() == null) {
-                    nodeModel = nodeModel.getParentModel();
+                    final JcrNodeModel parentModel = nodeModel.getParentModel();
+                    if (parentModel == null) {
+                        break;
+                    }
+                    nodeModel = parentModel;
                 }
                 reference.setModel(nodeModel);
             } finally {
