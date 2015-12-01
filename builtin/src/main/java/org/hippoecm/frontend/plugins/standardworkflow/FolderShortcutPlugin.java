@@ -353,10 +353,12 @@ public class FolderShortcutPlugin extends RenderPlugin {
                 protected void onUpdate(AjaxRequestTarget target) {
                     prototype = null;
                     evaluateChoices();
-                    // Detach the codec model to load the correct codec for the selected template
-                    codecModel.detach();
-                    // Re-encode the URI value
-                    nameUriContainer.encodeUri();
+                    if (nameUriContainer.getName() != null) {
+                        // Detach the codec model to load the correct codec for the selected template
+                        codecModel.detach();
+                        // Re-encode the URI value
+                        nameUriContainer.encodeUri();
+                    }
                 }
             });
             templateChoice.setNullValid(false);
@@ -368,10 +370,12 @@ public class FolderShortcutPlugin extends RenderPlugin {
             languageContainer = new LanguageField("language", new PropertyModel<String>(this, "language"), getLocaleProvider()) {
                 @Override
                 protected void onSelectionChanged() {
-                    // Detach the codec model to load the correct codec for the selected language
-                    codecModel.detach();
-                    // Re-encode the URI value
-                    nameUriContainer.encodeUri();
+                    if (nameUriContainer.getName() != null) {
+                        // Detach the codec model to load the correct codec for the selected language
+                        codecModel.detach();
+                        // Re-encode the URI value
+                        nameUriContainer.encodeUri();
+                    }
                 }
             };
             add(languageContainer);
