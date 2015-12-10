@@ -792,6 +792,7 @@ api/src/main/resources/org/hippoecm/frontend/extjs/hippotheme/images/window/left
 api/src/main/resources/org/hippoecm/frontend/extjs/hippotheme/images/window/left-right.gif -text
 api/src/main/resources/org/hippoecm/frontend/extjs/hippotheme/images/window/right-corners.gif -text
 api/src/main/resources/org/hippoecm/frontend/extjs/hippotheme/images/window/top-bottom.gif -text
+api/src/test/java/org/hippoecm/frontend/dialog/EscapeHtmlStringModelTest.java -text
 api/src/test/java/org/hippoecm/frontend/editor/plugins/resource/PdfParserTest.java -text
 api/src/test/java/org/hippoecm/frontend/plugins/gallery/imageutil/ImageMetaDataTest.java -text
 api/src/test/java/org/hippoecm/frontend/plugins/gallery/imageutil/ImageUtilTest.java -text
