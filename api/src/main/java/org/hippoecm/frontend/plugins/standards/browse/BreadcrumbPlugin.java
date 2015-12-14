@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2015 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -26,10 +26,8 @@ import javax.jcr.Node;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxButton;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -59,7 +57,7 @@ public class BreadcrumbPlugin extends RenderPlugin<Node> {
     static final Logger log = LoggerFactory.getLogger(BreadcrumbPlugin.class);
 
     private final Set<String> roots;
-    private final AjaxButton up;
+    private final AjaxLink up;
 
     private int maxNumberOfCrumbs;
     private MaxLengthStringFormatter format;
@@ -123,11 +121,11 @@ public class BreadcrumbPlugin extends RenderPlugin<Node> {
 
         add(getListView(null));
 
-        up = new AjaxButton("up") {
+        up = new AjaxLink("up") {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onSubmit(AjaxRequestTarget target, Form form) {
+            public void onClick(final AjaxRequestTarget target) {
                 JcrNodeModel model = (JcrNodeModel) folderReference.getModel();
                 model = model.getParentModel();
                 if (model != null) {

@@ -1203,7 +1203,8 @@ table.hippo-window-form {
   background: url("images/hippo-picker-navigation-back.png") repeat-x;
 }
 
-.hippo-window-form td div.hippo-picker-navigation-buttons input, .hippo-picker-navigation-buttons input {
+.hippo-picker-navigation-buttons a,
+.hippo-picker-navigation-buttons em {
   float: left;
   padding: 0;
   width: 24px;
@@ -1213,11 +1214,6 @@ table.hippo-window-form {
   border: none;
   margin: 0;
   text-indent: -9999px;
-}
-
-.hippo-window-form td div.hippo-picker-navigation-buttons input.up {
-  background: url("images/hippo-picker-navigation-buttons-back.png") no-repeat;
-  background-position: 0 -20px;
 }
 
 .hippo-picker-navigation-breadcrumbs {
