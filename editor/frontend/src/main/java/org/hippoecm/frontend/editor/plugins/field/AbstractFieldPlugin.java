@@ -246,7 +246,7 @@ public abstract class AbstractFieldPlugin<P extends Item, C extends IModel> exte
         if (field != null) {
             ITypeDescriptor type = field.getTypeDescriptor();
             if (type.isNode()) {
-                comparer = new NodeComparer(type);
+                comparer = new NodeComparer(type, helper.getTemplateEngine());
             } else {
                 comparer = new ObjectComparer();
             }
