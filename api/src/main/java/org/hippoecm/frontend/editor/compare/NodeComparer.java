@@ -198,7 +198,7 @@ public class NodeComparer extends TypedComparer<Node> {
                 try {
                     return templateEngine.getType(nodeTypeName);
                 } catch (TemplateEngineException e) {
-                    log.debug("Cannot obtain node type descriptor of '" + nodeTypeName + "' from the template engine", e);
+                    log.error("Cannot obtain node type descriptor of '" + nodeTypeName + "' from the template engine. Please check the namespace node type definitions", e);
                 }
             }
 
