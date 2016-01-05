@@ -180,27 +180,32 @@ public class NodeComparer extends TypedComparer<Node> {
                     }
                 }
             }
-        } catch (RepositoryException | TemplateEngineException ex) {
+        } catch (RepositoryException ex) {
             log.error(ex.getMessage(), ex);
         }
         return hcb.toHashCode();
     }
 
-    private ITypeDescriptor getNodeTypeDescriptor(final Node node) throws RepositoryException, TemplateEngineException {
-        if (templateEngine == null) {
-            final ITypeDescriptor configuredType = getType();
-            final String nodeTypeName = node.getPrimaryNodeType().getName();
+    private ITypeDescriptor getNodeTypeDescriptor(final Node node) throws RepositoryException {
+        final ITypeDescriptor configuredType = getType();
+        final String nodeTypeName = node.getPrimaryNodeType().getName();
 
-            if (!StringUtils.equals(configuredType.getName(), nodeTypeName)) {
-                log.warn("Cannot obtain the type descriptor of the node type '{}' because the template engine is " +
-                                "not set for the field at '{}'. Using the preconfigured type descriptor '{}'",
-                        nodeTypeName, node.getPath(), configuredType.getName());
-            }
+        if (StringUtils.equals(configuredType.getName(), nodeTypeName)) {
             return configuredType;
         } else {
-            final String nodeTypeName = node.getPrimaryNodeType().getName();
-            return templateEngine.getType(nodeTypeName);
-        }
+            // configured type and node type are different, try to lookup node type descriptor from template engine
+            if (templateEngine != null) {
+                try {
+                    return templateEngine.getType(nodeTypeName);
+                } catch (TemplateEngineException e) {
+                    log.debug("Cannot obtain node type descriptor of '" + nodeTypeName + "' from the template engine", e);
+                }
+            }
 
+            log.warn("Cannot obtain the type descriptor of the node type '{}' because the template engine is " +
+                            "not set for the field at '{}'. Using the preconfigured type descriptor '{}'",
+                    nodeTypeName, node.getPath(), configuredType.getName());
+            return configuredType;
+        }
     }
 }
