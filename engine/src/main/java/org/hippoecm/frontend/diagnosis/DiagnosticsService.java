@@ -22,7 +22,7 @@ import org.onehippo.cms7.services.SingletonService;
  * Diagnostics Service.
  */
 @SingletonService
-public interface DiagnosisService {
+public interface DiagnosticsService {
 
     /**
      * Return true if diagnostics is enabled for the client with the {@code request}.

@@ -34,13 +34,13 @@ import org.slf4j.LoggerFactory;
 /**
  * The default {@link IRequestCycleListener} implementation to set diagnosis context and report monitoring logs.
  */
-public class DiagnosisRequestCycleListener extends AbstractRequestCycleListener {
+public class DiagnosticsRequestCycleListener extends AbstractRequestCycleListener {
 
-    private static Logger log = LoggerFactory.getLogger(DiagnosisRequestCycleListener.class);
+    private static Logger log = LoggerFactory.getLogger(DiagnosticsRequestCycleListener.class);
 
     @Override
     public void onBeginRequest(RequestCycle cycle) {
-        final DiagnosisService diagnosisService = HippoServiceRegistry.getService(DiagnosisService.class);
+        final DiagnosticsService diagnosisService = HippoServiceRegistry.getService(DiagnosticsService.class);
 
         if (diagnosisService != null) {
             final Main application = (Main) Application.get();
@@ -65,7 +65,7 @@ public class DiagnosisRequestCycleListener extends AbstractRequestCycleListener 
                 final Task rootTask = HDC.getRootTask();
                 rootTask.stop();
 
-                final DiagnosisService diagnosisService = HippoServiceRegistry.getService(DiagnosisService.class);
+                final DiagnosticsService diagnosisService = HippoServiceRegistry.getService(DiagnosticsService.class);
                 final long threshold = diagnosisService != null ? diagnosisService.getThresholdMillisec() : -1;
                 final int depth = diagnosisService != null ? diagnosisService.getDepth() : -1;
 
