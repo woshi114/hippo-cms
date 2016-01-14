@@ -49,6 +49,9 @@ import org.hippoecm.frontend.observation.JcrObservationManager;
 import org.hippoecm.frontend.plugin.IPlugin;
 import org.hippoecm.frontend.plugin.config.IPluginConfigService;
 import org.hippoecm.frontend.plugin.config.impl.IApplicationFactory;
+import org.hippoecm.frontend.session.LoginException.CAUSE;
+import org.hippoecm.hst.diagnosis.HDC;
+import org.hippoecm.hst.diagnosis.Task;
 import org.hippoecm.repository.HippoRepository;
 import org.hippoecm.repository.api.HippoNode;
 import org.hippoecm.repository.api.HippoSession;
@@ -361,27 +364,39 @@ public class PluginUserSession extends UserSession {
 
 
     public void logout() {
-        classLoader.detach();
-        workflowManager.detach();
-        facetRootsObserver = null;
+        Task logoutTask = null;
 
-        IModel<Session> oldModel = null;
-        synchronized (jcrSessions) {
-            JcrSessionReference sessionRef = jcrSessions.get(this);
-            if (sessionRef != null) {
-                oldModel = sessionRef.jcrSession;
-                jcrSessions.remove(this);
+        try {
+            if (HDC.isStarted()) {
+                logoutTask = HDC.getCurrentTask().startSubtask("PluginUserSession.logout");
+            }
+
+            classLoader.detach();
+            workflowManager.detach();
+            facetRootsObserver = null;
+
+            IModel<Session> oldModel = null;
+            synchronized (jcrSessions) {
+                JcrSessionReference sessionRef = jcrSessions.get(this);
+                if (sessionRef != null) {
+                    oldModel = sessionRef.jcrSession;
+                    jcrSessions.remove(this);
+                }
+            }
+            if (oldModel != null) {
+                oldModel.detach();
+            }
+            JcrObservationManager.getInstance().cleanupListeners(this);
+
+            pageId = 0;
+
+            invalidate();
+            dirty();
+        } finally {
+            if (logoutTask != null) {
+                logoutTask.stop();
             }
         }
-        if (oldModel != null) {
-            oldModel.detach();
-        }
-        JcrObservationManager.getInstance().cleanupListeners(this);
-
-        pageId = 0;
-
-        invalidate();
-        dirty();
     }
 
     public Credentials getCredentials() {
@@ -459,8 +474,20 @@ public class PluginUserSession extends UserSession {
     }
 
     public void flush() {
-        JcrObservationManager.getInstance().cleanupListeners(this);
-        clear();
+        Task flushTask = null;
+
+        try {
+            if (HDC.isStarted()) {
+                flushTask = HDC.getCurrentTask().startSubtask("PluginUserSession.flush");
+            }
+
+            JcrObservationManager.getInstance().cleanupListeners(this);
+            clear();
+        } finally {
+            if (flushTask != null) {
+                flushTask.stop();
+            }
+        }
     }
 
     @Override

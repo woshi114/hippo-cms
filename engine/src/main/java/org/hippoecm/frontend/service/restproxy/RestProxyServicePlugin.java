@@ -27,6 +27,9 @@ import javax.security.auth.Subject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.MediaType;
 
+import org.apache.commons.proxy.Interceptor;
+import org.apache.commons.proxy.Invocation;
+import org.apache.commons.proxy.ProxyFactory;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -42,6 +45,8 @@ import org.hippoecm.frontend.service.IRestProxyService;
 import org.hippoecm.frontend.service.restproxy.custom.json.deserializers.AnnotationJsonDeserializer;
 import org.hippoecm.frontend.session.PluginUserSession;
 import org.hippoecm.frontend.session.UserSession;
+import org.hippoecm.hst.diagnosis.HDC;
+import org.hippoecm.hst.diagnosis.Task;
 import org.onehippo.sso.CredentialCipher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,6 +126,7 @@ public class RestProxyServicePlugin extends Plugin implements IRestProxyService 
         return contextPath;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T createRestProxy(final Class<T> restServiceApiClass) {
         return createRestProxy(restServiceApiClass, null);
@@ -144,7 +150,8 @@ public class RestProxyServicePlugin extends Plugin implements IRestProxyService 
      */
     @Override
     public <T> T createRestProxy(final Class<T> restServiceApiClass, final List<Object> additionalProviders) {
-        return JAXRSClientFactory.create(restUri, restServiceApiClass, getProviders(additionalProviders));
+        T cxfProxy = JAXRSClientFactory.create(restUri, restServiceApiClass, getProviders(additionalProviders));
+        return createHDCEnabledJaxrsClientInterceptorProxy(cxfProxy, restServiceApiClass);
     }
 
     /**
@@ -173,7 +180,8 @@ public class RestProxyServicePlugin extends Plugin implements IRestProxyService 
                 .accept(MediaType.WILDCARD_TYPE);
 
         // default time out is 60000 ms;
-        return clientProxy;
+
+        return createHDCEnabledJaxrsClientInterceptorProxy(clientProxy, restServiceApiClass);
     }
 
     protected Subject getSubject() {
@@ -252,6 +260,30 @@ public class RestProxyServicePlugin extends Plugin implements IRestProxyService 
             return false;
         }
         return true;
+    }
+
+    @SuppressWarnings({ "unchecked" })
+    private <T> T createHDCEnabledJaxrsClientInterceptorProxy(final T cxfProxy, final Class<T> restServiceApiClass) {
+        return (T) new ProxyFactory().createInterceptorProxy(cxfProxy, new Interceptor() {
+            @Override
+            public Object intercept(Invocation invocation) throws Throwable {
+                Task jaxrsClientTask = null;
+
+                try {
+                    if (HDC.isStarted()) {
+                        jaxrsClientTask = HDC.getCurrentTask().startSubtask("RestProxyServicePlugin");
+                        jaxrsClientTask.setAttribute("class", restServiceApiClass.getName());
+                        jaxrsClientTask.setAttribute("method", invocation.getMethod().getName());
+                    }
+
+                    return invocation.proceed();
+                } finally {
+                    if (jaxrsClientTask != null) {
+                        jaxrsClientTask.stop();
+                    }
+                }
+            }
+        }, new Class [] { restServiceApiClass });
     }
 
 }

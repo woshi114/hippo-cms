@@ -103,6 +103,7 @@
     <commons-httpclient.version>3.0</commons-httpclient.version>
     <commons-lang.version>2.6</commons-lang.version>
     <commons-io.version>1.4</commons-io.version>
+    <commons-proxy.version>1.0</commons-proxy.version>
 
     <org.apache.geronimo.specs.j2ee-connector.version>1.1.1</org.apache.geronimo.specs.j2ee-connector.version>
 
@@ -406,6 +407,11 @@
         <groupId>org.codehaus.jackson</groupId>
         <artifactId>jackson-xc</artifactId>
         <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-proxy</artifactId>
+        <version>${commons-proxy.version}</version>
       </dependency>
 
       <dependency>

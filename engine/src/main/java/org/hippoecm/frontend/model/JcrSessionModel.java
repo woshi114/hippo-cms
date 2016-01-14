@@ -28,6 +28,8 @@ import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.http.flow.AbortWithHttpErrorCodeException;
 import org.hippoecm.frontend.Main;
+import org.hippoecm.hst.diagnosis.HDC;
+import org.hippoecm.hst.diagnosis.Task;
 import org.hippoecm.repository.HippoRepository;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.api.NodeNameCodec;
@@ -159,13 +161,26 @@ public class JcrSessionModel extends LoadableDetachableModel<Session> {
 
     private void logHippoEvent(final boolean login, final String user, final String message, boolean success) {
         final HippoEventBus eventBus = HippoServiceRegistry.getService(HippoEventBus.class);
+
         if (eventBus != null) {
-            final String action = login ? "login" : "logout";
-            final HippoEvent event = new HippoSecurityEvent("cms").success(success).action(action)
-                    .category(HippoEventConstants.CATEGORY_SECURITY).user(user).set("remoteAddress", getRemoteAddr())
-                    .message(message);
-            event.sealEvent();
-            eventBus.post(event);
+            Task logEventTask = null;
+
+            try {
+                if (HDC.isStarted()) {
+                    logEventTask = HDC.getCurrentTask().startSubtask("JcrSessionModel.logHippoEvent");
+                }
+
+                final String action = login ? "login" : "logout";
+                final HippoEvent event = new HippoSecurityEvent("cms").success(success).action(action)
+                        .category(HippoEventConstants.CATEGORY_SECURITY).user(user).set("remoteAddress", getRemoteAddr())
+                        .message(message);
+                event.sealEvent();
+                eventBus.post(event);
+            } finally {
+                if (logEventTask != null) {
+                    logEventTask.stop();
+                }
+            }
         }
     }
 
@@ -195,6 +210,7 @@ public class JcrSessionModel extends LoadableDetachableModel<Session> {
         if (result.getNodes().hasNext()) {
             return result.getNodes().nextNode();
         }
+
         return null;
     }
 
