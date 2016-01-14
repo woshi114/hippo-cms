@@ -67,9 +67,9 @@ public class DiagnosticsDaemonModule extends AbstractReconfigurableDaemonModule 
     @Override
     protected void doConfigure(final Node moduleConfig) throws RepositoryException {
         synchronized (configurationLock) {
-            enabled = JcrUtils.getBooleanProperty(moduleConfig, ENABLED, false);
-            thresholdMillisec = JcrUtils.getLongProperty(moduleConfig, THRESHOLD_MILLISEC, -1L);
-            depth = JcrUtils.getLongProperty(moduleConfig, DEPTH, -1L);
+            enabled = JcrUtils.getBooleanProperty(moduleConfig, ENABLED, Boolean.FALSE);
+            thresholdMillisec = JcrUtils.getLongProperty(moduleConfig, THRESHOLD_MILLISEC, Long.valueOf(-1L));
+            depth = JcrUtils.getLongProperty(moduleConfig, DEPTH, Long.valueOf(-1L));
             allowedAddresses = new HashSet<>();
 
             String [] addrValues = getMultipleStringProperty(moduleConfig, ALLOWED_ADDRESSES, null);
