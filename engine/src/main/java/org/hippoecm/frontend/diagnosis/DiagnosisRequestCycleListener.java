@@ -46,7 +46,7 @@ public class DiagnosisRequestCycleListener extends AbstractRequestCycleListener 
             final Main application = (Main) Application.get();
             final String remoteAddr = getFarthestRemoteAddr(cycle);
 
-            if (diagnosisService.isEnabledFor(remoteAddr)) {
+            if (diagnosisService.isEnabledFor(cycle.getRequest())) {
                 if (HDC.isStarted()) {
                     log.error("HDC was not cleaned up properly in previous request cycle for some reason. So clean up HDC to start new one.");
                     HDC.cleanUp();
