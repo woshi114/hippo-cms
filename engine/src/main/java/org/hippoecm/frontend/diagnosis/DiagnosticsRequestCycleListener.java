@@ -44,7 +44,6 @@ public class DiagnosticsRequestCycleListener extends AbstractRequestCycleListene
 
         if (diagnosisService != null) {
             final Main application = (Main) Application.get();
-            final String remoteAddr = getFarthestRemoteAddr(cycle);
 
             if (diagnosisService.isEnabledFor(cycle.getRequest())) {
                 if (HDC.isStarted()) {
@@ -79,37 +78,6 @@ public class DiagnosticsRequestCycleListener extends AbstractRequestCycleListene
                 HDC.cleanUp();
             }
         }
-    }
-
-    protected String getFarthestRemoteAddr(final RequestCycle requestCycle) {
-        String [] remoteAddrs = getRemoteAddrs(requestCycle);
-
-        if (ArrayUtils.isNotEmpty(remoteAddrs)) {
-            return remoteAddrs[0];
-        }
-
-        return null;
-    }
-
-    private String [] getRemoteAddrs(final RequestCycle requestCycle) {
-        WebRequest request = (WebRequest) requestCycle.getRequest();
-
-        String xff = request.getHeader("X-Forwarded-For");
-
-        if (xff != null) {
-            String [] addrs = xff.split(",");
-
-            for (int i = 0; i < addrs.length; i++) {
-                addrs[i] = addrs[i].trim();
-            }
-
-            return addrs;
-        } else if (request.getContainerRequest() instanceof ServletRequest) {
-            ServletRequest servletRequest = (ServletRequest) request.getContainerRequest();
-            return new String [] { servletRequest.getRemoteAddr() };
-        }
-
-        return ArrayUtils.EMPTY_STRING_ARRAY;
     }
 
 }
