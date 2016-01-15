@@ -196,6 +196,7 @@ public class PluginPage extends Home implements IServiceTracker<IRenderService> 
             if (pageProcessEventsTask != null) {
                 pageProcessEventsTask.stop();
             }
+
             setFlag(FLAG_RESERVED1, false);
         }
     }

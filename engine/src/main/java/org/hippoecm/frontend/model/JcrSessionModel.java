@@ -67,20 +67,32 @@ public class JcrSessionModel extends LoadableDetachableModel<Session> {
     }
 
     protected void flush() {
-        Session session = getObject();
-        if (session != null) {
-            if (session.isLive()) {
-                if (saveOnExit) {
-                    try {
-                        session.save();
-                    } catch (RepositoryException e) {
-                        log.error("Failed to save session before logging out", e);
-                    }
-                }
-                session.logout();
-                logHippoEvent(false, session.getUserID(), "logout", true);
+        Task flushTask = null;
+
+        try {
+            if (HDC.isStarted()) {
+                flushTask = HDC.getCurrentTask().startSubtask("JcrSessionModel.flush");
             }
-            super.detach();
+
+            Session session = getObject();
+            if (session != null) {
+                if (session.isLive()) {
+                    if (saveOnExit) {
+                        try {
+                            session.save();
+                        } catch (RepositoryException e) {
+                            log.error("Failed to save session before logging out", e);
+                        }
+                    }
+                    session.logout();
+                    logHippoEvent(false, session.getUserID(), "logout", true);
+                }
+                super.detach();
+            }
+        } finally {
+            if (flushTask != null) {
+                flushTask.stop();
+            }
         }
     }
 
