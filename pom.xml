@@ -24,7 +24,7 @@
   </parent>
 
   <artifactId>hippo-cms</artifactId>
-  <version>2.26.24-hdc-logging</version>
+  <version>2.26.24-hdc-logging-SNAPSHOT</version>
 
   <inceptionYear>2007</inceptionYear>
 
