@@ -140,9 +140,9 @@
      This is used by normal plugins, but also to autogenerate documentation in .../target/site/source-repository.html
   -->
   <scm>
-    <connection>scm:svn:http://svn.onehippo.org/repos/hippo/hippo-cms7/cms/tags/hippo-cms-2.26.24</connection>
-    <developerConnection>scm:svn:https://svn.onehippo.org/repos/hippo/hippo-cms7/cms/tags/hippo-cms-2.26.24</developerConnection>
-    <url>http://svn.onehippo.org/repos/hippo/hippo-cms7/cms/tags/hippo-cms-2.26.24</url>
+    <connection>scm:svn:http://svn.onehippo.org/repos/hippo/hippo-cms7/cms/branches/hippo-cms-2.26.xx-hdc-logging</connection>
+    <developerConnection>scm:svn:https://svn.onehippo.org/repos/hippo/hippo-cms7/cms/branches/hippo-cms-2.26.xx-hdc-logging</developerConnection>
+    <url>http://svn.onehippo.org/repos/hippo/hippo-cms7/cms/branches/hippo-cms-2.26.xx-hdc-logging</url>
   </scm>
 
   <build>
