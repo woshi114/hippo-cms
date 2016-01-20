@@ -265,7 +265,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                     ResourceReference iconResource = new PackageResourceReference(getClass(), category + "-16.png");
                     if (iconResource.getResource() == null ||
                             (iconResource.getResource() instanceof PackageResource && ((PackageResource) iconResource.getResource()).getResourceStream() == null)) {
-                        iconResource = new PackageResourceReference(getClass(), "new-document-16.png");
+                        iconResource = new PackageResourceReference(getClass(), getDefaultContextMenuIcon(category));
                     }
                     list.add(new StdWorkflow<FolderWorkflow>("id", categoryLabel, iconResource, getPluginContext(), model) {
 
@@ -337,6 +337,14 @@ public class FolderWorkflowPlugin extends RenderPlugin {
             add.populate();
         } catch (RepositoryException | RemoteException | WorkflowException ex) {
             log.error(ex.getClass().getName() + ": " + ex.getMessage());
+        }
+    }
+
+    private String getDefaultContextMenuIcon(final String category) {
+        if(category.endsWith("-folder")) {
+            return "new-folder-16.png";
+        } else {
+            return "new-document-16.png";
         }
     }
 
