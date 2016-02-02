@@ -580,6 +580,7 @@ richtext/resources/src/main/resources/xinha/plugins/TableOperations/popups/dialo
 richtext/resources/src/main/resources/xinha/plugins/UnFormat/UnFormat.js
 richtext/resources/src/main/resources/xinha/popups/blank.html
 richtext/resources/src/main/resources/xinha/XinhaCore.js
+richtext/resrouces/src/external/**
 
     htmlArea License (based on BSD license)
     Copyright (c) 2002-2004, interactivetools.com, inc.
