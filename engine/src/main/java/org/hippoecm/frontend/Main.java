@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2016 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package org.hippoecm.frontend;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -30,6 +29,7 @@ import javax.jcr.SimpleCredentials;
 import javax.jcr.observation.EventListener;
 import javax.jcr.observation.EventListenerIterator;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.IRequestTarget;
@@ -48,7 +48,6 @@ import org.apache.wicket.request.IRequestCycleProcessor;
 import org.apache.wicket.request.RequestParameters;
 import org.apache.wicket.request.target.coding.AbstractRequestTargetUrlCodingStrategy;
 import org.apache.wicket.request.target.component.BookmarkablePageRequestTarget;
-import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.session.ISessionStore;
 import org.apache.wicket.session.pagemap.LeastRecentlyAccessedEvictionStrategy;
 import org.apache.wicket.settings.IExceptionSettings;
@@ -56,6 +55,7 @@ import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.string.StringValueConversionException;
 import org.apache.wicket.util.time.Duration;
+import org.hippoecm.frontend.http.CsrfPreventionWebRequestCycle;
 import org.hippoecm.frontend.model.JcrHelper;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.model.UserCredentials;
@@ -90,6 +90,9 @@ public class Main extends PluginApplication {
     public final static String OUTPUT_WICKETPATHS = "output-wicketpaths";
     public final static String PLUGIN_APPLICATION_NAME_PARAMETER = "config";
 
+    // comma separated init parameter
+    public final static String ACCEPTED_ORIGIN_WHITELIST = "accepted-origin-whitelist";
+
     /**
      * Wicket RequestCycleSettings timeout configuration parameter name in development mode.
      */
@@ -107,6 +110,9 @@ public class Main extends PluginApplication {
 
     private HippoRepository repository;
 
+    // array of accepted origins or {@code null} if no configured
+    private String[] acceptedOrigins;
+
     @Override
     protected void init() {
         super.init();
@@ -117,6 +123,8 @@ public class Main extends PluginApplication {
         getSessionSettings().setPageMapEvictionStrategy(new LeastRecentlyAccessedEvictionStrategy(1));
 
         getApplicationSettings().setPageExpiredErrorPage(PageExpiredErrorPage.class);
+
+        acceptedOrigins = StringUtils.split(getConfigurationParameter(ACCEPTED_ORIGIN_WHITELIST, null), " ,\t\f\r\n");
         try {
             String cfgParam = getConfigurationParameter(MAXUPLOAD_PARAM, null);
             if (cfgParam != null && cfgParam.trim().length() > 0) {
@@ -395,6 +403,11 @@ DEFAULT_DEVELOPMENT_REQUEST_TIMEOUT_MS);
     @Override
     public AjaxRequestTarget newAjaxRequestTarget(final Page page) {
         return new PluginRequestTarget(page);
+    }
+
+    @Override
+    public RequestCycle newRequestCycle(final Request request, final Response response) {
+        return new CsrfPreventionWebRequestCycle(this, (WebRequest)request, response, acceptedOrigins);
     }
 
     @Override
