@@ -1,17 +1,23 @@
 /*
- *  Copyright 2016 Hippo B.V. (http://www.onehippo.com)
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Original fork of wicket's 6.21.0 CsrfPreventionRequestCycleListener,
+ * see https://github.com/apache/wicket/blob/build/wicket-6.21.0/wicket-core/src/main/java/org/apache/wicket/protocol/http/CsrfPreventionRequestCycleListener.java.
+ * This class has been forked and modified to support a CsrfPreventionWebRequestCycle instead of a RequestCycleListener because
+  * the RequestCycleListener concept was not yet introduced in wicket 1.4.x. Also this makes sure it works behind proxies like httpd
  */
 package org.hippoecm.frontend.http;
 
@@ -30,6 +36,8 @@ import org.apache.wicket.protocol.http.servlet.AbortWithWebErrorCodeException;
 import org.apache.wicket.util.string.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+
 
 public class CsrfPreventionWebRequestCycle extends WebRequestCycle {
 
