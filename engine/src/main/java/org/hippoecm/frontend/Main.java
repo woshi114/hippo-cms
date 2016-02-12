@@ -29,6 +29,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.SimpleCredentials;
 import javax.jcr.observation.EventListener;
 import javax.jcr.observation.EventListenerIterator;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
@@ -52,6 +53,8 @@ import org.apache.wicket.pageStore.IDataStore;
 import org.apache.wicket.pageStore.IPageStore;
 import org.apache.wicket.protocol.http.BufferedWebResponse;
 import org.apache.wicket.protocol.http.WebSession;
+import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
+import org.apache.wicket.protocol.http.servlet.ServletWebResponse;
 import org.apache.wicket.request.IRequestCycle;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.IRequestParameters;
@@ -78,6 +81,7 @@ import org.apache.wicket.resource.loader.IStringResourceLoader;
 import org.apache.wicket.settings.IExceptionSettings;
 import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.util.IContextProvider;
+import org.apache.wicket.util.lang.Args;
 import org.apache.wicket.util.lang.Bytes;
 import org.apache.wicket.util.resource.IResourceStream;
 import org.apache.wicket.util.string.StringValue;
@@ -525,6 +529,11 @@ public class Main extends PluginApplication {
     }
 
     @Override
+    protected WebResponse newWebResponse(final WebRequest webRequest, final HttpServletResponse httpServletResponse) {
+        return new ResponseSplittingProtectingServletWebResponse(webRequest, httpServletResponse);
+    }
+
+    @Override
     public UserSession newSession(Request request, Response response) {
         PluginUserSession userSession = new PluginUserSession(request);
         userSession.login();
@@ -608,6 +617,57 @@ public class Main extends PluginApplication {
                     log.error("Failed to register RequestCycleListener, " + listenerClassName, th);
                 }
             }
+        }
+    }
+
+    private static class ResponseSplittingProtectingServletWebResponse extends ServletWebResponse {
+
+        public ResponseSplittingProtectingServletWebResponse(final WebRequest webRequest, final HttpServletResponse httpServletResponse) {
+            super((ServletWebRequest) webRequest, httpServletResponse);
+        }
+
+        @Override
+        public void addHeader(final String name, final String value) {
+            if (containsCRorLF(value)) {
+                throw new IllegalArgumentException("Header value must not contain CR or LF characters");
+            }
+            super.addHeader(name, value);
+        }
+
+        @Override
+        public void setHeader(final String name, final String value) {
+            if (containsCRorLF(value)) {
+                throw new IllegalArgumentException("Header value must not contain CR or LF characters");
+            }
+            super.setHeader(name, value);
+        }
+
+        @Override
+        public void sendRedirect(String url) {
+            Args.notNull(url, "url");
+            if (containsCRorLF(url)) {
+                throw new IllegalArgumentException("CR or LF detected in redirect URL: possible http response splitting attack");
+            }
+
+            if (url.equals("./")) {
+                url += "?";
+            }
+
+            super.sendRedirect(url);
+        }
+
+        private boolean containsCRorLF(String s) {
+
+            int length = s.length();
+
+            for (int i = 0; i < length; ++i) {
+                char c = s.charAt(i);
+                if ('\n' == c || '\r' == c) {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
