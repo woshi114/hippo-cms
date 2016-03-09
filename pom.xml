@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright 2007-2015 Hippo B.V. (http://www.onehippo.com)
+  Copyright 2007-2016 Hippo B.V. (http://www.onehippo.com)
 
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -639,6 +639,7 @@
                 <exclude>api/src/main/java/org/hippoecm/frontend/widgets/res/tree.css</exclude>
                 <!-- forked from Apache Tomcat sources -->
                 <exclude>engine/src/main/java/org/hippoecm/frontend/custom/ServerCookie.java</exclude>
+                <exclude>engine/src/main/java/org/hippoecm/frontend/http/CsrfPreventionWebRequestCycle.java</exclude>
                 <!-- external contributions -->
                 <exclude>gotolink/src/test/java/org/hippoecm/frontend/plugins/gotolink/GotolinkDocumentsShortcutPluginTest.java</exclude>
                 <exclude>gotolink/src/test/java/org/hippoecm/frontend/plugins/gotolink/MyHomePage.java</exclude>
