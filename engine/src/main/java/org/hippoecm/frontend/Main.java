@@ -126,8 +126,8 @@ public class Main extends PluginApplication {
     // comma separated init parameter
     public final static String ACCEPTED_ORIGIN_WHITELIST = "accepted-origin-whitelist";
     /**
-     * Custom Wicket {@link IRequestCycleListener} class names parameter which can be comma or whitespace-separated
-     * string to set multiple {@link IRequestCycleListener}s.
+     * Custom Wicket {@link IRequestCycleListener} class names parameter
+     * which can be comma or whitespace-separated string to set multiple {@link IRequestCycleListener}s.
      */
     public final static String REQUEST_CYCLE_LISTENERS_PARAM = "wicket.request.cycle.listeners";
 
