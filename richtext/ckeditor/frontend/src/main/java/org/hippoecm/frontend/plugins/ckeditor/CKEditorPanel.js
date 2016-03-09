@@ -156,16 +156,16 @@
         });
     };
 
-    if (Wicket.Browser.isIE()) {
+    if (Wicket.Browser.isIELessThan11()) {
         CKEDITOR_READY.when(function() {
             /*
-              Replace CKEditor's 'appendStyleText' method. IE chokes on the original because it calls createStyleSheet()
+             Replace CKEditor's 'appendStyleText' method. IE < 11 chokes on the original because it calls createStyleSheet()
               with an empty string as argument. That throws an Error when the page is served by an HTTP server.
              */
             CKEDITOR.dom.document.prototype.appendStyleText = function(cssStyleText) {
-                var style = this.$.createStyleSheet();
-                style.cssText = cssStyleText;
-                return style;
+                var styleSheet = this.$.createStyleSheet();
+                styleSheet.cssText = cssStyleText;
+                return styleSheet;
             };
         });
     }
