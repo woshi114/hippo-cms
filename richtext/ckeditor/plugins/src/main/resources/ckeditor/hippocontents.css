@@ -33,15 +33,15 @@
  */
 
 .cke_wysiwyg_div.cke_editable {
-    line-height: 1.6em;
-    padding: 16px;
+    line-height: 18px;
+    padding-top: 0.7em;
 }
 
 .cke_wysiwyg_div.cke_editable,
 .cke_panel_container {
     color: #333;
-    font-family: sans-serif, Arial, Verdana, "Trebuchet MS";
-    font-size: 13px;
+    font-family: sans-serif, Arial, Helvetica;
+    font-size: 12px;
 }
 
 .cke_wysiwyg_div.cke_editable blockquote {
