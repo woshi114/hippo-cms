@@ -218,7 +218,6 @@ gallery/frontend/workspaces
 gallery/hippo-cms-gallery.iml
 gallery/local.properties
 gallery/nbproject
-gallery/repository
 gallery/repository/*.tmp
 gallery/repository/.classpath
 gallery/repository/.project
