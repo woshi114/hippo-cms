@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2013-2016 Hippo B.V. (http://www.onehippo.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,7 +156,7 @@
         });
     };
 
-    if (Wicket.Browser.isIELessThan11()) {
+    if (CKEDITOR.env.ie && CKEDITOR.env.version < 11) {
         CKEDITOR_READY.when(function() {
             /*
              Replace CKEditor's 'appendStyleText' method. IE < 11 chokes on the original because it calls createStyleSheet()
