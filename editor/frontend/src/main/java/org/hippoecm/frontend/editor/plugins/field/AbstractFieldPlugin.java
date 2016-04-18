@@ -414,7 +414,7 @@ public abstract class AbstractFieldPlugin<P extends Item, C extends IModel> exte
     }
 
     @Override
-    protected final void onAddRenderService(final org.apache.wicket.markup.repeater.Item<IRenderService> item,
+    protected void onAddRenderService(final org.apache.wicket.markup.repeater.Item<IRenderService> item,
                                             IRenderService renderer) {
         super.onAddRenderService(item, renderer);
 
