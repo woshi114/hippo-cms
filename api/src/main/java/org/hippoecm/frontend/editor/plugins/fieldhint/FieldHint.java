@@ -16,9 +16,9 @@
 package org.hippoecm.frontend.editor.plugins.fieldhint;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -43,7 +43,7 @@ public class FieldHint extends Panel {
         if (hintModel == null) {
             hintContainer.setVisible(false);
         } else {
-            hintContainer.add(new Label("hint-text", hintModel));
+            hintContainer.add(new AttributeModifier("title", hintModel));
             hintContainer.add(HippoIcon.fromSprite("hint-image", Icon.INFO_CIRCLE));
         }
         return hintContainer;
@@ -58,7 +58,7 @@ public class FieldHint extends Panel {
         } else {
             // Check if there's a translation of the hint, use the untranslated hint as default
             IModel<String> translatedHintModel = new StringResourceModel(hint, this, null, hint);
-            hintContainer.add(new Label("hint-text", translatedHintModel));
+            hintContainer.add(new AttributeModifier("title", translatedHintModel));
             hintContainer.add(HippoIcon.fromSprite("hint-image", Icon.INFO_CIRCLE));
         }
         return hintContainer;
