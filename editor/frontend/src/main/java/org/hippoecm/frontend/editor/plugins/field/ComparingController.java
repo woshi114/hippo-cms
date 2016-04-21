@@ -1,12 +1,12 @@
 /*
- *  Copyright 2010-2015 Hippo B.V. (http://www.onehippo.com)
- * 
+ *  Copyright 2010-2016 Hippo B.V. (http://www.onehippo.com)
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
  *  You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  *  Unless required by applicable law or agreed to in writing, software
  *  distributed under the License is distributed on an "AS IS" BASIS,
  *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Set;
 
 import javax.jcr.Item;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -31,6 +33,7 @@ import org.apache.wicket.model.Model;
 import org.hippoecm.frontend.editor.TemplateEngineException;
 import org.hippoecm.frontend.editor.compare.IComparer;
 import org.hippoecm.frontend.model.AbstractProvider;
+import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.model.ModelReference;
 import org.hippoecm.frontend.plugin.IClusterControl;
 import org.hippoecm.frontend.plugin.IPluginContext;
@@ -44,13 +47,17 @@ import org.hippoecm.frontend.service.render.RenderService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.hippoecm.repository.api.HippoNodeType.HIPPO_DOCBASE;
+import static org.onehippo.repository.util.JcrConstants.NT_FROZEN_NODE;
+
 public class ComparingController<P extends Item, C extends IModel> implements IDetachable {
 
     static final Logger log = LoggerFactory.getLogger(TemplateController.class);
 
+
     public enum Orientation {
         HORIZONTAL, VERTICAL;
-    };
+    }
 
     static IPluginConfig wrapConfig(IPluginConfig config, int cnt) {
         JavaPluginConfig wrapped = new JavaPluginConfig(config);
@@ -125,13 +132,13 @@ public class ComparingController<P extends Item, C extends IModel> implements ID
                 IClusterControl newTemplate = factory.newTemplate(config.getString("new"), IEditor.Mode.VIEW, newModel);
                 newFir = new FieldItem<C>(sc, newModel, null, newTemplate, null);
 
-                get("old").add(new AttributeAppender("class", new Model("hippo-diff-removed"), " "));
-                get("new").add(new AttributeAppender("class", new Model("hippo-diff-added"), " "));
+                get("old").add(new AttributeAppender("class", new Model<>("hippo-diff-removed"), " "));
+                get("new").add(new AttributeAppender("class", new Model<>("hippo-diff-added"), " "));
 
             } else {
                 addExtensionPoint("cmp");
 
-                IModel model = null;
+                IModel model;
                 if (oldModel != null) {
                     model = oldModel;
                 } else {
@@ -153,7 +160,7 @@ public class ComparingController<P extends Item, C extends IModel> implements ID
                 cmpTpl.start();
 
                 Component component = get("cmp");
-                component.add(new AttributeAppender("class", new Model(cssClass), " "));
+                component.add(new AttributeAppender("class", new Model<>(cssClass), " "));
             }
         }
 
@@ -179,7 +186,7 @@ public class ComparingController<P extends Item, C extends IModel> implements ID
             if (cmpTpl != null) {
                 cmpTpl.stop();
             }
-            ((ServiceContext) getPluginContext()).stop();
+            ((ServiceContext)getPluginContext()).stop();
         }
 
         @Override
@@ -223,9 +230,9 @@ public class ComparingController<P extends Item, C extends IModel> implements ID
                 return true;
             }
             if (obj instanceof ItemValue<?>) {
-                ItemValue<?> that = (ItemValue<?>) obj;
+                ItemValue<?> that = (ItemValue<?>)obj;
                 if (hash == that.hash) {
-                    return comparer.areEqual(value.getObject(), ((ItemValue<?>) obj).value.getObject());
+                    return comparer.areEqual(value.getObject(), ((ItemValue<?>)obj).value.getObject());
                 }
             }
             return false;
@@ -243,7 +250,7 @@ public class ComparingController<P extends Item, C extends IModel> implements ID
     private Orientation orientation = Orientation.VERTICAL;
 
     public ComparingController(IPluginContext context, IPluginConfig config, ITemplateFactory<C> factory,
-            IComparer comparer, String itemId) {
+                               IComparer comparer, String itemId) {
         this.context = context;
         this.config = config;
         this.factory = factory;
@@ -266,7 +273,7 @@ public class ComparingController<P extends Item, C extends IModel> implements ID
         return orientation;
     }
 
-    public void start(AbstractProvider<P,C> oldProvider, AbstractProvider<P,C> newProvider) {
+    public void start(AbstractProvider<P, C> oldProvider, AbstractProvider<P, C> newProvider) {
         final int oldSize = oldProvider.size();
         final int newSize = newProvider.size();
 
@@ -275,20 +282,16 @@ public class ComparingController<P extends Item, C extends IModel> implements ID
             return;
         }
 
-        final List<ItemValue<C>> oldItems = new ArrayList<ItemValue<C>>(oldSize);
-        if (oldProvider != null) {
-            Iterator<C> oldIter = oldProvider.iterator(0, oldSize);
-            while (oldIter.hasNext()) {
-                oldItems.add(new ItemValue<C>(comparer, oldIter.next()));
-            }
+        final List<ItemValue<C>> oldItems = new ArrayList<>(oldSize);
+        Iterator<C> oldIter = oldProvider.iterator(0, oldSize);
+        while (oldIter.hasNext()) {
+            oldItems.add(new ItemValue<C>(comparer, oldIter.next()));
         }
 
-        final List<ItemValue<C>> newItems = new ArrayList<ItemValue<C>>(newSize);
-        if (newProvider != null) {
-            Iterator<C> newIter = newProvider.iterator(0, newSize);
-            while (newIter.hasNext()) {
-                newItems.add(new ItemValue<C>(comparer, newIter.next()));
-            }
+        final List<ItemValue<C>> newItems = new ArrayList<>(newSize);
+        Iterator<C> newIter = newProvider.iterator(0, newSize);
+        while (newIter.hasNext()) {
+            newItems.add(new ItemValue<>(comparer, newIter.next()));
         }
 
         final List<ItemValue> common = LCS.getLongestCommonSubsequence(oldItems.toArray(new ItemValue[oldItems.size()]),
@@ -329,7 +332,9 @@ public class ComparingController<P extends Item, C extends IModel> implements ID
                     nextNewValue = null;
                 }
             }
-            addModelView((C) nextValue.value, cnt++);
+            @SuppressWarnings("unchecked")
+            final C value = (C)nextValue.value;
+            addModelView(value, cnt++);
             nextNewValue = null;
             if (newValueIter.hasNext()) {
                 nextNewValue = newValueIter.next();
@@ -338,6 +343,33 @@ public class ComparingController<P extends Item, C extends IModel> implements ID
         while (oldValueIter.hasNext()) {
             final ItemValue<C> oldValue = oldValueIter.next();
             if (nextNewValue != null) {
+                /**
+                 * in case of frozen nodes (version history) check hippo:docbase for equality
+                 */
+                if (nextNewValue.value instanceof JcrNodeModel && oldValue.value instanceof JcrNodeModel) {
+                    final JcrNodeModel newModel = (JcrNodeModel)nextNewValue.value;
+                    final Node newNode = newModel.getObject();
+                    final JcrNodeModel oldModel = (JcrNodeModel)oldValue.value;
+                    final Node oldNode = oldModel.getObject();
+
+                    try {
+                        final String nodeType = oldNode.getPrimaryNodeType().getName();
+                        if (nodeType.equals(NT_FROZEN_NODE) && oldNode.hasProperty(HIPPO_DOCBASE)
+                                && newNode.hasProperty(HIPPO_DOCBASE)) {
+                            if (oldNode.getProperty(HIPPO_DOCBASE).getString().equals(newNode.getProperty(HIPPO_DOCBASE).getString())) {
+                                addModelView(oldValue.value, cnt++);
+                                // skip adding new value compare because we already added value above
+                                if (!oldValueIter.hasNext()) {
+                                    nextNewValue = null;
+                                }
+                                // continue with next node
+                                continue;
+                            }
+                        }
+                    } catch (RepositoryException ignore) {
+                        // ignore
+                    }
+                }
                 addModelComparison(oldValue.value, nextNewValue.value, cnt++);
                 if (newValueIter.hasNext()) {
                     nextNewValue = newValueIter.next();
@@ -365,8 +397,9 @@ public class ComparingController<P extends Item, C extends IModel> implements ID
         childTemplates.clear();
     }
 
+    @SuppressWarnings("unchecked")
     public ItemEntry getFieldItem(IRenderService renderer) {
-        return (ItemEntry) renderer;
+        return (ItemEntry)renderer;
     }
 
     private void addModelView(C model, int id) {
