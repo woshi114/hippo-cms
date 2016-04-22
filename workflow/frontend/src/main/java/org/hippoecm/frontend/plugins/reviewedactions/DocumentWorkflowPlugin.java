@@ -64,7 +64,7 @@ import org.onehippo.repository.util.JcrConstants;
 
 public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
-    private static final String DEFAULT_FOLDERWORKFLOW_CATEGORY = "threepane";
+    private static final String DEFAULT_FOLDERWORKFLOW_CATEGORY = "embedded";
 
     private StdWorkflow deleteAction;
     private StdWorkflow requestDeleteAction;
@@ -496,12 +496,13 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
             else {
                 log.error("(Supposed) document handle {} does not have same-name subnode", handle.getPath());
             }
-        } catch (RepositoryException | RemoteException ignore) {
+        } catch (RepositoryException | RemoteException e) {
+            log.error(e.getClass().getName() + " during check for workflow allowed in folder: " + e.getMessage());
         } catch (WorkflowException we) {
-            log.info("Exception during workflow execution", we);
+            log.error(we.getClass().getName() + " during workflow execution", we);
         }
 
-        // don't want to forbid action if something goes wrong
-        return true;
+        // forbid workflow action if something's wrong
+        return false;
     }
 }
