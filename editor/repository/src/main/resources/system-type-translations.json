@@ -22,6 +22,11 @@
     },
     "hipposys:Date": {
       "en": {
+        "jcr:name": "DateTime"
+      }
+    },
+    "hipposys:DateOnly": {
+      "en": {
         "jcr:name": "Date"
       }
     },

@@ -62,7 +62,7 @@ public interface DateTimePrinter extends IClusterable {
      * Print with specified FormatStyles. Check <a href="https://docs.oracle.com/javase/8/docs/api/java/time/format/FormatStyle.html">here</a>
      * for all possible styles. The dateStyle will be used for the date part, the timeStyle for the time part.
      * @param dateStyle the formatter style to use for the date part, not null
-     * @param timeStyle the formatter style to use for the time part, not null
+     * @param timeStyle the formatter style to use for the time part, if null the time part will not be shown
      * @return the date as a string based the both styles
      */
     String print(final FormatStyle dateStyle, final FormatStyle timeStyle);
@@ -134,7 +134,11 @@ public interface DateTimePrinter extends IClusterable {
 
         @Override
         public String print(final FormatStyle dateStyle, final FormatStyle timeStyle) {
-            return print(DateTimeFormatter.ofLocalizedDateTime(dateStyle, timeStyle));
+            if(timeStyle == null) {
+                return print(DateTimeFormatter.ofLocalizedDate(dateStyle));
+            } else {
+                return print(DateTimeFormatter.ofLocalizedDateTime(dateStyle, timeStyle));
+            }
         }
 
         @Override
