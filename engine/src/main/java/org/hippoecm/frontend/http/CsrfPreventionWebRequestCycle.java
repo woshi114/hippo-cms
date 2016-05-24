@@ -80,8 +80,16 @@ public class CsrfPreventionWebRequestCycle extends WebRequestCycle {
         }
 
         if (!isLocalOrigin(httpServletRequest, origin)) {
-            log.info("Possible CSRF attack, request URL: {}, Origin: {}, action: aborted with error {} {}",
-                    new Object[] { httpServletRequest.getRequestURL(), origin, errorCode, errorMessage });
+
+            final String originLocation = getOriginHeaderOrigin(origin);
+            final String requestLocation = getLocationHeaderOrigin(httpServletRequest);
+            if (originLocation != null && requestLocation != null
+                    && getOriginHeaderOrigin(origin).startsWith("https:") && !requestLocation.startsWith("https:")) {
+                log.warn("Origin starts with https: but request starts with http:. If you are running behind a proxy, make " +
+                        "sure to set 'X-Forwarded-Proto: https' in the proxy");
+            }
+            log.info("Possible CSRF attack, client request location: {}, Origin: {}, action: aborted with error {} {}",
+                    new Object[] { requestLocation, originLocation, errorCode, errorMessage });
             throw new AbortWithWebErrorCodeException(errorCode, errorMessage);
         }
         super.onBeginRequest();
@@ -186,6 +194,7 @@ public class CsrfPreventionWebRequestCycle extends WebRequestCycle {
                 target.append(':');
                 target.append(port);
             }
+            log.debug("Origin : {}", target.toString());
             return target.toString();
         } catch (URISyntaxException e) {
             log.debug("Invalid Origin header provided: {}, marked conflicting", origin);
@@ -205,12 +214,16 @@ public class CsrfPreventionWebRequestCycle extends WebRequestCycle {
         String host = request.getHeader("X-Forwarded-Host");
         if (host != null) {
             String[] hosts = host.split(",");
-            return getFarthestRequestScheme(request) + "://" + hosts[0];
+            final String location = getFarthestRequestScheme(request) + "://" + hosts[0];
+            log.debug("X-Forwarded-Host header found. Return location '{}'", location);
+            return location;
         }
 
         host = request.getHeader("Host");
         if (host != null && !"".equals(host)) {
-            return getFarthestRequestScheme(request) + "://" + host;
+            final String location = getFarthestRequestScheme(request) + "://" + host;
+            log.debug("Host header found. Return location '{}'", location);
+            return location;
         }
 
         // Build scheme://host:port from request
@@ -235,7 +248,8 @@ public class CsrfPreventionWebRequestCycle extends WebRequestCycle {
             target.append(':');
             target.append(port);
         }
-
+        log.debug("Host '{}' from request.serverName is used because no 'Host' or 'X-Forwarded-Host' header found. " +
+                "Return location '{}'", target.toString());
         return target.toString();
     }
 
