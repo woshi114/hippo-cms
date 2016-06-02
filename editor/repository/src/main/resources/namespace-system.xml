@@ -319,6 +319,7 @@
         </sv:property>
         <sv:property sv:name="frontend:properties" sv:type="String">
           <sv:value>mode</sv:value>
+          <sv:value>show.today.button</sv:value>
         </sv:property>
         <sv:property sv:name="frontend:references" sv:type="String">
           <sv:value>wicket.model</sv:value>
@@ -381,6 +382,7 @@
         </sv:property>
         <sv:property sv:name="frontend:properties" sv:type="String">
           <sv:value>mode</sv:value>
+          <sv:value>show.today.button</sv:value>
         </sv:property>
         <sv:property sv:name="frontend:references" sv:type="String">
           <sv:value>wicket.model</sv:value>

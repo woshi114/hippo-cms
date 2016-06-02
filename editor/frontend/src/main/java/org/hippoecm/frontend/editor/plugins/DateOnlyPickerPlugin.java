@@ -23,7 +23,6 @@ import org.hippoecm.frontend.plugins.yui.datetime.DateOnlyFieldWidget;
 import org.hippoecm.frontend.service.IEditor.Mode;
 import org.hippoecm.frontend.service.render.RenderPlugin;
 
-import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Date;
 
