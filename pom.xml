@@ -88,7 +88,7 @@
     <hippo.frontend.theme.version>3.0.0</hippo.frontend.theme.version>
     <hippo.utilities.version>3.0.0</hippo.utilities.version>
     <hippo.services.version>3.0.0</hippo.services.version>
-    <hippo.repository.version>4.0.1</hippo.repository.version>
+    <hippo.repository.version>4.0.2-SNAPSHOT</hippo.repository.version>
 
     <!-- Test dependencies  -->
     <easymock.version>2.4</easymock.version>
