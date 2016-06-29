@@ -87,7 +87,7 @@
     <notice.project.name>Hippo CMS</notice.project.name>
 
     <hippo.commons.version>2.2.0</hippo.commons.version>
-    <hippo.frontend.theme.version>2.2.0</hippo.frontend.theme.version>
+    <hippo.frontend.theme.version>2.2.1-SNAPSHOT</hippo.frontend.theme.version>
     <hippo.utilities.version>2.2.0</hippo.utilities.version>
     <hippo.services.version>2.2.0</hippo.services.version>
     <hippo.repository.version>3.2.0</hippo.repository.version>
