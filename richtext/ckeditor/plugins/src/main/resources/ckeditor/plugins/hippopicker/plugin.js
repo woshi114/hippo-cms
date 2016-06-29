@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2013-2016 Hippo B.V. (http://www.onehippo.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 (function() {
     "use strict";
 
+    var disableLinkButton = false;
+    var CLICK_DELAY = 300;
     function iterate(object, func) {
         var property;
         for (property in object) {
@@ -107,6 +109,12 @@
         }
 
         function openInternalLinkPickerDialog(selectedLink) {
+            // disable button state for CLICK_DELAY, to prevent double clicking:
+            disableLinkButton = true;
+            editor.getCommand('pickInternalLink').setState(CKEDITOR.TRISTATE_DISABLED);
+            setTimeout(function () {
+                disableLinkButton = false;
+            }, CLICK_DELAY);
             var callbackParameters = getElementParameters(selectedLink, LINK_ATTRIBUTES_PARAMETER_MAP);
 
             Wicket.Ajax.post({
@@ -133,6 +141,9 @@
         }
 
         function updateToolbarButtonState() {
+            if(disableLinkButton) {
+                return;
+            }
             var state = CKEDITOR.TRISTATE_OFF,
                 selection = editor.getSelection();
 
