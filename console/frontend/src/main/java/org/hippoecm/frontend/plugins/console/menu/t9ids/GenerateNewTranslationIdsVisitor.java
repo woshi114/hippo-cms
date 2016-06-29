@@ -50,7 +50,7 @@ public class GenerateNewTranslationIdsVisitor implements ItemVisitor {
 
     private String findHandleId(final Property property) throws RepositoryException {
         final Node handle = property.getParent().getParent();
-        if (handle.isNodeType("hippo:handle")) {
+        if (handle.isNodeType(HIPPO_HANDLE)) {
             return handle.getIdentifier();
         }
         return null;
