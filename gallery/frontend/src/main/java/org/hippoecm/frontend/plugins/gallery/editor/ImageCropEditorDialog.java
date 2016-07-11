@@ -47,7 +47,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.value.IValueMap;
 import org.apache.wicket.util.value.ValueMap;
-import org.hippoecm.frontend.dialog.Dialog;
 import org.hippoecm.frontend.editor.plugins.resource.ResourceHelper;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.plugins.gallery.editor.crop.ImageCropBehavior;
@@ -57,7 +56,7 @@ import org.hippoecm.frontend.plugins.gallery.imageutil.ScaleImageOperation;
 import org.hippoecm.frontend.plugins.gallery.imageutil.ScalingParameters;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
-import org.hippoecm.frontend.plugins.jquery.upload.single.BinaryWorkflowUtils;
+import org.hippoecm.frontend.plugins.jquery.upload.single.BinaryContentEventLogger;
 import org.hippoecm.frontend.plugins.standards.image.JcrImage;
 import org.hippoecm.frontend.resource.JcrResourceStream;
 import org.hippoecm.repository.gallery.HippoGalleryNodeType;
@@ -79,6 +78,10 @@ public class ImageCropEditorDialog extends Dialog<Node> {
 
     private static final int MAX_PREVIEW_WIDTH = 200;
     private static final int MAX_PREVIEW_HEIGHT = 300;
+    private static final long serialVersionUID = 1L;
+    private static final String ACTION_CROP = "crop";
+    private static final String INTERACTION_TYPE_GALLERY = "image-gallery";
+    private static final String WORKFLOW_CATEGORY = "cms";
 
     @SuppressWarnings("unused")
     private String region;
@@ -317,11 +320,10 @@ public class ImageCropEditorDialog extends Dialog<Node> {
             cropped.setProperty(HippoGalleryNodeType.IMAGE_HEIGHT, dimension.getHeight());
             session = cropped.getSession();
             session.save();
-            BinaryWorkflowUtils.postBinaryChangedEvent(cropped);
+            BinaryContentEventLogger.fireBinaryChangedEvent(cropped, WORKFLOW_CATEGORY, ACTION_CROP,INTERACTION_TYPE_GALLERY);
         } catch (GalleryException | IOException | RepositoryException ex) {
             log.error("Unable to create thumbnail image", ex);
             error(ex);
-            BinaryWorkflowUtils.looseSessionChanges(session);
         }
     }
 
