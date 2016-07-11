@@ -3,6 +3,7 @@
 /.classpath
 /.project
 /.settings
+.DS_Store
 api/*.tmp
 api/.classpath
 api/.project

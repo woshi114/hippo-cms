@@ -24,7 +24,7 @@
   </parent>
 
   <artifactId>hippo-cms</artifactId>
-  <version>3.2.2-SNAPSHOT</version>
+  <version>3.2.3-SNAPSHOT</version>
 
   <inceptionYear>2007</inceptionYear>
 
@@ -87,7 +87,7 @@
     <notice.project.name>Hippo CMS</notice.project.name>
 
     <hippo.commons.version>2.2.0</hippo.commons.version>
-    <hippo.frontend.theme.version>2.2.0</hippo.frontend.theme.version>
+    <hippo.frontend.theme.version>2.2.1-SNAPSHOT</hippo.frontend.theme.version>
     <hippo.utilities.version>2.2.0</hippo.utilities.version>
     <hippo.services.version>2.2.0</hippo.services.version>
     <hippo.repository.version>3.2.0</hippo.repository.version>
@@ -129,7 +129,7 @@
     <yui.sources.version>1.01.12</yui.sources.version>
     <hippo.htmldiff.version>1.01.04</hippo.htmldiff.version>
     <hippo.jcrdiff.version>1.01.05</hippo.jcrdiff.version>
-    <hippo.ckeditor.version>4.5.5-h2-SNAPSHOT</hippo.ckeditor.version>
+    <hippo.ckeditor.version>4.5.5-h2</hippo.ckeditor.version>
 
     <sonar.l10n.locales>nl,fr,it,de</sonar.l10n.locales>
 
