@@ -20,60 +20,60 @@ import java.util.UUID;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
-import javax.jcr.util.TraversingItemVisitor;
 
-import org.hippoecm.frontend.model.JcrHelper;
+import org.apache.jackrabbit.commons.visitor.FilteringItemVisitor;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.translation.HippoTranslationNodeType;
 
-public class GenerateNewTranslationIdsVisitor extends TraversingItemVisitor.Default {
+public class GenerateNewTranslationIdsVisitor extends FilteringItemVisitor {
 
     private String handleId;
     private String handleT9Id;
 
-    @Override
-    protected void entering(final Node node, final int level) throws RepositoryException {
-        if (JcrHelper.isVirtualNode(node)) {
-            return;
-        }
-
-        if (node.isNodeType(HippoNodeType.NT_HANDLE)) {
-            handleId = node.getIdentifier();
-            handleT9Id = UUID.randomUUID().toString();
-        }
-    }
-
-    @Override
-    protected void leaving(final Node node, final int level) throws RepositoryException {
-        if (JcrHelper.isVirtualNode(node)) {
-            return;
-        }
-
-        if (node.isNodeType(HippoNodeType.NT_HANDLE)) {
-            handleId = null;
-            handleT9Id = null;
-        }
+    public GenerateNewTranslationIdsVisitor() {
+        setWalkProperties(false);
+        setTraversalPredicate(IsNotVirtualPredicate.INSTANCE);
     }
 
     @Override
     protected void entering(final Property property, final int level) throws RepositoryException {
-        if (property.getName().equals(HippoTranslationNodeType.ID)) {
-            if (parentIsHandle(property)) {
-                property.setValue(handleT9Id);
-            } else {
-                // invoked for folders or any other nodes with no handle as parent:
-                property.setValue(UUID.randomUUID().toString());
-            }
+    }
+
+    @Override
+    protected void leaving(final Property property, final int level) throws RepositoryException {
+    }
+
+    @Override
+    protected void entering(final Node node, final int level) throws RepositoryException {
+        if (node.isNodeType(HippoNodeType.NT_HANDLE)) {
+            handleId = node.getIdentifier();
+            handleT9Id = UUID.randomUUID().toString();
+        }
+
+        if (node.hasProperty(HippoTranslationNodeType.ID)) {
+            final String newTranslationId = createTranslationId(node);
+            node.setProperty(HippoTranslationNodeType.ID, newTranslationId);
         }
     }
 
-    private boolean parentIsHandle(final Property property) throws RepositoryException {
+    private String createTranslationId(final Node node) throws RepositoryException {
+        return parentIsHandle(node) ? handleT9Id : UUID.randomUUID().toString();
+    }
+
+    private boolean parentIsHandle(final Node node) throws RepositoryException {
         if (handleId != null) {
-            final Node parent = property.getParent();
-            final Node grandParent = parent.getParent();
-            return grandParent != null && grandParent.getIdentifier().equals(handleId);
+            final Node parent = node.getParent();
+            return parent != null && parent.getIdentifier().equals(handleId);
         }
         return false;
+    }
+
+    @Override
+    protected void leaving(final Node node, final int level) throws RepositoryException {
+        if (node.isNodeType(HippoNodeType.NT_HANDLE)) {
+            handleId = null;
+            handleT9Id = null;
+        }
     }
 }
 
