@@ -169,7 +169,7 @@ public class ImageCropEditorDialog extends Dialog<Node> {
         final AjaxCheckBox fitViewCheckbox = new AjaxCheckBox("fit-view", fitViewModel) {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                executeJavascript(target, imageCropBehavior);
+                executeFitInView(target, imageCropBehavior);
             }
         };
         fitViewCheckbox.setOutputMarkupId(true);
@@ -184,7 +184,8 @@ public class ImageCropEditorDialog extends Dialog<Node> {
                 fitView = !fitView;
                 target.add(fitViewCheckbox);
                 fitViewCheckbox.modelChanged();
-                executeJavascript(target, imageCropBehavior);
+
+                executeFitInView(target, imageCropBehavior);
             }
         };
         fitViewLink.setOutputMarkupId(true);
@@ -215,12 +216,11 @@ public class ImageCropEditorDialog extends Dialog<Node> {
     }
 
     /**
-     * NOTE: this calls widget {@code update()} method,
-     * which dispatches call js call to {@code render()} method
+     * Execute the fitInView function on the clientside widget instance
      */
-    private void executeJavascript(final AjaxRequestTarget target, final ImageCropBehavior imageCropBehavior) {
-        final String updateScript = imageCropBehavior.getUpdateScript();
-        target.appendJavaScript(updateScript);
+    private void executeFitInView(final AjaxRequestTarget target, final ImageCropBehavior cropBehavior) {
+        final String script = "fitInView(" + fitView + ")";
+        target.appendJavaScript(cropBehavior.execWidgetFunction(script));
     }
 
     /**
