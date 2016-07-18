@@ -91,7 +91,7 @@ public class ImageCropEditorDialog extends Dialog<Node> {
     private Dimension configuredDimension;
     private Dimension thumbnailDimension;
     private float compressionQuality;
-    private boolean fitView;
+    private final ImageCropSettings cropSettings;
 
     public ImageCropEditorDialog(IModel<Node> jcrImageNodeModel, GalleryProcessor galleryProcessor) {
         super(jcrImageNodeModel);
@@ -155,16 +155,16 @@ public class ImageCropEditorDialog extends Dialog<Node> {
         thumbnailSize.setOutputMarkupId(true);
         add(thumbnailSize);
         //
-        final ImageCropSettings cropSettings = new ImageCropSettings(regionField.getMarkupId(),
+        cropSettings = new ImageCropSettings(regionField.getMarkupId(),
                 imagePreviewContainer.getMarkupId(),
                 originalImageDimension,
                 configuredDimension,
                 thumbnailDimension,
                 isUpscalingEnabled,
-                fitView,
+                false,
                 thumbnailSize.getMarkupId(true));
         final ImageCropBehavior imageCropBehavior = new ImageCropBehavior(cropSettings);
-        final IModel<Boolean> fitViewModel = new PropertyModel<>(this, "fitView");
+        final IModel<Boolean> fitViewModel = new PropertyModel<>(this.cropSettings, "fitView");
         final AjaxCheckBox fitViewCheckbox = new AjaxCheckBox("fit-view", fitViewModel) {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -200,7 +200,7 @@ public class ImageCropEditorDialog extends Dialog<Node> {
      * Execute the fitInView function on the clientside widget instance
      */
     private void executeFitInView(final AjaxRequestTarget target, final ImageCropBehavior cropBehavior) {
-        final String script = "fitInView(" + fitView + ")";
+        final String script = "fitInView(" + this.cropSettings.isFitView() + ")";
         target.appendJavaScript(cropBehavior.execWidgetFunction(script));
     }
 
