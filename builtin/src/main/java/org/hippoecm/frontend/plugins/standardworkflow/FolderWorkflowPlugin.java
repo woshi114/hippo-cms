@@ -75,6 +75,7 @@ import org.hippoecm.repository.api.WorkflowManager;
 import org.hippoecm.repository.standardworkflow.DefaultWorkflow;
 import org.hippoecm.repository.standardworkflow.EditableWorkflow;
 import org.hippoecm.repository.standardworkflow.FolderWorkflow;
+import org.hippoecm.repository.translation.HippoTranslationNodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -307,7 +308,9 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                                 TreeMap<String, String> arguments = new TreeMap<>();
                                 arguments.put("name", nodeName);
                                 arguments.put("localName", localName);
-
+                                if (StringUtils.isNotBlank(addDocumentModel.getLanguage())) {
+                                    arguments.put(HippoTranslationNodeType.LOCALE, addDocumentModel.getLanguage());
+                                }
                                 String path = workflow.add(category, addDocumentModel.getPrototype(), arguments);
                                 onWorkflowAdded(path);
                                 UserSession.get().getJcrSession().refresh(true);
