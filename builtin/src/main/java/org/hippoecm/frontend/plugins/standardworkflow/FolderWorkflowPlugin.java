@@ -31,8 +31,6 @@ import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.nodetype.NodeDefinition;
 
-import com.google.common.base.Strings;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
@@ -309,7 +307,7 @@ public class FolderWorkflowPlugin extends RenderPlugin {
                                 TreeMap<String, String> arguments = new TreeMap<>();
                                 arguments.put("name", nodeName);
                                 arguments.put("localName", localName);
-                                if (!Strings.isNullOrEmpty(addDocumentModel.getLanguage())) {
+                                if (StringUtils.isNotBlank(addDocumentModel.getLanguage())) {
                                     arguments.put(HippoTranslationNodeType.LOCALE, addDocumentModel.getLanguage());
                                 }
                                 String path = workflow.add(category, addDocumentModel.getPrototype(), arguments);
