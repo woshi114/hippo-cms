@@ -30,6 +30,7 @@ import javax.imageio.stream.MemoryCacheImageInputStream;
 import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 import org.apache.jackrabbit.JcrConstants;
 import org.apache.wicket.Component;
@@ -57,6 +58,7 @@ import org.hippoecm.frontend.plugins.gallery.imageutil.ScaleImageOperation;
 import org.hippoecm.frontend.plugins.gallery.imageutil.ScalingParameters;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
+import org.hippoecm.frontend.plugins.jquery.upload.single.BinaryContentEventLogger;
 import org.hippoecm.frontend.plugins.standards.image.JcrImage;
 import org.hippoecm.frontend.resource.JcrResourceStream;
 import org.hippoecm.repository.gallery.HippoGalleryNodeType;
@@ -76,6 +78,10 @@ public class ImageCropEditorDialog extends AbstractDialog<Node> {
     private static final int MAX_PREVIEW_WIDTH = 200;
     private static final int MAX_PREVIEW_HEIGHT = 300;
     private static final long serialVersionUID = 1L;
+
+    private static final String WORKFLOW_CATEGORY = "cms";
+    private static final String INTERACTION_TYPE_IMAGE = "image";
+    private static final String ACTION_CROP = "crop";
 
     @SuppressWarnings("unused")
     private String region;
@@ -268,6 +274,7 @@ public class ImageCropEditorDialog extends AbstractDialog<Node> {
         int height = jsonObject.getInt("height");
         int left = jsonObject.getInt("left");
         int width = jsonObject.getInt("width");
+        Session session = null;
         try {
             Node originalImageNode = getModelObject().getParent().getNode(HippoGalleryNodeType.IMAGE_SET_ORIGINAL);
             String mimeType = originalImageNode.getProperty(JcrConstants.JCR_MIMETYPE).getString();
@@ -321,7 +328,9 @@ public class ImageCropEditorDialog extends AbstractDialog<Node> {
             cropped.setProperty(JcrConstants.JCR_LASTMODIFIED, Calendar.getInstance());
             cropped.setProperty(HippoGalleryNodeType.IMAGE_WIDTH, dimension.getWidth());
             cropped.setProperty(HippoGalleryNodeType.IMAGE_HEIGHT, dimension.getHeight());
-
+            session = cropped.getSession();
+            session.save();
+            BinaryContentEventLogger.fireBinaryChangedEvent(cropped, WORKFLOW_CATEGORY, INTERACTION_TYPE_IMAGE, ACTION_CROP);
         } catch (GalleryException | IOException | RepositoryException ex) {
             log.error("Unable to create thumbnail image", ex);
             error(ex);
