@@ -51,8 +51,6 @@ if (!YAHOO.hippo.ImageCropper) {
       this.imagePreviewContainerId = config.imagePreviewContainerId;
       this.initialX = config.initialX;
       this.initialY = config.initialY;
-      this.initialWidth = config.initialWidth;
-      this.initialHeight = config.initialHeight;
       this.minimumWidth = config.minimumWidth;
       this.minimumHeight = config.minimumHeight;
 
@@ -130,8 +128,8 @@ if (!YAHOO.hippo.ImageCropper) {
           {
             keyTick: 4,
             initialXY: [this.initialX, this.initialY],
-            initHeight: this.initialHeight,
-            initWidth: this.initialWidth,
+            initWidth: this.thumbnailWidth,
+            initHeight: this.thumbnailHeight,
             ratio: this.fixedDimension === 'both',
             minWidth: this.minimumWidth,
             minHeight: this.minimumHeight,
