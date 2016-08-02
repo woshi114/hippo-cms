@@ -23,7 +23,10 @@ import java.util.MissingResourceException;
 
 import javax.jcr.SimpleCredentials;
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
+import com.google.common.base.Strings;
 
 import org.apache.wicket.Application;
 import org.apache.wicket.AttributeModifier;
@@ -169,7 +172,8 @@ public class LoginPanel extends Panel {
             }
             getSession().setLocale(new Locale(selectedLocale));
 
-            addLabelledComponent(new Label("locale-label", new ResourceModel("locale-label")));
+            final Label localeLabel = new Label("locale-label", new ResourceModel("locale-label"));
+            addLabelledComponent(localeLabel);
             add(locale = new DropDownChoice<>("locale",
                     new PropertyModel<String>(LoginPanel.this, "selectedLocale") {
                         @Override
@@ -208,6 +212,13 @@ public class LoginPanel extends Panel {
 
             submitButton = new Button("submit", new ResourceModel("submit-label"));
             addLabelledComponent(submitButton);
+            // hide languages selection for console app
+            final String servletPath = ((HttpServletRequest) getRequest().getContainerRequest()).getServletPath();
+            final boolean consoleLogin = !Strings.isNullOrEmpty(servletPath) && servletPath.equals("/console/");
+            if (consoleLogin) {
+                locale.setVisible(false);
+                localeLabel.setVisible(false);
+            }
         }
 
         @Override
