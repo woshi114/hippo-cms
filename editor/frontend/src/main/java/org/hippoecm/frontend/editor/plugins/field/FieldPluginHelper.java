@@ -55,6 +55,15 @@ public class FieldPluginHelper implements IDetachable {
     private IFieldDescriptor field;
     private ValidationModel validationModel;
 
+    public FieldPluginHelper(IPluginContext context, IPluginConfig config, final IFieldDescriptor field,
+                             final ITypeDescriptor documentType, final ValidationModel validationModel) {
+        this.context = context;
+        this.config = config;
+        this.field = field;
+        this.documentType = documentType;
+        this.validationModel = validationModel;
+    }
+
     public FieldPluginHelper(IPluginContext context, IPluginConfig config) {
         this.context = context;
         this.config = config;
