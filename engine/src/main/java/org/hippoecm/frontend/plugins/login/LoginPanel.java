@@ -212,12 +212,11 @@ public class LoginPanel extends Panel {
 
             submitButton = new Button("submit", new ResourceModel("submit-label"));
             addLabelledComponent(submitButton);
-            // hide languages selection for console app
-            final String servletPath = ((HttpServletRequest) getRequest().getContainerRequest()).getServletPath();
-            final boolean consoleLogin = !Strings.isNullOrEmpty(servletPath) && servletPath.equals("/console/");
+
+            // hide language selection for console app
+            final boolean consoleLogin = WebApplicationHelper.getApplicationName().equals(Main.PLUGIN_APPLICATION_VALUE_CONSOLE);
             if (consoleLogin) {
                 locale.setVisible(false);
-                localeLabel.setVisible(false);
             }
         }
 
