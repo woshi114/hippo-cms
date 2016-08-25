@@ -34,6 +34,7 @@ import org.hippoecm.frontend.dialog.ExceptionDialog;
 import org.hippoecm.frontend.dialog.IDialogService;
 import org.hippoecm.frontend.editor.workflow.CopyNameHelper;
 import org.hippoecm.frontend.editor.workflow.dialog.DeleteDialog;
+import org.hippoecm.frontend.editor.workflow.dialog.RevertDialog;
 import org.hippoecm.frontend.editor.workflow.dialog.WhereUsedDialog;
 import org.hippoecm.frontend.model.JcrNodeModel;
 import org.hippoecm.frontend.model.NodeModelWrapper;
@@ -65,6 +66,7 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
     private StdWorkflow moveAction;
     private StdWorkflow whereUsedAction;
     private StdWorkflow historyAction;
+    private StdWorkflow revertAction;
 
     public DocumentWorkflowPlugin(final IPluginContext context, final IPluginConfig config) {
         super(context, config);
@@ -404,6 +406,37 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
             }
         });
 
+        add(revertAction = new StdWorkflow("revert",
+            new StringResourceModel("revert-label", this, null), context, getModel()) {
+
+            @Override
+            public String getSubMenu() {
+                return "document";
+            }
+
+            @Override
+            protected Component getIcon(final String id) {
+                return HippoIcon.fromSprite(id, Icon.TIMES_CIRCLE);
+            }
+
+            @Override
+            protected IDialogService.Dialog createRequestDialog() {
+                IModel<String> message =
+                  new StringResourceModel("revert-message", DocumentWorkflowPlugin.this, null, getDocumentName());
+                IModel<String> title =
+                  new StringResourceModel("revert-title", DocumentWorkflowPlugin.this, null, getDocumentName());
+                return new RevertDialog(title, getModel(), message, this, getEditorManager());
+            }
+
+            @Override
+            protected String execute(Workflow wf) throws Exception {
+                DocumentWorkflow workflow = (DocumentWorkflow) wf;
+                workflow.revert();
+                return null;
+            }
+
+        });
+
         Map<String, Serializable> info = getHints();
         if (!info.containsKey("delete")) {
             hideOrDisable(info, "requestDelete", requestDeleteAction);
@@ -416,6 +449,7 @@ public class DocumentWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
         hideOrDisable(info, "copy", copyAction);
         hideOrDisable(info, "listVersions", historyAction);
+        hideOrDisable(info, "revert", revertAction);
     }
 
     /**
