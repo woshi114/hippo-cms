@@ -16,6 +16,8 @@
 package org.hippoecm.frontend.service.restproxy;
 
 import java.lang.annotation.Annotation;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,11 +92,7 @@ public class RestProxyServicePlugin extends Plugin implements IRestProxyService 
     public RestProxyServicePlugin(IPluginContext context, IPluginConfig config) {
         super(context, config);
 
-        restUri = config.getString(CONFIG_REST_URI);
-        if (StringUtils.isEmpty(restUri)) {
-            throw new IllegalStateException("No REST service URI configured. Please set the plugin configuration property '"
-                    + CONFIG_REST_URI + "'");
-        }
+        restUri = createRestURI(config.getString(CONFIG_REST_URI), (HttpServletRequest) RequestCycle.get().getRequest().getContainerRequest());
         log.info("Using REST uri '{}'", restUri);
 
         contextPath = config.getString(CONFIG_CONTEXT_PATH);
@@ -115,6 +113,27 @@ public class RestProxyServicePlugin extends Plugin implements IRestProxyService 
         log.info("Registering this service under id '{}'", serviceId);
         context.registerService(this, serviceId);
 
+    }
+
+    static String createRestURI(String value, final HttpServletRequest request) {
+        if (StringUtils.isEmpty(value)) {
+            throw new IllegalStateException("No REST service URI configured. Please set the plugin configuration property '"
+                    + CONFIG_REST_URI + "'");
+        }
+        try {
+            URI u = new URI(value);
+            final int portNumber;
+            if (u.getPort() == -1) {
+                portNumber = request.getLocalPort();
+            } else {
+                portNumber = u.getPort();
+            }
+            return new URI(u.getScheme(), u.getUserInfo(), u.getHost(), portNumber, u.getRawPath(), u.getRawQuery(), u.getRawFragment()).toString();
+
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Invalid REST service URI configured. Please correct the plugin configuration property '"
+                    + CONFIG_REST_URI + "'", e);
+        }
     }
 
     @Override
