@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2013 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2016 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -104,8 +104,11 @@ public class JcrPropertyValueModel<T extends Serializable> implements IModel<T>,
                 Property property = propertyModel.getProperty();
                 try {
                     this.type = property.getType();
+                    if (this.type == PropertyType.DATE) {
+                        this.value = createNullDateValue();
+                    }
                 } catch (RepositoryException e) {
-                    throw new RuntimeException("Could not determine type of property", e);
+                    throw new RuntimeException("Error initializing JcrPropertyValueModel", e);
                 }
             }
         }
@@ -178,6 +181,9 @@ public class JcrPropertyValueModel<T extends Serializable> implements IModel<T>,
 
     public Value getValue() {
         load();
+        if (value != null && value.equals(PropertyValueProvider.NULL_DATE)) {
+            return null;
+        }
         return value;
     }
 
@@ -185,6 +191,9 @@ public class JcrPropertyValueModel<T extends Serializable> implements IModel<T>,
         load();
 
         try {
+            if (value == null && getType() == PropertyType.DATE) {
+                value = createNullDateValue();
+            }
             if (this.value != null && value != null) {
                 String oldValue = this.value.getString();
                 String newValue = value.getString();
@@ -253,6 +262,13 @@ public class JcrPropertyValueModel<T extends Serializable> implements IModel<T>,
         }
     }
 
+    private Value createNullDateValue() throws RepositoryException {
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTime(PropertyValueProvider.NULL_DATE);
+        final ValueFactory factory = UserSession.get().getJcrSession().getValueFactory();
+        return factory.createValue(calendar);
+    }
+
     @SuppressWarnings("unchecked")
     public T getObject() {
         try {
@@ -279,8 +295,11 @@ public class JcrPropertyValueModel<T extends Serializable> implements IModel<T>,
         return null;
     }
 
-    public void setObject(final Serializable object) {
+    public void setObject(Serializable object) {
         load();
+        if (object == null && getType() == PropertyType.DATE) {
+            object = PropertyValueProvider.NULL_DATE;
+        }
         if (object == null) {
             if (value != null) {
                 setValue(null);
