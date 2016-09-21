@@ -47,6 +47,12 @@ import org.slf4j.LoggerFactory;
  * of the property.  I.e. JCR type string maps to {@link String}, date maps to {@link Date}.
  * <p>
  * One can also set and retrieve the underlying {@link Value}.
+ * </p>
+ * <p>
+ * Note that Date property values equaling {@link PropertyValueProvider#NULL_DATE} are converted to null in
+ * {@link #getValue()} and {@link #getObject()}, and vice versa from null to {@link PropertyValueProvider#NULL_DATE} in
+ * {@link #setValue(Value)} and {@link #setObject(Serializable)}.
+ * </p>
  */
 public class JcrPropertyValueModel<T extends Serializable> implements IModel<T>, IObjectClassAwareModel<T> {
 
@@ -179,6 +185,10 @@ public class JcrPropertyValueModel<T extends Serializable> implements IModel<T>,
         return propertyModel;
     }
 
+    /**
+     * Gets the model's {#link Value}.
+     * Note that Date property values equaling {@link PropertyValueProvider#NULL_DATE} are converted to null.
+     */
     public Value getValue() {
         load();
         if (value != null && value.equals(PropertyValueProvider.NULL_DATE)) {
@@ -187,6 +197,10 @@ public class JcrPropertyValueModel<T extends Serializable> implements IModel<T>,
         return value;
     }
 
+    /**
+     * Sets the model's {#link Value}.
+     * Note that Date property values equaling null are converted to {@link PropertyValueProvider#NULL_DATE}.
+     */
     public void setValue(Value value) {
         load();
 
@@ -269,6 +283,10 @@ public class JcrPropertyValueModel<T extends Serializable> implements IModel<T>,
         return factory.createValue(calendar);
     }
 
+    /**
+     * Gets the model's object.
+     * Note that Date values equaling {@link PropertyValueProvider#NULL_DATE} are converted to null.
+     */
     @SuppressWarnings("unchecked")
     public T getObject() {
         try {
@@ -295,6 +313,10 @@ public class JcrPropertyValueModel<T extends Serializable> implements IModel<T>,
         return null;
     }
 
+    /**
+     * Sets the model's object.
+     * Note that Date values equaling null are converted to {@link PropertyValueProvider#NULL_DATE}.
+     */
     public void setObject(Serializable object) {
         load();
         if (object == null && getType() == PropertyType.DATE) {
