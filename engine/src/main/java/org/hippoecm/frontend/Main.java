@@ -121,6 +121,7 @@ public class Main extends PluginApplication {
     public final static String ENCRYPT_URLS = "encrypt-urls";
     public final static String OUTPUT_WICKETPATHS = "output-wicketpaths";
     public final static String PLUGIN_APPLICATION_NAME_PARAMETER = "config";
+    public final static String PLUGIN_APPLICATION_VALUE_CMS = "cms";
 
 
     // comma separated init parameter
