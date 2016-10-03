@@ -31,7 +31,7 @@ import static org.onehippo.cms7.services.cmscontext.CmsSessionContext.SESSION_KE
 
 public class CmsContextServiceImpl implements CmsInternalCmsContextService {
 
-    private static class CmsSessionContextImpl implements CmsSessionContext, HttpSessionBindingListener, HttpSessionActivationListener {
+    private static class CmsSessionContextImpl extends CmsSessionContext implements HttpSessionBindingListener, HttpSessionActivationListener {
 
         private final String id = UUID.randomUUID().toString();
 
