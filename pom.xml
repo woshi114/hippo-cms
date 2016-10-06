@@ -89,7 +89,7 @@
     <hippo.commons.version>2.2.0</hippo.commons.version>
     <hippo.frontend.theme.version>2.2.2</hippo.frontend.theme.version>
     <hippo.utilities.version>2.2.1</hippo.utilities.version>
-    <hippo.services.version>2.2.0</hippo.services.version>
+    <hippo.services.version>2.2.1-SNAPSHOT</hippo.services.version>
     <hippo.repository.version>3.2.5</hippo.repository.version>
 
     <!-- Test dependencies  -->
