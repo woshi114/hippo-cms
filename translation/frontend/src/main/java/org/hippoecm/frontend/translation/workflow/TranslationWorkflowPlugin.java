@@ -640,6 +640,12 @@ public final class TranslationWorkflowPlugin extends RenderPlugin {
             }
         };
 
+
+        if (hasNoTranslationContext()) {
+            return;
+        }
+
+
         add(new EmptyPanel("content"));
 
         add(new MenuDescription() {
@@ -695,6 +701,22 @@ public final class TranslationWorkflowPlugin extends RenderPlugin {
             }
         });
 
+    }
+
+    private boolean hasNoTranslationContext() {
+        try {
+            Node document  = getDocumentNode();
+
+            Node folder = document.getParent().getParent();
+            if (!folder.hasProperty(HippoTranslationNodeType.LOCALE)) {
+                return true;
+            }
+
+        } catch (RepositoryException e) {
+            log.error("Failed to check document folder locale", e);
+        }
+
+        return false;
     }
 
     public boolean hasLocale(String locale) {
