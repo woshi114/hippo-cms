@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2015 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2016 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -68,6 +68,7 @@ import org.hippoecm.frontend.translation.DocumentTranslationProvider;
 import org.hippoecm.frontend.translation.ILocaleProvider;
 import org.hippoecm.frontend.translation.ILocaleProvider.HippoLocale;
 import org.hippoecm.frontend.translation.ILocaleProvider.LocaleState;
+import org.hippoecm.frontend.translation.TranslationUtil;
 import org.hippoecm.frontend.translation.components.document.FolderTranslation;
 import org.hippoecm.frontend.types.IFieldDescriptor;
 import org.hippoecm.frontend.types.ITypeDescriptor;
@@ -611,9 +612,11 @@ public final class TranslationWorkflowPlugin extends RenderPlugin {
         final IModel<String> languageModel = new LanguageModel();
         final ILocaleProvider localeProvider = getLocaleProvider();
 
+        Node documentNode = null;
         DocumentTranslationProvider docTranslationProvider = null;
         try {
-            docTranslationProvider = new DocumentTranslationProvider(new JcrNodeModel(getDocumentNode()),
+            documentNode = getDocumentNode();
+            docTranslationProvider = new DocumentTranslationProvider(new JcrNodeModel(documentNode),
                     localeProvider);
         } catch (RepositoryException e) {
             log.warn("Unable to find document node");
@@ -640,11 +643,9 @@ public final class TranslationWorkflowPlugin extends RenderPlugin {
             }
         };
 
-
-        if (hasNoTranslationContext()) {
+        if (!TranslationUtil.hasTranslationContext(documentNode)) {
             return;
         }
-
 
         add(new EmptyPanel("content"));
 
@@ -701,22 +702,6 @@ public final class TranslationWorkflowPlugin extends RenderPlugin {
             }
         });
 
-    }
-
-    private boolean hasNoTranslationContext() {
-        try {
-            Node document  = getDocumentNode();
-
-            Node folder = document.getParent().getParent();
-            if (!folder.hasProperty(HippoTranslationNodeType.LOCALE)) {
-                return true;
-            }
-
-        } catch (RepositoryException e) {
-            log.error("Failed to check document folder locale", e);
-        }
-
-        return false;
     }
 
     public boolean hasLocale(String locale) {
