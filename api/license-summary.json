@@ -67,7 +67,7 @@
   "hippo-cms-api@": {
     "licenses": "Apache-2.0"
   },
-  "hippo-theme@3.1.0-SNAPSHOT": {
+  "hippo-theme@3.1.0": {
     "licenses": "MIT*",
     "licenseFile": "node_modules/hippo-theme/LICENSE"
   },

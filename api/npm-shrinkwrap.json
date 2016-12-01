@@ -1046,9 +1046,9 @@
       "resolved": "https://registry.npmjs.org/hawk/-/hawk-3.1.3.tgz"
     },
     "hippo-theme": {
-      "version": "3.1.0-SNAPSHOT",
-      "from": "target/dependency/hippo-theme.tar.gz",
-      "resolved": "file:target/dependency/hippo-theme.tar.gz"
+      "version": "3.1.0",
+      "from": "hippo-theme@3.1.0",
+      "resolved": "https://maven.onehippo.com/content/groups/npm-all/hippo-theme/-/hippo-theme-3.1.0.tgz"
     },
     "hoek": {
       "version": "2.16.3",
