@@ -238,7 +238,7 @@ public class LoginPanel extends Panel {
             }
         }
 
-        protected void addLabelledComponent(final Component component) {
+        public void addLabelledComponent(final Component component) {
             component.setOutputMarkupId(true);
             add(component);
             labels.add(component);
