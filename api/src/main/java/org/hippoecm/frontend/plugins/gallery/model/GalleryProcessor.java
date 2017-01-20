@@ -1,5 +1,5 @@
 /*
- *  Copyright 2009-2016 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2009-2017 Hippo B.V. (http://www.onehippo.com)
  * 
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ public interface GalleryProcessor extends IClusterable {
 
     String DEFAULT_GALLERY_PROCESSOR_ID = "service.gallery.processor";
 
+    String GALLERY_BACKGROUND_PROCESSING = "gallery.processor.backgroundProcessing";
+
     void makeImage(Node node, InputStream istream, String mimeType, String filename) throws GalleryException,
             RepositoryException;
 
@@ -43,5 +45,8 @@ public interface GalleryProcessor extends IClusterable {
 
     Map<String, ScalingParameters> getScalingParametersMap() throws RepositoryException;
 
+    default boolean isBackgroundProcessing(){
+        return false;
+    }
 }
 

@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2016 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2017 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,14 +15,6 @@
  */
 package org.hippoecm.frontend.plugins.gallery.processor;
 
-import java.io.InputStream;
-import java.util.Calendar;
-
-import javax.jcr.Item;
-import javax.jcr.ItemNotFoundException;
-import javax.jcr.Node;
-import javax.jcr.RepositoryException;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.JcrConstants;
 import org.hippoecm.editor.type.PlainJcrTypeStore;
@@ -33,12 +25,22 @@ import org.hippoecm.frontend.model.ocm.StoreException;
 import org.hippoecm.frontend.plugins.gallery.imageutil.ImageBinary;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryException;
 import org.hippoecm.frontend.plugins.gallery.model.GalleryProcessor;
+import org.hippoecm.frontend.plugins.gallery.processor.event.ImageVariantEvent;
 import org.hippoecm.frontend.types.IFieldDescriptor;
 import org.hippoecm.frontend.types.ITypeDescriptor;
 import org.hippoecm.repository.api.HippoNodeType;
 import org.hippoecm.repository.gallery.HippoGalleryNodeType;
+import org.onehippo.cms7.services.HippoServiceRegistry;
+import org.onehippo.cms7.services.eventbus.HippoEventBus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.jcr.Item;
+import javax.jcr.ItemNotFoundException;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * Gallery processor that puts a resized version of the image in the primary item and provides hooks to
@@ -48,6 +50,8 @@ public abstract class AbstractGalleryProcessor implements GalleryProcessor {
     private static final long serialVersionUID = 1L;
 
     private static final Logger log = LoggerFactory.getLogger(AbstractGalleryProcessor.class);
+
+    private boolean backgroundProcessing;
 
     public AbstractGalleryProcessor() {
         // do nothing
@@ -89,18 +93,41 @@ public abstract class AbstractGalleryProcessor implements GalleryProcessor {
         log.debug("Creating primary resource {}", resourceNode.getPath());
         Calendar lastModified = resourceNode.getProperty(JcrConstants.JCR_LASTMODIFIED).getDate();
         initGalleryResource(resourceNode, image.getStream(), image.getMimeType(), image.getFileName(), lastModified);
-
+        final Set<String> variants = new HashSet<>();
         // create all resource variant nodes
         for (IFieldDescriptor field : type.getFields().values()) {
             if (field.getTypeDescriptor().isType(HippoGalleryNodeType.IMAGE)) {
                 String variantPath = field.getPath();
                 if (!node.hasNode(variantPath)) {
-                    log.debug("creating variant resource {}", variantPath);
-                    Node variantNode = node.addNode(variantPath, field.getTypeDescriptor().getType());
-                    initGalleryResource(variantNode, image.getStream(), image.getMimeType(), image.getFileName(), lastModified);
+                    // always create original and thumbnail
+                    if (!isBackgroundProcessing()
+                            || variantPath.equals(HippoGalleryNodeType.IMAGE_SET_ORIGINAL)
+                            || variantPath.equals(HippoGalleryNodeType.IMAGE_SET_THUMBNAIL)){
+
+                        log.debug("creating variant resource {}", variantPath);
+                        Node variantNode = node.addNode(variantPath, field.getTypeDescriptor().getType());
+                        initGalleryResource(variantNode, image.getStream(), image.getMimeType(), image.getFileName(), lastModified);
+
+                    } else {
+                        log.debug("Scheduling variant for background processing: {}", variantPath);
+                        variants.add(variantPath);
+                    }
+                }
+            }
+            if (isBackgroundProcessing()) {
+                final HippoEventBus eventBus = HippoServiceRegistry.getService(HippoEventBus.class);
+                for (String variant : variants) {
+                    if (eventBus != null) {
+                        final ImageVariantEvent variantEvent = new ImageVariantEvent(variant)
+                                .node(node.getPath())
+                                .variant(variant);
+                        variantEvent.sealEvent();
+                        eventBus.post(variantEvent);
+                    }
                 }
             }
         }
+
 
         image.dispose();
 
@@ -128,11 +155,10 @@ public abstract class AbstractGalleryProcessor implements GalleryProcessor {
     /**
      * Initializes properties of the main gallery node.
      *
-     * @param node the main gallery node
-     * @param data the uploaded data
+     * @param node     the main gallery node
+     * @param data     the uploaded data
      * @param mimeType the MIME type of the uploaded data
      * @param fileName the file name of the uploaded data
-     *
      * @throws RepositoryException when repository access failed
      */
     public abstract void initGalleryNode(Node node, InputStream data, String mimeType, String fileName)
@@ -143,26 +169,32 @@ public abstract class AbstractGalleryProcessor implements GalleryProcessor {
      * when a new image is uploaded to the gallery, and when an image in an existing imageset is replaced
      * by another image.
      *
-     * @param node the hippo:resource node
-     * @param data the uploaded data
+     * @param node     the hippo:resource node
+     * @param data     the uploaded data
      * @param mimeType the MIME type of the uploaded data
      * @param fileName the file name of the uploaded data
-     *
      * @throws RepositoryException when repository access failed.
      */
     public abstract void initGalleryResource(Node node, InputStream data, String mimeType, String fileName,
-            Calendar lastModified) throws GalleryException, RepositoryException;
+                                             Calendar lastModified) throws GalleryException, RepositoryException;
 
     /**
      * Checks whether upscaling is enabled for a particular Node.
      * This implementation returns always true
      *
      * @param node the hippo:resource node     *
-     *
      * @throws RepositoryException when repository access failed.
      */
     public boolean isUpscalingEnabled(Node node) throws GalleryException, RepositoryException {
         return true;
     }
 
+    @Override
+    public boolean isBackgroundProcessing() {
+        return backgroundProcessing;
+    }
+
+    public void setBackgroundProcessing(final boolean backgroundProcessing) {
+        this.backgroundProcessing = backgroundProcessing;
+    }
 }

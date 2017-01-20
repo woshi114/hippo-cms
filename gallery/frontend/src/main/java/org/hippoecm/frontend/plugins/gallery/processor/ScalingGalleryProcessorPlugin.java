@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2015 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2017 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -70,17 +70,17 @@ public class ScalingGalleryProcessorPlugin extends Plugin {
     private static final long serialVersionUID = 1L;
     private static final Logger log = LoggerFactory.getLogger(ScalingGalleryProcessorPlugin.class);
 
-    protected static final String CONFIG_PARAM_WIDTH = "width";
-    protected static final String CONFIG_PARAM_HEIGHT = "height";
-    protected static final String CONFIG_PARAM_UPSCALING = "upscaling";
-    protected static final String CONFIG_PARAM_OPTIMIZE = "optimize";
-    protected static final String CONFIG_PARAM_COMPRESSION = "compression";
+    public static final String CONFIG_PARAM_WIDTH = "width";
+    public static final String CONFIG_PARAM_HEIGHT = "height";
+    public static final String CONFIG_PARAM_UPSCALING = "upscaling";
+    public static final String CONFIG_PARAM_OPTIMIZE = "optimize";
+    public static final String CONFIG_PARAM_COMPRESSION = "compression";
 
-    protected static final int DEFAULT_WIDTH = 0;
-    protected static final int DEFAULT_HEIGHT = 0;
-    protected static final boolean DEFAULT_UPSCALING = false;
-    protected static final String DEFAULT_OPTIMIZE = "quality";
-    protected static final double DEFAULT_COMPRESSION = 1.0;
+    public static final int DEFAULT_WIDTH = 0;
+    public static final int DEFAULT_HEIGHT = 0;
+    public static final boolean DEFAULT_UPSCALING = false;
+    public static final String DEFAULT_OPTIMIZE = "quality";
+    public static final double DEFAULT_COMPRESSION = 1.0;
 
     private static final Map<String, ImageUtils.ScalingStrategy> SCALING_STRATEGY_MAP = new LinkedHashMap<>();
     static {
@@ -103,7 +103,9 @@ public class ScalingGalleryProcessorPlugin extends Plugin {
 
     protected ScalingGalleryProcessor createScalingGalleryProcessor(IPluginConfig config) {
         final ScalingGalleryProcessor processor = new ScalingGalleryProcessor();
-
+        final boolean backgroundProcessing = config.getAsBoolean(GalleryProcessor.GALLERY_BACKGROUND_PROCESSING, false);
+        processor.setBackgroundProcessing(backgroundProcessing);
+        log.debug("Using background processing: {}", backgroundProcessing);
         for (IPluginConfig scaleConfig: config.getPluginConfigSet()) {
             final String nodeName = StringUtils.substringAfterLast(scaleConfig.getName(), ".");
 
@@ -130,4 +132,7 @@ public class ScalingGalleryProcessorPlugin extends Plugin {
         return processor;
     }
 
+    public static Map<String, ImageUtils.ScalingStrategy> getScalingStrategyMap() {
+        return SCALING_STRATEGY_MAP;
+    }
 }
