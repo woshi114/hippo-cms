@@ -1,4 +1,4 @@
-// Copyright 2014-2015 Hippo B.V. (http://www.onehippo.com)
+// Copyright 2014-2017 Hippo B.V. (http://www.onehippo.com)
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -202,11 +202,9 @@ $validation-title-color:             $danger;
 $validation-border:                  $danger;
 
 // CKEditor
-$ckeditor-button-off-color:          $lightest-shade;
-$ckeditor-button-off-hover-color:    $light-gray;
-$ckeditor-button-on-color:           $dark-shade;
-$ckeditor-button-on-hover-color:     $dark-gray;
-$ckeditor-button-border-color:       $dark-gray;
+$ckeditor-toolbar-separator-color:   darken($dark-shade, 10%);
+$ckeditor-button-hover-color:        $light-gray;
+$ckeditor-button-on-color:           $lightest-shade;
 
 // Hippo dropdown/context menu
 $hippo-menu-fontsize:                $font-size-base;
