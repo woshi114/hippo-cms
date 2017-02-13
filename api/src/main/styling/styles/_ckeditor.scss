@@ -39,6 +39,7 @@
   }
 
   .cke_toolgroup .cke_button:last-child::after,
+  .cke_toolgroup .cke_button.cke_button_disabled:hover:last-child::after,
   .cke_combo::after {
     border-right-color: $ckeditor-toolbar-separator-color;
   }
