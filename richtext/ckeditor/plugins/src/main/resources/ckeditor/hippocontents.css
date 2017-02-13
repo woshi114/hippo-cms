@@ -216,11 +216,3 @@
 .cke_wysiwyg_div.cke_editable .marker {
   background-color: yellow;
 }
-
-/*
-  Fix the invisible vertical scrollbar in the 'styles' combo box in Chrome
-  (workaround for https://dev.ckeditor.com/ticket/14716)
-*/
-.cke_panel_container {
-  overflow-x: auto;
-}
