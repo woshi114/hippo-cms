@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2013-2017 Hippo B.V. (http://www.onehippo.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,11 +40,11 @@ public class CKEditorPropertyPlugin extends AbstractCKEditorPlugin<String> {
             + "  basicEntities: true,"
             + "  autoUpdateElement: false,"
             + "  contentsCss: ['ckeditor/hippocontents.css'],"
-            + "  plugins: 'basicstyles,button,clipboard,contextmenu,divarea,enterkey,entities,floatingspace,floatpanel,htmlwriter,listblock,magicline,menu,menubutton,panel,panelbutton,removeformat,richcombo,stylescombo,tab,toolbar,undo',"
+            + "  plugins: 'basicstyles,button,clipboard,contextmenu,copyformatting,divarea,enterkey,entities,floatingspace,floatpanel,htmlwriter,listblock,magicline,menu,menubutton,panel,panelbutton,removeformat,richcombo,stylescombo,tab,toolbar,undo',"
             + "  title: false,"
             + "  toolbar: ["
             + "    { name: 'styles', items: [ 'Styles' ] },"
-            + "    { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', '-', 'RemoveFormat' ] },"
+            + "    { name: 'basicstyles', items: [ 'Bold', 'Italic', 'Underline', '-', 'CopyFormatting', 'RemoveFormat' ] },"
             + "    { name: 'clipboard', items: [ 'Undo', 'Redo' ] }"
             + "  ]"
             + "}";
