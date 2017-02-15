@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package org.hippoecm.frontend.plugins.standardworkflow.validators;
+package org.hippoecm.frontend.plugins.reviewedactions.dialogs;
 
 import java.time.format.FormatStyle;
 import java.util.Date;
@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
 import org.hippoecm.frontend.plugins.standards.ClassResourceModel;
 import org.hippoecm.frontend.plugins.standards.datetime.DateTimePrinter;
+import org.hippoecm.frontend.plugins.standardworkflow.validators.DocumentFormValidator;
 
 public class PublicationDateRangeValidator extends AbstractFormValidator {
 
@@ -48,7 +49,7 @@ public class PublicationDateRangeValidator extends AbstractFormValidator {
         if (depublicationDate.before(publicationDate)) {
             final String publicationDateString = DateTimePrinter.of(publicationDate).print(FormatStyle.LONG, FormatStyle.MEDIUM);
             final String depublicationDateString = DateTimePrinter.of(depublicationDate).print(FormatStyle.LONG, FormatStyle.MEDIUM);
-            final ClassResourceModel classResourceModel = new ClassResourceModel("error-depublication-before-publication-date", DocumentFormValidator.class, publicationDateString, depublicationDateString);
+            final ClassResourceModel classResourceModel = new ClassResourceModel("error-depublication-before-publication-date", PublicationDateRangeValidator.class, publicationDateString, depublicationDateString);
             form.error(classResourceModel.getObject());
         }
     }

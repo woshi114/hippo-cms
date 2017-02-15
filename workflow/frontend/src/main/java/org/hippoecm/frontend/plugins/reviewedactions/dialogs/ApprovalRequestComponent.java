@@ -26,7 +26,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.hippoecm.frontend.plugins.reviewedactions.model.ApprovalRequest;
-import org.hippoecm.frontend.plugins.standardworkflow.validators.PublicationDateRangeValidator;
 
 /**
  * A panel containing a publication date picker and a de-publication date picker.
