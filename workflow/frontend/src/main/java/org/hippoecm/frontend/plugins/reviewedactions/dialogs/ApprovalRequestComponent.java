@@ -17,36 +17,53 @@
 package org.hippoecm.frontend.plugins.reviewedactions.dialogs;
 
 import java.util.Date;
+import java.util.Optional;
 
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.validation.IFormValidator;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
 import org.hippoecm.frontend.plugins.reviewedactions.model.ApprovalRequest;
+import org.hippoecm.frontend.plugins.standardworkflow.validators.PublicationDateRangeValidator;
 
 /**
  * A panel containing a publication date picker and a de-publication date picker.
  */
 public class ApprovalRequestComponent extends Panel {
 
+    private IFormValidator dateRangeFormValidator;
+
     public ApprovalRequestComponent(final IModel<ApprovalRequest> approvalRequestModel) {
         super("approval-request-fields");
 
         final PropertyModel<Date> publicationDateModel = new PropertyModel<>(approvalRequestModel, "publicationDate");
         final ResourceModel publicationDateLabel = new ResourceModel("schedule-publish-text");
-        addDatePicker(publicationDateModel, publicationDateLabel, "publicationDate")
-                .setVisible(approvalRequestModel.getObject().isPublicationDate());
+        final boolean publicationDateVisible = approvalRequestModel.getObject().isPublicationDate();
+        final DatePickerComponent publicationDate = addDatePicker(publicationDateModel, publicationDateLabel, "publicationDate");
+        publicationDate.setVisible(publicationDateVisible);
 
         final PropertyModel<Date> depublicationDateModel = new PropertyModel<>(approvalRequestModel, "depublicationDate");
         final ResourceModel depublicationDateLabel = new ResourceModel("schedule-depublish-text");
-        addDatePicker(depublicationDateModel, depublicationDateLabel, "depublicationDate")
-                .setVisible(approvalRequestModel.getObject().isDepublicationDate());
+        final boolean depublicationDateVisible = approvalRequestModel.getObject().isDepublicationDate();
+        final DatePickerComponent depublicationDate = addDatePicker(depublicationDateModel, depublicationDateLabel, "depublicationDate");
+        depublicationDate.setVisible(depublicationDateVisible);
 
+        if (publicationDateVisible && depublicationDateVisible) {
+            final FormComponent<Date> publicationDateField = publicationDate.getDateTimeField();
+            final FormComponent<Date> depublicationDateDateTimeField = depublicationDate.getDateTimeField();
+            dateRangeFormValidator = new PublicationDateRangeValidator(publicationDateField, depublicationDateDateTimeField);
+        }
     }
 
     private DatePickerComponent addDatePicker(final PropertyModel<Date> dateModel, final ResourceModel dateLabel, final String componentId) {
         final DatePickerComponent picker = new DatePickerComponent(componentId, dateModel, dateLabel);
         add(picker);
         return picker;
+    }
+
+    public Optional<IFormValidator> getDateRangeFormValidator() {
+        return Optional.ofNullable(dateRangeFormValidator);
     }
 }

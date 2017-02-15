@@ -42,7 +42,9 @@ public class SchedulePublishDialog extends WorkflowDialog<Node> {
                 new UnpublishedReferenceProvider(new ReferenceProvider(nodeModel)));
         add(new UnpublishedReferencesView("links", provider, editorMgr));
 
-        add(new ApprovalRequestComponent(approvalRequestModel));
+        final ApprovalRequestComponent approvalRequestComponent = new ApprovalRequestComponent(approvalRequestModel);
+        add(approvalRequestComponent);
+        approvalRequestComponent.getDateRangeFormValidator().ifPresent(this::add);
     }
 
 }
