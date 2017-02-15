@@ -1,5 +1,5 @@
 /*
- *  Copyright 2010-2015 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2010-2017 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,24 +15,23 @@
  */
 package org.hippoecm.frontend.plugins.reviewedactions.dialogs;
 
-import java.util.Date;
-
 import javax.jcr.Node;
 
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.ResourceModel;
 import org.hippoecm.addon.workflow.IWorkflowInvoker;
 import org.hippoecm.addon.workflow.WorkflowDialog;
-import org.hippoecm.frontend.dialog.Dialog;
 import org.hippoecm.frontend.plugins.reviewedactions.UnpublishedReferenceNodeProvider;
+import org.hippoecm.frontend.plugins.reviewedactions.model.ApprovalRequest;
 import org.hippoecm.frontend.plugins.reviewedactions.model.ReferenceProvider;
 import org.hippoecm.frontend.plugins.reviewedactions.model.UnpublishedReferenceProvider;
 import org.hippoecm.frontend.service.IEditorManager;
 
 public class SchedulePublishDialog extends WorkflowDialog<Node> {
 
-    public SchedulePublishDialog(final IWorkflowInvoker invoker, final IModel<Node> nodeModel,
-                                 final IModel<Date> dateModel, final IModel<String> titleModel,
+    public SchedulePublishDialog(final IWorkflowInvoker invoker,
+                                 final IModel<ApprovalRequest> approvalRequestModel,
+                                 final IModel<Node> nodeModel,
+                                 final IModel<String> titleModel,
                                  final IEditorManager editorMgr) {
         super(invoker, nodeModel, titleModel);
 
@@ -43,6 +42,7 @@ public class SchedulePublishDialog extends WorkflowDialog<Node> {
                 new UnpublishedReferenceProvider(new ReferenceProvider(nodeModel)));
         add(new UnpublishedReferencesView("links", provider, editorMgr));
 
-        addOrReplace(new DatePickerComponent(Dialog.BOTTOM_LEFT_ID, dateModel, new ResourceModel("schedule-publish-text")));
+        add(new ApprovalRequestComponent(approvalRequestModel));
     }
+
 }

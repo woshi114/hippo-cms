@@ -1,5 +1,5 @@
 /*
- *  Copyright 2014-2015 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2014-2017 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.hippoecm.frontend.plugins.reviewedactions;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -36,6 +37,8 @@ import org.hippoecm.frontend.plugins.reviewedactions.dialogs.DepublishDialog;
 import org.hippoecm.frontend.plugins.reviewedactions.dialogs.ScheduleDepublishDialog;
 import org.hippoecm.frontend.plugins.reviewedactions.dialogs.SchedulePublishDialog;
 import org.hippoecm.frontend.plugins.reviewedactions.dialogs.UnpublishedReferencesDialog;
+import org.hippoecm.frontend.plugins.reviewedactions.model.ApprovalRequest;
+import org.hippoecm.frontend.plugins.reviewedactions.model.ApprovalRequestModel;
 import org.hippoecm.frontend.plugins.reviewedactions.model.ReferenceProvider;
 import org.hippoecm.frontend.plugins.reviewedactions.model.UnpublishedReferenceProvider;
 import org.hippoecm.frontend.plugins.standards.icon.HippoIcon;
@@ -271,7 +274,7 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
         final StdWorkflow schedulePublishAction;
         add(schedulePublishAction = new StdWorkflow("schedulePublish", new StringResourceModel(
                 "schedule-publish-label", this, null), context, getModel()) {
-            public Date date = new Date();
+            IModel<ApprovalRequest> approvalRequestModel;
 
             @Override
             public String getSubMenu() {
@@ -291,8 +294,9 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
                     final IModel<String> titleModel = new StringResourceModel("schedule-publish-title",
                             PublicationWorkflowPlugin.this, null, getDocumentName());
 
-                    return new SchedulePublishDialog(this, new JcrNodeModel(unpublished),
-                            PropertyModel.of(this, "date"), titleModel, getEditorManager());
+                    final Function<String, ApprovalRequest> loader = id -> new ApprovalRequest(id).setPublicationDate(new Date());
+                    approvalRequestModel = new ApprovalRequestModel(wdm.getNode().getIdentifier(), loader);
+                    return new SchedulePublishDialog(this, approvalRequestModel, new JcrNodeModel(unpublished), titleModel, getEditorManager());
                 } catch (RepositoryException ex) {
                     log.warn("could not retrieve node for scheduling publish", ex);
                 }
@@ -302,8 +306,9 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
             @Override
             protected String execute(Workflow wf) throws Exception {
                 DocumentWorkflow workflow = (DocumentWorkflow) wf;
-                if (date != null) {
-                    workflow.publish(date);
+                final Date publicationDate = approvalRequestModel.getObject().getPublicationDate();
+                if (publicationDate != null) {
+                    workflow.publish(publicationDate);
                 } else {
                     workflow.publish();
                 }
@@ -313,7 +318,8 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
         final StdWorkflow requestSchedulePublishAction;
         add(requestSchedulePublishAction = new StdWorkflow("requestSchedulePublish", new StringResourceModel("schedule-request-publish", this, null), context, getModel()) {
-            public Date date = new Date();
+
+            IModel<ApprovalRequest> approvalRequestModel;
 
             @Override
             public String getSubMenu() {
@@ -333,8 +339,14 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
                     final IModel<String> titleModel = new StringResourceModel("schedule-publish-title",
                             PublicationWorkflowPlugin.this, null, getDocumentName());
 
-                    return new SchedulePublishDialog(this, new JcrNodeModel(unpublished),
-                            PropertyModel.of(this, "date"), titleModel, getEditorManager());
+                    final Function<String, ApprovalRequest> loader = id -> {
+                        final Date now = new Date();
+                        return new ApprovalRequest(id)
+                                .setPublicationDate(now)
+                                .setDepublicationDate(now);
+                    };
+                    approvalRequestModel = new ApprovalRequestModel(wdm.getNode().getIdentifier(), loader);
+                    return new SchedulePublishDialog(this, approvalRequestModel, new JcrNodeModel(unpublished), titleModel, getEditorManager());
                 } catch (RepositoryException ex) {
                     log.warn("could not retrieve node for scheduling publish", ex);
                 }
@@ -343,12 +355,10 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
             @Override
             protected String execute(Workflow wf) throws Exception {
-                DocumentWorkflow workflow = (DocumentWorkflow) wf;
-                if (date != null) {
-                    workflow.requestPublication(date);
-                } else {
-                    workflow.requestPublication();
-                }
+                final Date publicationDate = approvalRequestModel.getObject().getPublicationDate();
+                final Date depublicationDate = approvalRequestModel.getObject().getDepublicationDate();
+                final DocumentWorkflow workflow = (DocumentWorkflow) wf;
+                workflow.requestPublication(publicationDate, depublicationDate);
                 return null;
             }
         });
@@ -359,8 +369,7 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
         if (isActionAllowed(info, "publish") ||
                 isActionAllowed(info, "depublish") ||
                 isActionAllowed(info, "requestPublication") ||
-                isActionAllowed(info, "requestDepublication"))
-        {
+                isActionAllowed(info, "requestDepublication")) {
             hideOrDisable(info, "publish", publishAction, schedulePublishAction);
             hideOrDisable(info, "depublish", depublishAction, scheduleDepublishAction);
 
@@ -377,8 +386,7 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
                 requestDepublishAction.setVisible(false);
                 requestScheduleDepublishAction.setVisible(false);
             }
-        }
-        else {
+        } else {
             publishAction.setVisible(false);
             depublishAction.setVisible(false);
             requestPublishAction.setVisible(false);
