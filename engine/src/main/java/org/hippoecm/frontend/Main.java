@@ -1,5 +1,5 @@
 /*
- *  Copyright 2008-2016 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2008-2017 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -46,8 +46,6 @@ import org.apache.wicket.core.request.handler.PageProvider;
 import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.core.util.resource.locator.IResourceNameIterator;
 import org.apache.wicket.core.util.resource.locator.IResourceStreamLocator;
-import org.apache.wicket.markup.html.IPackageResourceGuard;
-import org.apache.wicket.markup.html.SecurePackageResourceGuard;
 import org.apache.wicket.page.IPageManagerContext;
 import org.apache.wicket.pageStore.IDataStore;
 import org.apache.wicket.pageStore.IPageStore;
@@ -98,6 +96,7 @@ import org.hippoecm.frontend.plugin.config.impl.IApplicationFactory;
 import org.hippoecm.frontend.plugin.config.impl.JcrApplicationFactory;
 import org.hippoecm.frontend.session.PluginUserSession;
 import org.hippoecm.frontend.session.UserSession;
+import org.hippoecm.frontend.settings.GlobalSettings;
 import org.hippoecm.repository.HippoRepository;
 import org.hippoecm.repository.HippoRepositoryFactory;
 import org.hippoecm.repository.api.HippoNodeType;
@@ -115,6 +114,7 @@ public class Main extends PluginApplication {
     static final Logger log = LoggerFactory.getLogger(Main.class);
 
     private static final String FRONTEND_PATH = "/" + HippoNodeType.CONFIGURATION_PATH + "/" + HippoNodeType.FRONTEND_PATH;
+    private static final String PUBLIC_PACKAGE_RESOURCE_CLASS_NAME_PREFIXES = "public.package.resource.class.name.prefixes";
 
     /**
      * Parameter name of the repository storage directory
@@ -420,14 +420,6 @@ public class Main extends PluginApplication {
             }
         });
 
-        final IPackageResourceGuard packageResourceGuard = resourceSettings.getPackageResourceGuard();
-        if (packageResourceGuard instanceof SecurePackageResourceGuard) {
-            SecurePackageResourceGuard guard = (SecurePackageResourceGuard) packageResourceGuard;
-
-            // CMS7-8898: allow .woff2 files to be served
-            guard.addPattern("+*.woff2");
-        }
-
         if (RuntimeConfigurationType.DEVELOPMENT.equals(getConfigurationType())) {
             // disable cache
             resourceSettings.getLocalizer().setEnableCache(false);
@@ -485,6 +477,8 @@ public class Main extends PluginApplication {
 
                     @Override
                     protected BufferedWebResponse renderPage(final Url targetUrl, final RequestCycle requestCycle) {
+                        initPackageResourceGuard();
+
                         IRequestHandler scheduled = requestCycle.getRequestHandlerScheduledAfterCurrent();
                         if (scheduled == null) {
                             IRequestablePage page = getPage();
@@ -503,6 +497,17 @@ public class Main extends PluginApplication {
         if (log.isInfoEnabled()) {
             log.info("Hippo CMS application " + applicationName + " has started");
         }
+    }
+
+    protected void initPackageResourceGuard() {
+        final WhitelistedPublicClassesPackageResourceGuard packageResourceGuard = new WhitelistedPublicClassesPackageResourceGuard();
+        final String[] classNamePrefixes = GlobalSettings.get().getStringArray(PUBLIC_PACKAGE_RESOURCE_CLASS_NAME_PREFIXES);
+        packageResourceGuard.addClassNamePrefixes(classNamePrefixes);
+
+        // CMS7-8898: allow .woff2 files to be served
+        packageResourceGuard.addPattern("+*.woff2");
+
+        getResourceSettings().setPackageResourceGuard(packageResourceGuard);
     }
 
     protected void registerSessionListeners() {

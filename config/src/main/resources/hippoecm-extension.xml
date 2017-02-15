@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright 2007-2015 Hippo B.V. (http://www.onehippo.com)
+  Copyright 2007-2017 Hippo B.V. (http://www.onehippo.com)
 
   Licensed under the Apache License, Version 2.0 (the  "License");
   you may not use this file except in compliance with the License.
@@ -218,6 +218,22 @@
     </sv:property>
     <sv:property sv:name="hippo:sequence" sv:type="Double">
       <sv:value>910.0</sv:value>
+    </sv:property>
+  </sv:node>
+  <sv:node sv:name="cms-settings-set-public-package-resource-class-name-prefixes">
+    <sv:property sv:name="jcr:primaryType" sv:type="Name">
+      <sv:value>hippo:initializeitem</sv:value>
+    </sv:property>
+    <sv:property sv:name="hippo:contentroot" sv:type="String">
+      <sv:value>/hippo:configuration/hippo:frontend/settings/public.package.resource.class.name.prefixes</sv:value>
+    </sv:property>
+    <sv:property sv:name="hippo:contentpropset" sv:type="String" sv:multiple="true">
+      <sv:value>org.apache.wicket.</sv:value>
+      <sv:value>org.hippoecm.</sv:value>
+      <sv:value>org.onehippo.</sv:value>
+    </sv:property>
+    <sv:property sv:name="hippo:sequence" sv:type="Double">
+      <sv:value>910.1</sv:value>
     </sv:property>
   </sv:node>
   <!-- CMS static configuration-->
