@@ -1,5 +1,5 @@
 /*
- *  Copyright 2012-2015 Hippo B.V. (http://www.onehippo.com)
+ *  Copyright 2012-2017 Hippo B.V. (http://www.onehippo.com)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License");
  *  you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package org.hippoecm.frontend.plugins.standardworkflow;
 
-import java.util.Locale;
-
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -25,7 +23,6 @@ import org.hippoecm.addon.workflow.WorkflowDescriptorModel;
 import org.hippoecm.addon.workflow.WorkflowDialog;
 import org.hippoecm.frontend.dialog.DialogConstants;
 import org.hippoecm.frontend.plugins.standardworkflow.validators.RenameDocumentValidator;
-import org.hippoecm.frontend.session.UserSession;
 import org.hippoecm.frontend.widgets.NameUriField;
 import org.hippoecm.repository.api.StringCodec;
 
@@ -57,7 +54,7 @@ public class RenameDocumentDialog extends WorkflowDialog<RenameDocumentArguments
         setAjaxChannel(activeAjaxChannel);
         nameUriContainer.setAjaxChannel(activeAjaxChannel);
 
-        add(new RenameDocumentValidator(this, nameUriContainer, workflowDescriptorModel));
+        add(new RenameDocumentValidator(nameUriContainer, workflowDescriptorModel));
     }
 
     @Override

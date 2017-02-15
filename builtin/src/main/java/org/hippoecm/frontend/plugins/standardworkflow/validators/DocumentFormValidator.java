@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Hippo B.V. (http://www.onehippo.com)
+ * Copyright 2015-2017 Hippo B.V. (http://www.onehippo.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,12 +30,6 @@ public abstract class DocumentFormValidator implements IFormValidator {
     public static final String ERROR_VALIDATION_NAMES = "error-validation-names";
     public static final String ERROR_SNS_NAMES_EXIST = "error-sns-names-exist";
 
-    private final Form form;
-
-    public DocumentFormValidator(final Form form) {
-        this.form = form;
-    }
-
     /**
      * Return true if <code>parentNode</code> contains a child having the same display name with the specified
      * <code>localizedName</code>
@@ -44,7 +38,7 @@ public abstract class DocumentFormValidator implements IFormValidator {
         return SameNameSiblingsUtil.hasChildWithDisplayName(parentNode, displayName);
     }
 
-    protected void showError(final String key, Object... parameters) {
+    protected void showError(final Form form, final String key, Object... parameters) {
         form.error(new ClassResourceModel(key, DocumentFormValidator.class, parameters).getObject());
     }
 

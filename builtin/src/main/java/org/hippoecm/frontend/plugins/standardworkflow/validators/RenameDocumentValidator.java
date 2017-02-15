@@ -38,9 +38,9 @@ public class RenameDocumentValidator extends DocumentFormValidator {
     private final String originalName;
     private final String originalUrl;
 
-    public RenameDocumentValidator(final Form form, final NameUriField nameUriField,
+    public RenameDocumentValidator(final NameUriField nameUriField,
                                    final WorkflowDescriptorModel workflowDescriptor) {
-        super(form);
+        super();
 
         this.nameUriField = nameUriField;
         this.workflowDescriptor = workflowDescriptor;
@@ -63,9 +63,9 @@ public class RenameDocumentValidator extends DocumentFormValidator {
 
             if (StringUtils.equals(newUrlName, originalUrl)) {
                 if (StringUtils.equals(newLocalizedName, originalName)) {
-                    showError(ERROR_SAME_NAMES);
+                    showError(form, ERROR_SAME_NAMES);
                 } else if (hasChildWithDisplayName(parentNode, newLocalizedName)) {
-                    showError(ERROR_LOCALIZED_NAME_EXISTS, newLocalizedName);
+                    showError(form, ERROR_LOCALIZED_NAME_EXISTS, newLocalizedName);
                 }
             } else {
                 final boolean hasNodeWithSameName = parentNode.hasNode(newUrlName);
@@ -73,16 +73,16 @@ public class RenameDocumentValidator extends DocumentFormValidator {
                         hasChildWithDisplayName(parentNode, newLocalizedName);
 
                 if (hasNodeWithSameName && hasOtherNodeWithSameLocalizedName) {
-                    showError(ERROR_SNS_NAMES_EXIST, newUrlName, newLocalizedName);
+                    showError(form, ERROR_SNS_NAMES_EXIST, newUrlName, newLocalizedName);
                 } else if (hasNodeWithSameName) {
-                    showError(ERROR_SNS_NODE_EXISTS, newUrlName);
+                    showError(form, ERROR_SNS_NODE_EXISTS, newUrlName);
                 } else if (hasOtherNodeWithSameLocalizedName) {
-                    showError(ERROR_LOCALIZED_NAME_EXISTS, newLocalizedName);
+                    showError(form, ERROR_LOCALIZED_NAME_EXISTS, newLocalizedName);
                 }
             }
         } catch (RepositoryException e) {
             log.error("validation error: {}", e.getMessage());
-            showError(ERROR_VALIDATION_NAMES);
+            showError(form, ERROR_VALIDATION_NAMES);
         }
     }
 }

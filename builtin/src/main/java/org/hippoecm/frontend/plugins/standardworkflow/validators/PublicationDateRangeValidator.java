@@ -21,16 +21,17 @@ import java.util.Date;
 
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.validation.AbstractFormValidator;
 import org.hippoecm.frontend.plugins.standards.ClassResourceModel;
 import org.hippoecm.frontend.plugins.standards.datetime.DateTimePrinter;
 
-public class PublicationDateRangeValidator extends DocumentFormValidator {
+public class PublicationDateRangeValidator extends AbstractFormValidator {
 
     private final FormComponent<Date> publicationDateComponent;
     private final FormComponent<Date> depublicationDateComponent;
 
     public PublicationDateRangeValidator(final FormComponent<Date> publicationDateComponent, final FormComponent<Date> depublicationDateComponent) {
-        super(null);
+        super();
         this.publicationDateComponent = publicationDateComponent;
         this.depublicationDateComponent = depublicationDateComponent;
     }

@@ -36,9 +36,9 @@ public class AddDocumentValidator extends DocumentFormValidator {
     private final NameUriField nameUriField;
     private final WorkflowDescriptorModel workflowDescriptor;
 
-    public AddDocumentValidator(final Form form, final NameUriField nameUriField,
+    public AddDocumentValidator(final NameUriField nameUriField,
                                 final WorkflowDescriptorModel workflowDescriptor) {
-        super(form);
+        super();
 
         this.nameUriField = nameUriField;
         this.workflowDescriptor = workflowDescriptor;
@@ -60,15 +60,15 @@ public class AddDocumentValidator extends DocumentFormValidator {
             final boolean hasNodeWithSameLocalizedName = hasChildWithDisplayName(parentNode, newDisplayName);
 
             if (hasNodeWithSameName && hasNodeWithSameLocalizedName) {
-                showError(ERROR_SNS_NAMES_EXIST, newNodeName, newDisplayName);
+                showError(form, ERROR_SNS_NAMES_EXIST, newNodeName, newDisplayName);
             } else if (hasNodeWithSameName) {
-                showError(ERROR_SNS_NODE_EXISTS, newNodeName);
+                showError(form, ERROR_SNS_NODE_EXISTS, newNodeName);
             } else if (hasNodeWithSameLocalizedName) {
-                showError(ERROR_LOCALIZED_NAME_EXISTS, newDisplayName);
+                showError(form, ERROR_LOCALIZED_NAME_EXISTS, newDisplayName);
             }
         } catch (RepositoryException e) {
             log.error("validation error: {}", e.getMessage());
-            showError(ERROR_VALIDATION_NAMES);
+            showError(form, ERROR_VALIDATION_NAMES);
         }
     }
 }
