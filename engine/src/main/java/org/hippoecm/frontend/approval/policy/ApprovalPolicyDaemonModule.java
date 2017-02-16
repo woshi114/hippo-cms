@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * DeamonModule to load configuration for the {@link ApprovalPolicyService}.
+ * DaemonModule to load configuration for the {@link ApprovalPolicyService}.
  */
 public class ApprovalPolicyDaemonModule extends AbstractReconfigurableDaemonModule {
 
