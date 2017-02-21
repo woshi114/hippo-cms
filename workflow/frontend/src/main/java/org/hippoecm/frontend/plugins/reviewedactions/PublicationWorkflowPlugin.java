@@ -44,10 +44,10 @@ import org.hippoecm.frontend.plugins.reviewedactions.model.UnpublishedReferenceP
 import org.hippoecm.frontend.plugins.standards.icon.HippoIcon;
 import org.hippoecm.frontend.skin.Icon;
 import org.hippoecm.repository.HippoStdNodeType;
+import org.hippoecm.repository.api.BPMConfigurationService;
 import org.hippoecm.repository.api.Workflow;
 import org.onehippo.cms7.services.HippoServiceRegistry;
 import org.onehippo.repository.documentworkflow.DocumentWorkflow;
-import org.hippoecm.repository.api.ApprovalPolicyConfigurationService;
 
 public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
 
@@ -337,9 +337,9 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
             protected IDialogService.Dialog createRequestDialog() {
                 WorkflowDescriptorModel wdm = getModel();
                 try {
-                    ApprovalPolicyConfigurationService approvalPolicyConfigurationService = HippoServiceRegistry.getService(ApprovalPolicyConfigurationService.class);
-                    final String processId = approvalPolicyConfigurationService.getProcessId();
-                    log.info("Retrieved {\"processId\":{}}",processId);
+                    final BPMConfigurationService bpmConfigurationService = HippoServiceRegistry.getService(BPMConfigurationService.class);
+                    final String processId = bpmConfigurationService.getProcessId();
+                    log.info("Retrieved {\"processId\":{}}", processId);
                     Node unpublished = getVariant(wdm.getNode(), HippoStdNodeType.UNPUBLISHED);
                     final IModel<String> titleModel = new StringResourceModel("schedule-publish-title",
                             PublicationWorkflowPlugin.this, null, getDocumentName());
