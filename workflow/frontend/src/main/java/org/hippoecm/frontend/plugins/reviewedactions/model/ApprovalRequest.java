@@ -28,12 +28,14 @@ public class ApprovalRequest {
     private Date publicationDate;
     private Date depublicationDate;
     private String processId;
+    private String processDescription;
 
     public ApprovalRequest(final String documentReference) {
         this.documentReference = documentReference;
         this.publicationDate = new Date(0);
         this.depublicationDate = new Date(0);
         this.processId = null;
+        this.processDescription = null;
     }
 
     /**
@@ -77,6 +79,11 @@ public class ApprovalRequest {
         return this;
     }
 
+    public ApprovalRequest setProcessDescription(final String description){
+        this.processDescription = description;
+        return this;
+    }
+
     /**
      * Returns the reference that uniquely identifies the document
      *
@@ -88,5 +95,9 @@ public class ApprovalRequest {
 
     public Optional<String> getProcessId() {
         return Optional.ofNullable(processId);
+    }
+
+    public Optional<String> getProcessDescription() {
+        return Optional.ofNullable(processDescription);
     }
 }

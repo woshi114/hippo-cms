@@ -338,8 +338,6 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
                 WorkflowDescriptorModel wdm = getModel();
                 try {
                     final BPMConfigurationService bpmConfigurationService = HippoServiceRegistry.getService(BPMConfigurationService.class);
-                    final String processId = bpmConfigurationService.getProcessId();
-                    log.info("Retrieved {\"processId\":{}}", processId);
                     Node unpublished = getVariant(wdm.getNode(), HippoStdNodeType.UNPUBLISHED);
                     final IModel<String> titleModel = new StringResourceModel("schedule-publish-title",
                             PublicationWorkflowPlugin.this, null, getDocumentName());
@@ -349,7 +347,8 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
                         return new ApprovalRequest(id)
                                 .setPublicationDate(now)
                                 .setDepublicationDate(now)
-                                .setProcessId(processId);
+                                .setProcessId(bpmConfigurationService.getProcessId())
+                                .setProcessDescription(bpmConfigurationService.getDescription());
                     };
                     approvalRequestModel = new ApprovalRequestModel(wdm.getNode().getIdentifier(), loader);
                     return new SchedulePublishDialog(this, approvalRequestModel, new JcrNodeModel(unpublished), titleModel, getEditorManager());

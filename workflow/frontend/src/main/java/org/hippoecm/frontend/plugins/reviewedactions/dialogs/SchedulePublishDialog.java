@@ -20,7 +20,6 @@ import java.util.Optional;
 import javax.jcr.Node;
 
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.hippoecm.addon.workflow.IWorkflowInvoker;
 import org.hippoecm.addon.workflow.WorkflowDialog;
 import org.hippoecm.frontend.plugins.reviewedactions.UnpublishedReferenceNodeProvider;
@@ -53,9 +52,9 @@ public class SchedulePublishDialog extends WorkflowDialog<Node> {
     }
 
     private void addApprovalPolicyNotification(final IModel<ApprovalRequest> approvalRequestModel) {
-        final Optional<String> processId = approvalRequestModel.getObject().getProcessId();
-        if (processId.isPresent()){
-            ClassResourceModel approvalText = new ClassResourceModel("approval-policy-text",SchedulePublishDialog.class,processId.get());
+        final Optional<String> processDescription = approvalRequestModel.getObject().getProcessDescription();
+        if (processDescription.isPresent()){
+            ClassResourceModel approvalText = new ClassResourceModel("approval-policy-text",SchedulePublishDialog.class,processDescription.get());
             setNotification(approvalText);
         }
     }
