@@ -17,6 +17,7 @@
 package org.hippoecm.frontend.plugins.reviewedactions.model;
 
 import java.util.Date;
+import java.util.Optional;
 
 /**
  * Contains the properties required for a document approval request.
@@ -26,11 +27,13 @@ public class ApprovalRequest {
     private final String documentReference;
     private Date publicationDate;
     private Date depublicationDate;
+    private String processId;
 
     public ApprovalRequest(final String documentReference) {
         this.documentReference = documentReference;
         this.publicationDate = new Date(0);
         this.depublicationDate = new Date(0);
+        this.processId = null;
     }
 
     /**
@@ -69,6 +72,11 @@ public class ApprovalRequest {
         return this;
     }
 
+    public ApprovalRequest setProcessId(final String processId){
+        this.processId = processId;
+        return this;
+    }
+
     /**
      * Returns the reference that uniquely identifies the document
      *
@@ -78,4 +86,7 @@ public class ApprovalRequest {
         return documentReference;
     }
 
+    public Optional<String> getProcessId() {
+        return Optional.ofNullable(processId);
+    }
 }

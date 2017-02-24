@@ -348,7 +348,8 @@ public class PublicationWorkflowPlugin extends AbstractDocumentWorkflowPlugin {
                         final Date now = new Date();
                         return new ApprovalRequest(id)
                                 .setPublicationDate(now)
-                                .setDepublicationDate(now);
+                                .setDepublicationDate(now)
+                                .setProcessId(processId);
                     };
                     approvalRequestModel = new ApprovalRequestModel(wdm.getNode().getIdentifier(), loader);
                     return new SchedulePublishDialog(this, approvalRequestModel, new JcrNodeModel(unpublished), titleModel, getEditorManager());
