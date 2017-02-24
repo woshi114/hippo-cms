@@ -20,12 +20,7 @@
     <sv:value>frontend:pluginconfig</sv:value>
   </sv:property>
 
-  <!-- add this property when upgrading from 7.9 -->
-  <sv:property sv:name="send.usage.statistics.to.hippo" sv:type="Boolean" esv:merge="skip">
-    <sv:value>true</sv:value>
-  </sv:property>
-
-  <!-- add this property in 10.2 but keep the existing value if already present -->
+  <!-- add this property but keep the existing value if already present -->
   <sv:property sv:name="whitelisted.classes.for.package.resources" sv:type="String" sv:multiple="true" esv:merge="skip">
     <!--
       Prefixes of class names that are used by public pages to load package resources (e.g. the login page).
