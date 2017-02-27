@@ -93,7 +93,7 @@
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
-  </dependencies>
+    </dependencies>
 
   <build>
     <defaultGoal>package</defaultGoal>
