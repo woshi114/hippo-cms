@@ -36,39 +36,6 @@ public class TranslationUtil {
         // prevent instantiation
     }
 
-    /**
-     * Do both the argument document node and the containing folder node have the 'translated' mixin?
-     */
-    public static boolean hasTranslationContext(Node documentNode) {
-        if (documentNode == null) {
-            log.warn("Argument document node is null");
-            return false;
-        }
-
-        try {
-            if (!documentNode.isNodeType(HippoNodeType.NT_DOCUMENT)) {
-                log.warn("Document node at {} is not a {}", documentNode.getPath(), HippoNodeType.NT_DOCUMENT);
-                return false;
-            }
-
-            if (!isNtTranslated(documentNode)) {
-                log.debug("Document node at {} is not a {}", documentNode.getPath(), NT_TRANSLATED);
-                return false;
-            }
-
-            final Node folderNode = documentNode.getParent().getParent();
-            if (!isNtTranslated(folderNode)) {
-                log.debug("Folder node at {} is not a {}", folderNode.getPath(), NT_TRANSLATED);
-                return false;
-            }
-
-            return true;
-        } catch (RepositoryException e) {
-            log.error("Failed to check the document's folder having mixin " + NT_TRANSLATED, e);
-        }
-
-        return false;
-    }
 
     public static boolean isNtTranslated(Node node) throws RepositoryException {
         if (node.isNodeType(NT_TRANSLATED)) {

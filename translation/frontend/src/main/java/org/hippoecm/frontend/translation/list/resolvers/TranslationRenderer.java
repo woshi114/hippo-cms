@@ -64,7 +64,10 @@ public class TranslationRenderer extends AbstractNodeRenderer {
             }
         }
 
-        if ((document != null) && TranslationUtil.hasTranslationContext(document)) {
+        if ((document != null) &&
+            (!TranslationUtil.isNtTranslated(document.getParent().getParent()) &&
+                (!TranslationUtil.isNtTranslated(document) ||
+                    !provider.isKnown(document.getProperty(HippoTranslationNodeType.LOCALE).getString())))) {
             return new TranslationList(id, document);
         }
         return new EmptyPanel(id);
