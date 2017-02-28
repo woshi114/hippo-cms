@@ -23,6 +23,8 @@ import org.hippoecm.repository.translation.HippoTranslationNodeType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.hippoecm.repository.translation.HippoTranslationNodeType.NT_TRANSLATED;
+
 /**
  * Utility class.
  */
@@ -49,24 +51,30 @@ public class TranslationUtil {
                 return false;
             }
 
-            if (!documentNode.isNodeType(HippoTranslationNodeType.NT_TRANSLATED)) {
-                log.debug("Document node at {} is not a {}", documentNode.getPath(), HippoTranslationNodeType.NT_TRANSLATED);
+            if (!isNtTranslated(documentNode)) {
+                log.debug("Document node at {} is not a {}", documentNode.getPath(), NT_TRANSLATED);
                 return false;
             }
 
             final Node folderNode = documentNode.getParent().getParent();
-            if (!folderNode.isNodeType(HippoTranslationNodeType.NT_TRANSLATED)) {
-                log.debug("Folder node at {} is not a {}", folderNode.getPath(), HippoTranslationNodeType.NT_TRANSLATED);
+            if (!isNtTranslated(folderNode)) {
+                log.debug("Folder node at {} is not a {}", folderNode.getPath(), NT_TRANSLATED);
                 return false;
             }
 
             return true;
         } catch (RepositoryException e) {
-            log.error("Failed to check the document's folder having mixin " + HippoTranslationNodeType.NT_TRANSLATED, e);
+            log.error("Failed to check the document's folder having mixin " + NT_TRANSLATED, e);
         }
 
         return false;
     }
 
+    public static boolean isNtTranslated(Node node) throws RepositoryException {
+        if (node.isNodeType(NT_TRANSLATED)) {
+            return true;
+        }
+        return false;
+    }
 
 }

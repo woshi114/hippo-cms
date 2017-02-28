@@ -75,4 +75,5 @@ public interface ILocaleProvider extends IClusterable {
 
     HippoLocale getLocale(String name);
 
+    boolean isKnown(String locale);
 }

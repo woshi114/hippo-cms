@@ -94,15 +94,22 @@ public final class LocaleProviderPlugin extends Plugin implements ILocaleProvide
     }
 
     public HippoLocale getLocale(String name) {
-        if (locales == null) {
-            locales = loadLocales();
-        }
-        if (locales.containsKey(name)) {
+        if (isKnown(name)) {
             return locales.get(name);
         } else {
             log.warn("Unknown locale {}", name);
             return UNKNOWN_LOCALE;
         }
+    }
+
+    public boolean isKnown(String locale) {
+        if (locales == null) {
+            locales = loadLocales();
+        }
+        if (locales.containsKey(locale)) {
+            return true;
+        }
+        return false;
     }
 
     public void detach() {

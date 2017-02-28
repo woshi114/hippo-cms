@@ -68,6 +68,7 @@ import org.hippoecm.frontend.translation.DocumentTranslationProvider;
 import org.hippoecm.frontend.translation.ILocaleProvider;
 import org.hippoecm.frontend.translation.ILocaleProvider.HippoLocale;
 import org.hippoecm.frontend.translation.ILocaleProvider.LocaleState;
+import org.hippoecm.frontend.translation.LocaleProviderPlugin;
 import org.hippoecm.frontend.translation.TranslationUtil;
 import org.hippoecm.frontend.translation.components.document.FolderTranslation;
 import org.hippoecm.frontend.types.IFieldDescriptor;
@@ -643,8 +644,14 @@ public final class TranslationWorkflowPlugin extends RenderPlugin {
             }
         };
 
-        if (!TranslationUtil.hasTranslationContext(documentNode)) {
-            return;
+
+        try {
+            if (!TranslationUtil.isNtTranslated(documentNode.getParent().getParent()) &&
+                (!TranslationUtil.isNtTranslated(documentNode) || !localeProvider.isKnown(languageModel.getObject()))) {
+                return;
+            }
+        } catch (RepositoryException e) {
+           log.warn("Could not determine translations status of document", e);
         }
 
         add(new EmptyPanel("content"));

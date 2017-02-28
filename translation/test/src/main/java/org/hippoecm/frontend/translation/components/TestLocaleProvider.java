@@ -59,6 +59,11 @@ public final class TestLocaleProvider implements ILocaleProvider {
         return locales.get(name);
     }
 
+    @Override
+    public boolean isKnown(String locale) {
+        return locales.get(locale) != null;
+    }
+
     public List<? extends HippoLocale> getLocales() {
         return new ArrayList<HippoLocale>(locales.values());
     }
